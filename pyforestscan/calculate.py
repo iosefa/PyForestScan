@@ -11,14 +11,12 @@ def assign_voxels(arr, voxel_resolution, z_resolution):
 
     histogram, edges = np.histogramdd(np.vstack((arr['X'], arr['Y'], arr['HeightAboveGround'])).transpose(),
                                       bins=(x_bin, y_bin, z_bin))
+    extent = [arr['X'].min(), arr['X'].max(), arr['Y'].min(), arr['Y'].max()]
 
-    spatial_extent = {'xmin': arr['X'].min(), 'ymin': arr['Y'].min(),
-                      'xmax': arr['X'].max(), 'ymax': arr['Y'].max()}
-
-    return histogram, spatial_extent
+    return histogram, extent
 
 
-def calc_lad(voxel_returns, voxel_height, beer_lambert_constant=None):
+def calculate_lad(voxel_returns, voxel_height, beer_lambert_constant=None):
     return_accum = np.cumsum(voxel_returns[::-1], axis=2)[::-1]
     shots_in = return_accum
     shots_through = return_accum - voxel_returns
@@ -36,5 +34,5 @@ def calc_lad(voxel_returns, voxel_height, beer_lambert_constant=None):
     return lad
 
 
-def calc_lai(lad):
+def calculate_lai(lad):
     return np.nansum(lad, axis=2)
