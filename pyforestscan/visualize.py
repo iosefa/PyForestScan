@@ -6,42 +6,42 @@ from mayavi import mlab
 
 def plot_2d(points, x_dim='X', y_dim='Z', color_map='viridis', alpha=1.0, point_size=1, fig_size=None):
     """
-    Creates a 2D scatter plot with colormap, adjustable opacity, point size and figure dimensions.
+    Generate a 2D scatter plot of point cloud data.
 
-    Parameters:
-        points (np.ndarray): A pdal points.
-        x_dim (str): The x dimension to be plotted. Default is 'X'.
-        y_dim (str): The y dimension to be plotted. Default is 'Z'.
-        color_map (str): The color map to use for color values. Default is 'viridis'.
-        alpha (float): Opacity of points. Default value is 1.0.
-        point_size (float): Size of points. Default value is 1.
-        fig_size (tuple): Figure size in inches. Default value is None, and in this case it will be determined by the data's aspect ratio.
+    Args:
+        points (pandas.DataFrame): Data frame containing point cloud coordinates and attributes.
+        x_dim (str, optional): The dimension to plot along the x-axis. Defaults to 'X'.
+        y_dim (str, optional): The dimension to plot along the y-axis. Defaults to 'Z'.
+        color_map (str, optional): The colormap used for coloring points. Defaults to 'viridis'.
+        alpha (float, optional): Opacity of points. Defaults to 1.0.
+        point_size (int, optional): Size of points. Defaults to 1.
+        fig_size (tuple, optional): Size of the figure. Calculated based on data if None. Defaults to None.
+
+    Raises:
+        ValueError: If invalid dimensions are provided.
+
+    Example:
+        >>> plot_2d(df, x_dim='X', y_dim='Z')
     """
-    # Check that the requested dimensions are valid
     valid_dims = ['X', 'Y', 'Z', 'HeightAboveGround']
     if x_dim not in valid_dims or y_dim not in valid_dims:
         raise ValueError(f"Invalid dimensions. Choose from: {valid_dims}")
 
-    # Prepare data
     x = points[x_dim]
     y = points[y_dim]
     colors = points['HeightAboveGround']
 
-    # Determine figure size based on aspect ratio if not provided
     if fig_size is None:
         aspect_ratio = (np.max(x) - np.min(x)) / (np.max(y) - np.min(y))
         fig_size = (10 * aspect_ratio, 10)
 
-        # Check the figure size and adjust it if necessary
         max_fig_size = 20  # inches
         if max(fig_size) > max_fig_size:
             scale_factor = max_fig_size / max(fig_size)
             fig_size = (fig_size[0] * scale_factor, fig_size[1] * scale_factor)
 
-    # Define figure size
     plt.figure(figsize=fig_size)
 
-    # Plot
     plt.scatter(x, y, c=colors, cmap=color_map, alpha=alpha, s=point_size)
     plt.xlabel(x_dim)
     plt.ylabel(y_dim)
@@ -52,40 +52,40 @@ def plot_2d(points, x_dim='X', y_dim='Z', color_map='viridis', alpha=1.0, point_
 
 def plot_3d(arrays, z_dim='Z', fig_size=None):
     """
-    Creates a 3D scatter plot with colormap and figure dimensions.
+    Generate a 3D scatter plot of point cloud data using Mayavi.
 
-    Parameters:
-        arrays (list): A list containing pdal arrays.
-        z_dim (str): The z dimension to be plotted. Default is 'Z', can also be 'HeightAboveGround'.
-        fig_size (tuple): Figure size in pixels. Default value is None, and in this case it will be determined by the data's aspect ratio.
+    Args:
+        arrays (list): List of NumPy structured arrays containing point cloud data.
+        z_dim (str, optional): The dimension to plot along the z-axis. Defaults to 'Z'.
+        fig_size (tuple, optional): Size of the Mayavi window. Calculated based on data if None. Defaults to None.
+
+    Raises:
+        ValueError: If invalid dimensions are provided.
+
+    Example:
+        >>> plot_3d([array1, array2], z_dim='Z')
     """
-    # Check that the requested dimensions are valid
     valid_dims = ['Z', 'HeightAboveGround']
     if z_dim not in valid_dims:
         raise ValueError(f"Invalid dimensions. Choose from: {valid_dims}")
 
-    # Prepare data
     points = arrays[0]
     x = points['X']
     y = points['Y']
     z = points[z_dim]
     colors = points['HeightAboveGround']
 
-    # Determine figure size based on aspect ratio if not provided
     if fig_size is None:
         aspect_ratio = (np.max(x) - np.min(x)) / (np.max(y) - np.min(y))
         fig_size = (800 * aspect_ratio, 800)
 
-        # Check the figure size and adjust it if necessary
         max_fig_size = 1600  # pixels
         if max(fig_size) > max_fig_size:
             scale_factor = max_fig_size / max(fig_size)
             fig_size = (fig_size[0] * scale_factor, fig_size[1] * scale_factor)
 
-    # Define figure size
     fig = mlab.figure(size=fig_size)
 
-    # Plot
     pts = mlab.points3d(x, y, z, colors, colormap='viridis', scale_mode='none', scale_factor=0.5)
     mlab.axes()
     mlab.show()
@@ -93,32 +93,30 @@ def plot_3d(arrays, z_dim='Z', fig_size=None):
 
 def plot_lai(lai, extent, cmap='viridis', fig_size=None):
     """
-    Plots the Leaf Area Index (LAI) map using imshow.
+    Plot the Leaf Area Index (LAI) on a 2D grid.
 
-    Parameters:
-        lai (numpy array): The 2D LAI values to plot.
-        extent (list): The extent of the plot in the form of [xmin, xmax, ymin, ymax].
-        cmap (str): The color map to use for color values. Default is 'viridis'.
-        fig_size (tuple): Figure size in inches. Default value is None, and in this case it will be determined by the data's aspect ratio.
+    Args:
+        lai (numpy.ndarray): 2D array of LAI values.
+        extent (tuple): (xmin, xmax, ymin, ymax) defining the spatial extent of the data.
+        cmap (str, optional): The colormap used for coloring the LAI. Defaults to 'viridis'.
+        fig_size (tuple, optional): Size of the figure. Calculated based on data if None. Defaults to None.
+
+    Example:
+        >>> plot_lai(lai_array, (0, 10, 0, 10))
     """
-
-    # Calculate aspect ratio and figure size if not provided
     if fig_size is None:
         x_range = extent[1] - extent[0]
         y_range = extent[3] - extent[2]
         aspect_ratio = x_range / y_range
         fig_size = (10 * aspect_ratio, 10)
 
-        # Check the figure size and adjust it if necessary
         max_fig_size = 20  # inches
         if max(fig_size) > max_fig_size:
             scale_factor = max_fig_size / max(fig_size)
             fig_size = (fig_size[0] * scale_factor, fig_size[1] * scale_factor)
 
-    # Create figure and axes with the calculated size
     plt.figure(figsize=fig_size)
 
-    # Plot the LAI
     plt.imshow(lai, extent=extent, cmap=cmap)
     plt.colorbar(label='LAI')
     plt.title('Leaf Area Index (LAI)')
@@ -129,14 +127,19 @@ def plot_lai(lai, extent, cmap='viridis', fig_size=None):
 
 def plot_lad_2d(lad, slice_index, axis='x', cmap='viridis'):
     """
-    Plots a 2D slice of the Leaf Area Density (LAD) 3D array along the specified axis.
-    The other axis is chosen by slice_index.
+    Plot a 2D slice of the Leaf Area Density (LAD) on a grid.
 
-    Parameters:
-        lad (numpy array): The 3D LAD values.
-        slice_index (int): The index at which to slice the 3D array to get a 2D cross-section.
-        axis (str): The axis along which to slice ('x', 'y', or 'z'). Default is 'x'.
-        cmap (str): The color map to use for color values. Default is 'viridis'.
+    Args:
+        lad (numpy.ndarray): 3D array of LAD values.
+        slice_index (int): Index at which to slice the 3D LAD array.
+        axis (str, optional): Axis along which to slice ('x' or 'y'). Defaults to 'x'.
+        cmap (str, optional): The colormap used for coloring the LAD. Defaults to 'viridis'.
+
+    Raises:
+        ValueError: If invalid axis is provided.
+
+    Example:
+        >>> plot_lad_2d(lad_array, 5, axis='x')
     """
     if axis == 'x':
         lad_2d = lad[slice_index, :, :]
