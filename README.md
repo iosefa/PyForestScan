@@ -1,26 +1,34 @@
-# PyForestScan
+# PyForestScan: Airborne Point Cloud Analysis for Forest Structure
 
-__This library is currently experimental and is under heavy development.__
+_This library is currently experimental and is under heavy development._
 
 ![Height Above Ground](./screenshots/hag.png)
 
 ## Overview
 
-PyForestScan is a Python library designed to process, analyze, and visualize 3D point cloud data of forests.
-It aims to simplify complex point cloud processing pipelines, offering functionalities such as filtering by
-height above ground, 2D and 3D visualizations, and various density metrics. Whether you are a researcher, developer,
-or data scientist, PyForestScan is designed to make your point cloud data processing tasks easier.
+PyForestScan is a Python library optimized for the analysis and visualization of forest structure through airborne 3D point cloud data. Engineered to work seamlessly with point clouds derived from drones and other UAV (Unmanned Aerial Vehicle) devices, the library is a go-to solution for researchers, ecologists, and forestry professionals. It specializes in deriving key forest metrics such as Height Above Ground (HAG), Leaf Area Index (LAI), Canopy Cover, and Leaf Area Density (LAD).
+
+## Core Focus Areas
+
+### 🌳 Forest Metrics
+Gain unprecedented insights into forest structure with metrics like HAG, LAI, Canopy Cover, and LAD, specially tuned for airborne data.
+
+### 🚁 Airborne Data Compatibility
+Designed for compatibility with LiDAR and Structure from Motion (SfM) data acquired through drones and UAVs, ensuring high-resolution and accurate analysis.
+
+### 🌱 Intuitive Visualization
+Unlock actionable insights with sophisticated 2D and 3D visualizations that are tailored to represent airborne point cloud data effectively.
 
 ## Features
 
-- **Height Above Ground Filtering**: Easily filter points based on their height above ground.
-- **2D and 3D Visualization**: Plot your data in 2D or 3D space with customizable settings.
-- **Density Metrics**: Calculate and visualize metrics such as Leaf Area Density (LAD) and Leaf Area Index (LAI).
-- **Extensibility**: Designed to be easily extensible for custom filters and visualization techniques.
+- **Specialized Forest Metrics**: Calculate and visualize crucial airborne forest metrics such as LAI and LAD.
+- **Height Above Ground Filtering**: Customize your data filtering based on the height above ground.
+- **2D and 3D Visualization**: Get interactive and focus on forest-centric metrics in both 2D and 3D visualizations.
+- **Extensibility**: Adapt PyForestScan to your specific needs with its built-in support for custom filters and visualization techniques.
 
 ## Installation
 
-To install PyForestScan, run:
+To jumpstart your forest analysis with airborne data, run:
 
 ```bash
 pip install pyforestscan
@@ -32,38 +40,36 @@ pip install pyforestscan
 - Matplotlib
 - Mayavi
 
-## Usage Examples
+## Quick Start
 
-Here are some quick examples to get you started:
-
-### Filtering Height Above Ground
+### Deriving Forest Metrics from Airborne Data
 
 ```python
-from pyforestscan.pipeline import filter_hag
-filtered_arrays = filter_hag(arrays, lower_limit=5, upper_limit=15)
+from pyforestscan.pipeline import calculate_lai
+lai = calculate_lai(arrays)
 ```
 
-### 2D Plotting
+### 2D Visualization of Forest Metrics
 
 ```python
-from pyforestscan.visualization import plot_2d
-plot_2d(df, x_dim='X', y_dim='Z')
+from pyforestscan.visualization import plot_lai
+plot_lai(lai, extent=[0, 100, 0, 100])
 ```
 
-### 3D Plotting
+### 3D Visualization of Airborne Canopy Structure
 
 ```python
 from pyforestscan.visualization import plot_3d
-plot_3d([array1, array2], z_dim='Z')
+plot_3d([array1, array2], z_dim='HeightAboveGround')
 ```
 
 ## Documentation
 
-Complete documentation is available [here](https://pyforestscan.readthedocs.io/).
+Explore our [complete documentation](https://pyforestscan.readthedocs.io/) to fully leverage the capabilities of PyForestScan.
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more details.
+Contribute to this airborne-focused forest analysis toolkit! Check our [Contributing Guidelines](CONTRIBUTING.md) for more details.
 
 ## License
 
@@ -71,4 +77,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ---
 
-For more information, check out the [documentation](https://pyforestscan.readthedocs.io/) or feel free to open an issue.
+For further information, dive into our [documentation](https://pyforestscan.readthedocs.io/) or open an issue.
