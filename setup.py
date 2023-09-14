@@ -21,7 +21,16 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        # add requirements
+        'setuptools~=65.5.1',
+        'rasterio~=1.3.8',
+        'pdal~=3.2.3',
+        'geopandas~=0.13.2',
+        'pyproj~=3.6.0',
+        'shapely~=2.0.1',
+        'pandas~=2.0.3',
+        'numpy~=1.25.1',
+        'matplotlib~=3.7.2',
+        'mayavi~=4.8.1'
     ],
     packages=setuptools.find_packages(),
     python_requires=">=3.8"

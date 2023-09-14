@@ -2,7 +2,7 @@
 
 __This library is currently experimental and is under heavy development.__
 
-![Height Above Ground](https://github.com/iosefa/PyForestScan/screenshots/hag.png)
+![Height Above Ground](./screenshots/hag.png)
 
 ## Overview
 
