@@ -6,29 +6,20 @@ _This library is currently experimental and is under heavy development._
 
 ## Overview
 
-PyForestScan is a Python library optimized for the analysis and visualization of forest structure through airborne 3D point cloud data. Engineered to work seamlessly with point clouds derived from drones and other UAV (Unmanned Aerial Vehicle) devices, the library is a go-to solution for researchers, ecologists, and forestry professionals. It specializes in deriving key forest metrics such as Height Above Ground (HAG), Leaf Area Index (LAI), Canopy Cover, and Leaf Area Density (LAD).
-
-## Core Focus Areas
-
-### 🌳 Forest Metrics
-Gain unprecedented insights into forest structure with metrics like HAG, LAI, Canopy Cover, and LAD, specially tuned for airborne data.
-
-### 🚁 Airborne Data Compatibility
-Designed for compatibility with LiDAR and Structure from Motion (SfM) data acquired through drones and UAVs, ensuring high-resolution and accurate analysis.
-
-### 🌱 Intuitive Visualization
-Unlock actionable insights with sophisticated 2D and 3D visualizations that are tailored to represent airborne point cloud data effectively.
+PyForestScan is a Python library designed for analyzing and visualizing forest structure using airborne 
+3D point cloud data. The library helps derive important forest metrics such as Canopy Height, 
+Plant Area Index (PAI), Canopy Cover, Plant Area Density (PAD), and Foliage Height Diversity (FHD).
 
 ## Features
 
-- **Specialized Forest Metrics**: Calculate and visualize crucial airborne forest metrics such as LAI and LAD.
-- **Height Above Ground Filtering**: Customize your data filtering based on the height above ground.
-- **2D and 3D Visualization**: Get interactive and focus on forest-centric metrics in both 2D and 3D visualizations.
-- **Extensibility**: Adapt PyForestScan to your specific needs with its built-in support for custom filters and visualization techniques.
+- **Forest Metrics**: Calculate and visualize key metrics like Canopy Height, PAI, Canopy Cover, PAD, and FHD.
+- **Airborne Data Compatibility**: Supports LiDAR and Structure from Motion (SfM) data from drones and UAVs.
+- **Visualization**: Create 2D and 3D visualizations of forest structures.
+- **Extensibility**: Easily add custom filters and visualization techniques to suit your needs.
 
 ## Installation
 
-To jumpstart your forest analysis with airborne data, run:
+Install PyForestScan using pip:
 
 ```bash
 pip install pyforestscan
@@ -42,39 +33,44 @@ pip install pyforestscan
 
 ## Quick Start
 
-### Deriving Forest Metrics from Airborne Data
+### Derive Forest Metrics from Airborne Data
 
 ```python
-from pyforestscan.pipeline import calculate_lai
-lai = calculate_lai(arrays)
+from pyforestscan.calculate import calculate_pai
+
+# Assuming 'arrays' is your processed point cloud data
+pai = calculate_pai(arrays)
 ```
 
 ### 2D Visualization of Forest Metrics
 
 ```python
-from pyforestscan.visualization import plot_lai
-plot_lai(lai, extent=[0, 100, 0, 100])
+from pyforestscan.visualize import plot_pai
+
+# Define the spatial extent of your data
+extent = [0, 100, 0, 100]
+
+# Plot Plant Area Index (PAI)
+plot_pai(pai, extent=extent)
 ```
 
 ### 3D Visualization of Airborne Canopy Structure
 
 ```python
-from pyforestscan.visualization import plot_3d
+from pyforestscan.visualize import plot_3d
+
+# Assuming 'array1' and 'array2' are different point cloud datasets
 plot_3d([array1, array2], z_dim='HeightAboveGround')
 ```
 
 ## Documentation
 
-Explore our [complete documentation](https://pyforestscan.readthedocs.io/) to fully leverage the capabilities of PyForestScan.
+For detailed instructions and examples, visit our [documentation](https://pyforestscan.readthedocs.io/).
 
 ## Contributing
 
-Contribute to this airborne-focused forest analysis toolkit! Check our [Contributing Guidelines](CONTRIBUTING.md) for more details.
+We welcome contributions! Please check our [Contributing Guidelines](CONTRIBUTING.md) to get started.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
----
-
-For further information, dive into our [documentation](https://pyforestscan.readthedocs.io/) or open an issue.
+This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for details.

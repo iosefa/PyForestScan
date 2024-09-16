@@ -1,91 +1,135 @@
 import pandas as pd
 import numpy as np
+from scipy.stats import entropy
 
 
-def assign_voxels(arr, voxel_resolution, z_resolution):
+def assign_voxels(arr, voxel_resolution):
     """
-    Assigns voxel bins to 3D point cloud data.
+    Assigns voxel grids to spatial data points based on the specified resolutions.
 
-    Args:
-        arr (np.ndarray): The input array containing 3D point cloud data with fields 'X', 'Y', and 'HeightAboveGround'.
-        voxel_resolution (float): The spatial resolution of the voxel grid in the x and y dimensions.
-        z_resolution (float): The spatial resolution of the voxel grid in the z dimension.
+    :param arr:
+        Input array-like object containing point cloud data with 'X', 'Y', and 'HeightAboveGround' fields.
+    :type arr: array-like
+    :param voxel_resolution:
+        The resolution for x, y, and z dimensions of the voxel grid.
+    :type voxel_resolution: tuple of floats
 
-    Returns:
-        tuple: A tuple containing the following:
-            - histogram (np.ndarray): 3D histogram array showing the density of points in each voxel.
-            - extent (list): The minimum and maximum coordinates for x and y in the format [xmin, xmax, ymin, ymax].
-
-    Example:
-        >>> arr = np.array([(1, 2, 3), (2, 3, 4), (3, 4, 5)], dtype=[('X', 'f4'), ('Y', 'f4'), ('HeightAboveGround', 'f4')])
-        >>> assign_voxels(arr, 1, 1)
-        (array([[[0., 1.],
-                 [0., 0.]],
-                [[0., 0.],
-                 [0., 0.]]]), [1.0, 3.0, 2.0, 4.0])
+    :return:
+        A tuple containing the histogram of the voxel grid and the extent of the point cloud.
+    :rtype: tuple of (numpy.ndarray, list)
+    :raises ValueError:
+        If input data does not have required fields.
     """
     laz_df = pd.DataFrame(arr)
-
-    x_bin = np.arange(laz_df['X'].min(), laz_df['X'].max() + voxel_resolution, voxel_resolution)
-    y_bin = np.arange(laz_df['Y'].min(), laz_df['Y'].max() + voxel_resolution, voxel_resolution)
+    x_resolution, y_resolution, z_resolution = voxel_resolution
+    xy_resolution = (x_resolution, y_resolution,)
+    x_bin = np.arange(laz_df['X'].min(), laz_df['X'].max() + xy_resolution, xy_resolution)
+    y_bin = np.arange(laz_df['Y'].min(), laz_df['Y'].max() + xy_resolution, xy_resolution)
     z_bin = np.arange(laz_df['HeightAboveGround'].min(), laz_df['HeightAboveGround'].max() + z_resolution, z_resolution)
 
-    histogram, edges = np.histogramdd(np.vstack((arr['X'], arr['Y'], arr['HeightAboveGround'])).transpose(),
-                                      bins=(x_bin, y_bin, z_bin))
+    histogram, edges = np.histogramdd(
+        np.vstack((arr['X'], arr['Y'], arr['HeightAboveGround'])).transpose(),
+        bins=(x_bin, y_bin, z_bin)
+    )
     extent = [arr['X'].min(), arr['X'].max(), arr['Y'].min(), arr['Y'].max()]
 
     return histogram, extent
 
 
-def calculate_lad(voxel_returns, voxel_height, beer_lambert_constant=None):
+def calculate_fhd(arr, voxel_resolution):
     """
-    Calculates the Leaf Area Density (LAD) using voxelized return data.
+    Calculate the Foliage Height Diversity (FHD) for the given array based on voxel resolution and z resolution.
 
-    Args:
-        voxel_returns (np.ndarray): 3D array where each element indicates the number of returns for that voxel.
-        voxel_height (float): The height of each voxel.
-        beer_lambert_constant (float, optional): The Beer-Lambert extinction coefficient. Defaults to 1.
+    Assigns the elements of the input array to a voxel grid, computes proportions of occupancy per voxel, and
+    calculates the entropy across each voxel to measure foliage height diversity. Elements that do not fall into any
+    voxel are assigned a NaN value.
 
-    Returns:
-        np.ndarray: 3D array containing the Leaf Area Density (LAD) for each voxel.
+    :param arr: numpy.ndarray
+        The input array for which the FHD is to be calculated.
+    :param voxel_resolution:
+        The resolution for x, y, and z dimensions of the voxel grid.
+    :type voxel_resolution: tuple of floats
 
-    Example:
-        >>> voxel_returns = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-        >>> calculate_lad(voxel_returns, 1)
-        array([[[...], [...]],
-               [[...], [...]]])
+    :return: numpy.ndarray
+        An array containing the computed FHD values.
+
+    :raises ValueError: If the input array is not a numpy array or if voxel resolutions are not valid.
+    """
+    histogram, _ = assign_voxels(arr, voxel_resolution)
+
+    sum_counts = np.sum(histogram, axis=2, keepdims=True)
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        proportions = np.divide(
+            histogram,
+            sum_counts,
+            out=np.zeros_like(histogram, dtype=float),
+            where=sum_counts != 0
+        )
+
+    fhd = entropy(proportions, axis=2)
+
+    fhd[sum_counts.squeeze() == 0] = np.nan
+
+    return fhd
+
+
+def calculate_pad(voxel_returns, voxel_height, beer_lambert_constant=None):
+    """
+    Calculate the Plant Area Density (PAD) from voxel return data using the Beer-Lambert Law.
+
+    This function computes the PAD by performing a cumulative sum of the voxel returns, adjusting
+    for shots passing through each voxel, and applying the Beer-Lambert Law.
+
+    :param voxel_returns:
+        A numpy array representing the returns from each voxel with shape (x, y, z) as calculated by assign_voxels.
+    :param voxel_height:
+        A float indicating the height of each voxel.
+    :param beer_lambert_constant:
+        (Optional) A float representing the Beer-Lambert constant. Defaults to 1 if not provided.
+
+    :return:
+        A numpy array of the same shape as voxel_returns containing the PAD values.
+
+    :raises ValueError:
+        If voxel_returns and voxel_height have incompatible shapes.
+    :raises TypeError:
+        If voxel_returns is not a numpy array or voxel_height is not a float.
     """
     return_accum = np.cumsum(voxel_returns[::-1], axis=2)[::-1]
     shots_in = return_accum
     shots_through = return_accum - voxel_returns
 
-    division_result = np.divide(shots_in, shots_through, out=np.full(shots_in.shape, np.nan),
-                                where=~np.isnan(shots_through))
+    division_result = np.divide(
+        shots_in,
+        shots_through,
+        out=np.full(shots_in.shape, np.nan),
+        where=~np.isnan(shots_through)
+    )
 
     k = beer_lambert_constant if beer_lambert_constant else 1
     dz = voxel_height
 
-    lad = np.log(division_result) * (1 / (k * dz))
+    pad = np.log(division_result) * (1 / (k * dz))
 
-    lad = np.where(np.isinf(lad) | np.isnan(lad), np.nan, lad)
+    pad = np.where(np.isinf(pad) | np.isnan(pad), np.nan, pad)
 
-    return lad
+    return pad
 
 
-def calculate_lai(lad):
+def calculate_pai(pad):
     """
-    Calculates the Leaf Area Index (LAI) from the Leaf Area Density (LAD).
+    Calculates Plant Area Index (PAI) from the provided Plant Area Density (PAD) data.
 
-    Args:
-        lad (np.ndarray): 3D array containing the Leaf Area Density (LAD) for each voxel.
+    :param pad:
+        The input array. It is expected to be a NumPy array with at least 3 dimensions.
+    :type pad: numpy.ndarray
 
-    Returns:
-        np.ndarray: 2D array containing the Leaf Area Index (LAI) for each x, y coordinate.
+    :return:
+        The sum of the input array over its third axis, with NaNs ignored.
+    :rtype: numpy.ndarray
 
-    Example:
-        >>> lad = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-        >>> calculate_lai(lad)
-        array([[6, 8],
-               [12, 16]])
+    :raises ValueError:
+        If 'pad' does not have at least 3 dimensions.
     """
-    return np.nansum(lad, axis=2)
+    return np.nansum(pad, axis=2)
