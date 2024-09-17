@@ -89,3 +89,16 @@ def _filter_radius(radius):
         "type": "filters.sample",
         "radius": radius
     }
+
+
+def _filter_ground():
+    """
+    Generate a PDAL classification filter to remove ground points (classification 2).
+
+    :return: dict
+        A dictionary containing the filter type and limits string for removing ground points.
+    """
+    return {
+        "type": "filters.expression",
+        "expression": "!(Classification == 2)"
+    }

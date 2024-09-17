@@ -148,10 +148,11 @@ def validate_crs(crs_list):
     return True
 
 
-def read_lidar(input_file, thin_radius=None, hag=False, hag_dtm=False, dtm=None, crop_poly=False, poly=None):
+def read_lidar(input_file, srs, thin_radius=None, hag=False, hag_dtm=False, dtm=None, crop_poly=False, poly=None):
     """
     Reads and processes a LiDAR point cloud file using PDAL based on specified options.
 
+    :param srs:
     :param input_file: str, The path to the input LiDAR file. Supported formats are .las, .laz, .copc, and .copc.laz.
     :param thin_radius: float, optional, The radius for thinning the point cloud. Must be a positive number.
     :param hag: bool, optional, If True, calculate Height Above Ground (HAG) using Delaunay triangulation.
@@ -200,7 +201,7 @@ def read_lidar(input_file, thin_radius=None, hag=False, hag_dtm=False, dtm=None,
         pipeline_stages.append(_filter_radius(thin_radius))
 
     if hag:
-        pipeline_stages.append(_hag_delaunay)
+        pipeline_stages.append(_hag_delaunay())
 
     if hag_dtm:
         if not dtm:
@@ -218,6 +219,7 @@ def read_lidar(input_file, thin_radius=None, hag=False, hag_dtm=False, dtm=None,
             "pipeline": [
                 {
                     "type": reader,
+                    "spatialreference": srs, #todo: make srs optional
                     "filename": input_file
                 },
                 {
@@ -273,7 +275,7 @@ def write_las(arrays, output_file, srs=None, compress=True):
     if compress:
         if output_extension != '.laz':
             raise ValueError("If 'compress' is True, output file must have a .laz extension.")
-        output_format = "writers.laz"
+        output_format = "writers.las"
     else:
         if output_extension != '.las':
             raise ValueError("If 'compress' is False, output file must have a .las extension.")
@@ -298,34 +300,49 @@ def write_las(arrays, output_file, srs=None, compress=True):
     }
 
     pipeline_json = json.dumps(pipeline_def)
+
+    if not isinstance(arrays, list):
+        arrays = [arrays]
+
     pipeline = pdal.Pipeline(pipeline_json, arrays=arrays)
     pipeline.execute()
 
 
 def create_geotiff(layer, output_file, crs, spatial_extent):
     """
-    Creates a GeoTIFF file from the given layer data.
+    Creates a GeoTIFF file from the given data layer. Note, it performs a transpose on the layer.
 
-    This function writes the provided layer data to a GeoTIFF file, using
-    the specified coordinate reference system (CRS) and spatial extent.
-
-    :param layer: numpy.ndarray, The 2D array containing the data for the GeoTIFF.
-    :param output_file: str, The path where the output GeoTIFF file will be saved.
-    :param crs: dict, The coordinate reference system in Proj4 format.
-    :param spatial_extent: tuple, The bounding box of the spatial extent in the form
-                           (min_x, max_x, min_y, max_y).
-
+    :param layer: The data layer to be written into the GeoTIFF file. Assumes (X, Y) shape.
+    :type layer: numpy.ndarray
+    :param output_file: The path where the GeoTIFF file will be saved.
+    :type output_file: str
+    :param crs: The coordinate reference system for the GeoTIFF.
+    :type crs: str
+    :param spatial_extent: The spatial extent of the data, defined as (x_min, x_max, y_min, y_max).
+    :type spatial_extent: tuple
     :return: None
+    :raises rasterio.errors.RasterioError: If there is an error in creating the GeoTIFF.
     """
-    transform = rasterio.transform.from_bounds(spatial_extent[0], spatial_extent[2],
-                                               spatial_extent[1], spatial_extent[3],
-                                               layer.shape[1], layer.shape[0])
+    import rasterio
+    from rasterio.transform import from_bounds
 
-    new_dataset = rasterio.open(output_file, 'w', driver='GTiff',
-                                height=layer.shape[0], width=layer.shape[1],
-                                count=1, dtype=str(layer.dtype),
-                                crs=crs,
-                                transform=transform)
+    x_min, x_max, y_min, y_max = spatial_extent
 
-    new_dataset.write(layer, 1)
-    new_dataset.close()
+    layer = layer.T  # assumes (X, Y) shape
+
+    transform = from_bounds(
+        x_min, y_min, x_max, y_max,
+        layer.shape[1], layer.shape[0]
+    )
+
+    with rasterio.open(
+            output_file, 'w',
+            driver='GTiff',
+            height=layer.shape[0],
+            width=layer.shape[1],
+            count=1,
+            dtype=layer.dtype.name,
+            crs=crs,
+            transform=transform
+    ) as new_dataset:
+        new_dataset.write(layer, 1)
