@@ -22,23 +22,23 @@ Install PyForestScan using pip:
 ```bash
 pip install pyforestscan
 ```
-
-## Dependencies
-
-- NumPy
-- Matplotlib
-- Mayavi
+## Developer Dependencies
+- PDAL and Python PDAL bindings
+- GDAL
+- Python
+- Python requirements (requirements.txt)
 
 ## Quick Start
 
 ### Derive Forest Metrics from Airborne Data
 
 ```python
-from pyforestscan.calculate import calculate_pai
+from pyforestscan.handlers import read_lidar
+from pyforestscan.calculate import assign_voxels, calculate_pad, calculate_pai
 
-# Assuming 'arrays' is your processed point cloud data
-voxels..
-pad = calculate_pad(voxels)
+arrays = read_lidar("path/to/lidar/file.las", "EPSG:32605", hag=True)
+voxels = assign_voxels(arrays[0], (25, 25, 5))
+pad = calculate_pad(voxels, 5)
 pai = calculate_pai(pad)
 ```
 
@@ -59,7 +59,6 @@ plot_pai(pai, extent=extent)
 ```python
 from pyforestscan.visualize import plot_3d
 
-# Assuming 'array1' and 'array2' are different point cloud datasets
 plot_3d([array1, array2], z_dim='HeightAboveGround')
 ```
 
