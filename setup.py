@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyforestscan",
-    version="0.1.0",
+    version="0.1.1",
     author="Joseph Emile Honour Percival",
     author_email="ipercival@gmail.com",
     description="UAV image analysis for forest ecology",
