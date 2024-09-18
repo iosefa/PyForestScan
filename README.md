@@ -1,7 +1,5 @@
 # PyForestScan: Airborne Point Cloud Analysis for Forest Structure
 
-_This library is currently experimental and is under heavy development._
-
 ![Height Above Ground](./screenshots/hag.png)
 
 ## Overview
@@ -39,7 +37,9 @@ pip install pyforestscan
 from pyforestscan.calculate import calculate_pai
 
 # Assuming 'arrays' is your processed point cloud data
-pai = calculate_pai(arrays)
+voxels..
+pad = calculate_pad(voxels)
+pai = calculate_pai(pad)
 ```
 
 ### 2D Visualization of Forest Metrics

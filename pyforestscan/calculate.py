@@ -44,7 +44,7 @@ def assign_voxels(arr, voxel_resolution):
 
 def calculate_pad(voxel_returns, voxel_height, beer_lambert_constant=None):
     """
-    Calculate the Plant Area Density (PAD) using the Beer-Lambert Law, matching the R implementation of LAD.
+    Calculate the Plant Area Density (PAD) using the Beer-Lambert Law.
 
     :param voxel_returns: numpy array representing the returns from each voxel (x, y, z).
     :param voxel_height: float, height of each voxel.
@@ -74,11 +74,11 @@ def calculate_pad(voxel_returns, voxel_height, beer_lambert_constant=None):
 
 def calculate_pai(pad, min_height=1, max_height=None):
     """
-    Calculate Leaf Area Index (LAI) from PAD data by summing LAD values across the Z (height) axis.
+    Calculate Plant Area Index (PAI) from PAD data by summing LAD values across the Z (height) axis.
 
     :param pad: A 3D numpy array representing the Plant Area Density (PAD) values.
-    :param min_height: Minimum height index for summing LAD values (optional).
-    :param max_height: Maximum height index for summing LAD values (optional).
+    :param min_height: Minimum height index for summing PAD values (optional).
+    :param max_height: Maximum height index for summing PAD values (optional).
 
     :return: A 2D numpy array with PAI values for each (x, y) voxel column.
     """

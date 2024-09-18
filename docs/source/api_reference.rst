@@ -9,6 +9,11 @@ pyforestscan
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: pyforestscan.filters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: pyforestscan.handlers
    :members:
    :undoc-members:
