@@ -1,58 +1,75 @@
 # Contributing to PyForestScan
 
-First off, thank you for considering contributing to PyForestScan! It's people like you that make this project a great tool for point cloud data processing and visualization.
+Thank you for contributing to PyForestScan! Your involvement helps make this project a great tool for point cloud data processing and visualization.
 
 ## Code of Conduct
 
-By participating in this project, you are expected to uphold our [Code of Conduct](CODE_OF_CONDUCT.md).
+By participating in this project, please follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## How Can I Contribute?
 
 ### Reporting Bugs
 
-- **Check Existing Issues** — Before you create a new bug report, please check if there is an existing report. If there is, kindly add your information as a comment.
+- **Check Existing Issues** — Before opening a new bug report, see if the issue has already been reported. If it has, add any additional details in a comment.
   
-- **Submit a Report** — If no existing issue addresses the problem, open a new issue and provide the necessary details. Please use the provided issue template.
+- **Submit a Report** — If the issue hasn't been reported, open a new issue and fill out the provided template.
 
 ### Suggesting Enhancements
 
-We welcome any ideas for making PyForestScan better. Please create an issue to discuss your suggestions.
+Have an idea to improve PyForestScan? Please open an issue to discuss your suggestion.
 
 ### Pull Requests
 
-Here's how to make a contribution via a pull request (PR):
+To contribute via pull requests:
 
-1. **Fork the Repository** — Fork the main PyForestScan repository and clone it locally.
-
-2. **Create a Branch** — Make your changes in a new branch. Branch names should be descriptive and start with prefixes like `feat/`, `fix/`, or `docs/`.
-
-3. **Commit Your Changes** — Write a good commit message that briefly explains the changes.
-
-4. **Push to Your Fork** — Push the changes to your fork on GitHub.
-
-5. **Create a Pull Request** — Go to the PyForestScan repository and create a new pull request. Fill in the necessary details and link any relevant issues.
-
-6. **Code Review** — A maintainer will review your code. You may need to make further changes during the review process.
-
-7. **Merge** — Once your PR is approved, it will be merged into the main codebase.
+1. **Fork the Repository** — Fork the PyForestScan repository and clone it locally.
+2. **Create a Branch** — Make changes in a new branch. Use descriptive names like `feat/`, `fix/`, or `docs/` followed by the feature or fix name.
+3. **Commit Your Changes** — Write a clear commit message describing your changes.
+4. **Push to Your Fork** — Push the branch to your fork on GitHub.
+5. **Create a Pull Request** — Open a pull request (PR) in the PyForestScan repository. Link any relevant issues.
+6. **Code Review** — A maintainer will review your changes. You may need to make updates based on feedback.
+7. **Merge** — Once approved, your PR will be merged into the main codebase.
 
 ## Style Guidelines
 
 ### Python
 
-- Follow the [PEP 8](https://pep8.org/) style guide for Python.
-- Use type hints in function signatures.
-- Document your code, particularly public APIs.
+- Follow the [PEP 8](https://pep8.org/) style guide.
+- Use type hints in functions.
+- Add documentation to public APIs.
 
 ### Git Commit Messages
 
-- Use the present tense ("Add feature" not "Added feature").
-- Limit the first line to 72 characters or less.
-- Reference issues and pull requests liberally after the first line.
+- Use present tense ("Add feature" not "Added feature").
+- Limit the first line to 72 characters or fewer.
+- Reference related issues and PRs when relevant.
+
+## Releasing a New Version
+
+### Steps for Creating a New Release
+
+1. **Ensure `main` is up to date**:
+   Confirm all changes intended for the release are merged into the `main` branch.
+
+2. **Update the version**:
+   Manually bump the version number in `setup.py` based on the type of release (major, minor, or patch) following [semantic versioning](https://semver.org/).
+
+3. **Create a new tag**:
+   Tag the release with the new version using the format `vX.X.X`. For example:
+   ```bash
+   git tag v1.2.0
+   git push origin v1.2.0
+   ```
+
+4. **Deploy to PyPI**:
+   The GitHub Actions workflow will automatically build and deploy the package to PyPI once the tag is pushed.
+
+### Semantic Versioning Guidelines
+- **Major version**: For incompatible API changes.
+- **Minor version**: For backward-compatible features.
+- **Patch version**: For backward-compatible bug fixes.
 
 ## Additional Notes
 
-- Please ensure that your code is compatible with the latest version of our dependencies.
-- Make sure to update the documentation when creating or modifying features.
-
-Again, thank you for your contribution, and we look forward to collaborating with you!
+- Ensure compatibility with the latest dependencies.
+- Update documentation when adding or changing features.
