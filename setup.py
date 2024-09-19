@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyforestscan",
-    version="0.1.1",
+    version="0.1.2",
     author="Joseph Emile Honour Percival",
     author_email="ipercival@gmail.com",
     description="UAV image analysis for forest ecology",
@@ -23,16 +23,15 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires=">=3.8",
     install_requires=[
-        'setuptools>=75.5.1',
-        'rasterio>=1.3.8',
+        'rasterio>=1.3.11',
         'pdal>=3.4.5',
-        'geopandas>=0.13.2',
-        'pyproj>=3.6.0',
-        'shapely>=2.0.1',
-        'pandas>=2.0.3',
+        'geopandas>=1.0.1',
+        'pyproj>=3.6.1',
+        'shapely>=2.0.6',
+        'pandas>=2.2.2',
         'numpy>=2.1.1',
-        'matplotlib>=3.7.2',
-        'scipy>=1.10.1',
-        'configobj>=5.0.8',
+        'matplotlib>=3.9.2',
+        'scipy>=1.14.1',
+        'mayavi>=4.8.2',
     ],
 )
