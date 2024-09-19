@@ -10,7 +10,7 @@ Plant Area Index (PAI), Canopy Cover, Plant Area Density (PAD), and Foliage Heig
 
 ## Features
 
-- **Forest Metrics**: Calculate and visualize key metrics like Canopy Height, PAI, Canopy Cover, PAD, and FHD.
+- **Forest Metrics**: Calculate and visualize key metrics like Canopy Height, PAI, PAD, and FHD.
 - **Airborne Data Compatibility**: Supports LiDAR and Structure from Motion (SfM) data from drones and UAVs.
 - **Visualization**: Create 2D and 3D visualizations of forest structures.
 - **Extensibility**: Easily add custom filters and visualization techniques to suit your needs.
@@ -22,49 +22,43 @@ Install PyForestScan using pip:
 ```bash
 pip install pyforestscan
 ```
-## Developer Dependencies
-- PDAL and Python PDAL bindings
-- GDAL
-- Python
-- Python requirements (requirements.txt)
+
+### Dependencies
+
+> [!IMPORTANT]
+> You MUST have installed PDAL to use PyForestScan. If you use conda to install PDAL, make sure you install pyforestscan in the conda environment with PDAL. See https://pdal.io/en/latest/ for more information.
+
+- PDAL >= 2.7
+- Python >= 3.8
 
 ## Quick Start
 
 ### Derive Forest Metrics from Airborne Data
 
+The following snipped shows how you can load a las file, create 25m by 25m by 5m voxels with points assigned to them, and generate plant area density at 5m layers and plant area index for each 25m grid cell before writing the resulting PAI layer to a geotiff. 
 ```python
-from pyforestscan.handlers import read_lidar
+from pyforestscan.handlers import read_lidar, create_geotiff
 from pyforestscan.calculate import assign_voxels, calculate_pad, calculate_pai
 
 arrays = read_lidar("path/to/lidar/file.las", "EPSG:32605", hag=True)
-voxels = assign_voxels(arrays[0], (25, 25, 5))
+voxels, extent = assign_voxels(arrays[0], (25, 25, 5))
 pad = calculate_pad(voxels, 5)
 pai = calculate_pai(pad)
-```
-
-### 2D Visualization of Forest Metrics
-
-```python
-from pyforestscan.visualize import plot_pai
-
-# Define the spatial extent of your data
-extent = [0, 100, 0, 100]
-
-# Plot Plant Area Index (PAI)
-plot_pai(pai, extent=extent)
-```
-
-### 3D Visualization of Airborne Canopy Structure
-
-```python
-from pyforestscan.visualize import plot_3d
-
-plot_3d([array1, array2], z_dim='HeightAboveGround')
+create_geotiff(pai, "output_pai.tiff", "EPSG:32605", extent)
 ```
 
 ## Documentation
 
 For detailed instructions and examples, visit our [documentation](https://pyforestscan.readthedocs.io/).
+
+## Developer Guides
+
+To build locally and contribute to PyForestScan, you will need the following dependencies:
+
+- PDAL and Python PDAL bindings
+- GDAL
+- Python
+- Python requirements (requirements.txt)
 
 ## Contributing
 
