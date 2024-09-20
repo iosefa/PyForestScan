@@ -6,8 +6,8 @@ import geopandas as gpd
 
 from pyproj import CRS
 from shapely.geometry import MultiPolygon
-
 from pyforestscan.pipeline import _crop_polygon, _filter_radius, _hag_delaunay, _hag_raster
+from pyproj.exceptions import CRSError
 
 
 def simplify_crs(crs_list):
@@ -18,9 +18,19 @@ def simplify_crs(crs_list):
     :type crs_list: list
     :return: List of EPSG codes corresponding to the input CRS definitions.
     :rtype: list
-    :raises ValueError: If any of the CRS definitions cannot be converted to an EPSG code.
+    :raises CRSError: If any of the CRS definitions cannot be converted to an EPSG code.
     """
-    return [CRS(crs).to_epsg() for crs in crs_list]
+    epsg_codes = []
+    for crs in crs_list:
+        try:
+            crs_obj = CRS(crs)
+            epsg = crs_obj.to_epsg()
+            if epsg is None:
+                raise CRSError(f"Cannot convert CRS '{crs}' to an EPSG code.")
+            epsg_codes.append(epsg)
+        except CRSError as e:
+            raise CRSError(f"Error converting CRS '{crs}': {e}") from None
+    return epsg_codes
 
 
 def load_polygon_from_file(vector_file_path, index=0):
@@ -308,7 +318,7 @@ def write_las(arrays, output_file, srs=None, compress=True):
     pipeline.execute()
 
 
-def create_geotiff(layer, output_file, crs, spatial_extent):
+def create_geotiff(layer, output_file, crs, spatial_extent, nodata=-9999):
     """
     Creates a GeoTIFF file from the given data layer. Note, it performs a transpose on the layer.
 
@@ -320,6 +330,8 @@ def create_geotiff(layer, output_file, crs, spatial_extent):
     :type crs: str
     :param spatial_extent: The spatial extent of the data, defined as (x_min, x_max, y_min, y_max).
     :type spatial_extent: tuple
+    :param nodata: The value to use for NoData areas in the GeoTIFF. Defaults to -9999.
+    :type nodata: float or int, optional
     :return: None
     :raises rasterio.errors.RasterioError: If there is an error in creating the GeoTIFF.
     """
@@ -343,6 +355,7 @@ def create_geotiff(layer, output_file, crs, spatial_extent):
             count=1,
             dtype=layer.dtype.name,
             crs=crs,
-            transform=transform
+            transform=transform,
+            nodata=nodata
     ) as new_dataset:
         new_dataset.write(layer, 1)

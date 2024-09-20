@@ -23,6 +23,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
 
+      - name: Run tests
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pytest
+
       - name: Publish to PyPI
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}

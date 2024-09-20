@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyforestscan",
-    version="0.1.3",
+    version="0.1.4",
     author="Joseph Emile Honour Percival",
     author_email="ipercival@gmail.com",
     description="Analyzing forest structure using aerial LiDAR data",
@@ -34,4 +34,12 @@ setuptools.setup(
         'scipy>=1.14.1',
         'mayavi>=4.8.2',
     ],
+    extras_require={
+        'dev': [
+            'pytest>=7.0.0',
+            'pytest-cov>=4.0.0',
+            'flake8>=6.0.0',
+            'black>=23.0.0',
+        ],
+    },
 )
