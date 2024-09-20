@@ -1,8 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mayavi import mlab
-
 
 def plot_2d(points, x_dim='X', y_dim='Z', color_map='viridis', alpha=1.0, point_size=1, fig_size=None):
     """
@@ -51,47 +49,6 @@ def plot_2d(points, x_dim='X', y_dim='Z', color_map='viridis', alpha=1.0, point_
     plt.title(f'{x_dim} vs {y_dim} Colored by Height Above Ground')
     plt.colorbar(label='Height Above Ground (m)')
     plt.show()
-
-
-def plot_3d(arrays, z_dim='Z', fig_size=None):
-    """
-    Plots a 3D visualization of the given array data.
-
-    :param arrays: A list of dictionaries containing point data with keys 'X', 'Y', and specified z_dim.
-    :type arrays: list
-    :param z_dim: Dimension to be used for the Z-axis. Must be 'Z' or 'HeightAboveGround'. Defaults to 'Z'.
-    :type z_dim: str, optional
-    :param fig_size: Size of the figure to be plotted. If None, the size will be computed automatically based on data.
-    :type fig_size: tuple, optional
-    :return: None
-    :rtype: None
-    :raises ValueError: If the provided z_dim is not in the list of valid dimensions.
-    """
-    valid_dims = ['Z', 'HeightAboveGround']
-    if z_dim not in valid_dims:
-        raise ValueError(f"Invalid dimensions. Choose from: {valid_dims}")
-
-    points = arrays[0]
-    x = points['X']
-    y = points['Y']
-    z = points[z_dim]
-    colors = points['HeightAboveGround']
-
-    if fig_size is None:
-        aspect_ratio = (np.max(x) - np.min(x)) / (np.max(y) - np.min(y))
-        fig_size = (800 * aspect_ratio, 800)
-
-        max_fig_size = 1600  # pixels
-        if max(fig_size) > max_fig_size:
-            scale_factor = max_fig_size / max(fig_size)
-            fig_size = (fig_size[0] * scale_factor, fig_size[1] * scale_factor)
-
-    fig = mlab.figure(size=fig_size)
-
-    pts = mlab.points3d(x, y, z, colors, colormap='viridis', scale_mode='none', scale_factor=0.5)
-    mlab.axes()
-    mlab.title('3D Point Cloud Colored by Height Above Ground')
-    mlab.show()
 
 
 def plot_pai(pai, extent, cmap='viridis', fig_size=None):
@@ -152,9 +109,6 @@ def plot_pad_2d(pad, slice_index, axis='x', cmap='viridis', hag_values=None, hor
     :return: None
     :rtype: None
     """
-    import matplotlib.pyplot as plt
-    import numpy as np
-
     # Validate the axis parameter
     if axis not in ['x', 'y']:
         raise ValueError(f"Invalid axis: '{axis}'. Choose from 'x' or 'y'.")

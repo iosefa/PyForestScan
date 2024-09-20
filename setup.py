@@ -32,7 +32,6 @@ setuptools.setup(
         'numpy>=2.1.1',
         'matplotlib>=3.9.2',
         'scipy>=1.14.1',
-        'mayavi>=4.8.2',
     ],
     extras_require={
         'dev': [
