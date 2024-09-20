@@ -29,7 +29,7 @@ pip install pyforestscan
 > You MUST have installed PDAL to use PyForestScan. If you use conda to install PDAL, make sure you install pyforestscan in the conda environment with PDAL. See https://pdal.io/en/latest/ for more information.
 
 - PDAL >= 2.7
-- Python >= 3.8
+- Python >= 3.10
 
 ## Quick Start
 
