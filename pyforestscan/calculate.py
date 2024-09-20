@@ -25,8 +25,8 @@ def generate_dtm(ground_points, resolution=2.0):
         x = np.array([pt['X'] for array in ground_points for pt in array])
         y = np.array([pt['Y'] for array in ground_points for pt in array])
         z = np.array([pt['Z'] for array in ground_points for pt in array])
-    except KeyError:
-        raise KeyError("Ground point cloud data missing 'X', 'Y', or 'Z' fields.")
+    except ValueError:
+        raise ValueError("Ground point cloud data missing 'X', 'Y', or 'Z' fields.")
 
     x_min, x_max = x.min(), x.max()
     y_min, y_max = y.min(), y.max()
@@ -68,9 +68,15 @@ def assign_voxels(arr, voxel_resolution):
     """
     x_resolution, y_resolution, z_resolution = voxel_resolution
 
-    x = arr['X']
-    y = arr['Y']
-    z = arr['HeightAboveGround']
+    try:
+        x = arr['X']
+        y = arr['Y']
+        z = arr['HeightAboveGround']
+    except ValueError:
+        raise ValueError("Point cloud data missing 'X', 'Y', or 'HeightAboveGround' fields.")
+
+    if x.size == 0 or y.size == 0 or z.size == 0:
+        raise ValueError("Point cloud data contains no points.")
 
     x_min, x_max = x.min(), x.max()
     y_min, y_max = y.min(), y.max()
@@ -133,6 +139,8 @@ def calculate_pai(pad, min_height=1, max_height=None):
     """
     if max_height is None:
         max_height = pad.shape[2]
+    if min_height >= max_height:
+        raise ValueError("Minimum height index must be less than maximum height index.")
     pai = np.sum(pad[:, :, min_height:max_height], axis=2)
 
     return pai
