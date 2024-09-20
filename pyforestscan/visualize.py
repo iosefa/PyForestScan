@@ -122,7 +122,7 @@ def plot_pai(pai, extent, cmap='viridis', fig_size=None):
 
     plt.figure(figsize=fig_size)
 
-    plt.imshow(pai, extent=extent, cmap=cmap)
+    plt.imshow(pai.T, extent=extent, cmap=cmap)
     plt.colorbar(label='PAI')
     plt.title('Plant Area Index (PAI)')
     plt.xlabel('X')
@@ -130,28 +130,76 @@ def plot_pai(pai, extent, cmap='viridis', fig_size=None):
     plt.show()
 
 
-def plot_pad_2d(pad, slice_index, axis='x', cmap='viridis'):
+def plot_pad_2d(pad, slice_index, axis='x', cmap='viridis', hag_values=None, horizontal_values=None):
     """
-    Plots a 2D slice of Plant Area Density (PAD) data.
+    Plots a 2D slice of Plant Area Density (PAD) data with dZ HAG on the Y-axis.
 
-    :param pad: numpy.ndarray, The 3D Plant Area Density data.
-    :param slice_index: int, The index of the slice to be plotted.
-    :param axis: str, optional, The axis along which to slice the data. Default is 'x'. Choose from 'x', 'y'.
-    :param cmap: str, optional, The colormap to be used for plotting. Default is 'viridis'.
-    :raises ValueError: If an invalid axis is provided.
+    :param pad: numpy.ndarray
+        The 3D Plant Area Density data with shape (X, Y, HAG).
+    :param slice_index: int
+        The index of the slice to be plotted along the specified axis.
+    :param axis: str, optional
+        The axis along which to slice the data. Default is 'x'. Choose from 'x', 'y'.
+    :param cmap: str, optional
+        The colormap to be used for plotting. Default is 'viridis'.
+    :param hag_values: numpy.ndarray, optional
+        Array of HAG (Height Above Ground) values corresponding to the third dimension.
+        If None, will use indices.
+    :param horizontal_values: numpy.ndarray, optional
+        Array of horizontal (X or Y) values corresponding to the first or second dimension.
+        If None, will use indices.
+    :raises ValueError: If an invalid axis is provided or slice_index is out of bounds.
     :return: None
     :rtype: None
     """
-    if axis == 'x':
-        pad_2d = pad[slice_index, :, :]
-    elif axis == 'y':
-        pad_2d = pad[:, slice_index, :]
-    else:
-        raise ValueError(f"Invalid axis: {axis}. Choose from 'x', 'y'.")
+    import matplotlib.pyplot as plt
+    import numpy as np
 
-    plt.imshow(pad_2d, cmap=cmap)
-    plt.colorbar(label='PAD')
-    plt.title(f'Plant Area Density (PAD) - {axis.upper()} vs HAG slice')
-    plt.xlabel('HAG' if axis == 'x' else 'X')
-    plt.ylabel('HAG' if axis == 'y' else 'Y')
+    # Validate the axis parameter
+    if axis not in ['x', 'y']:
+        raise ValueError(f"Invalid axis: '{axis}'. Choose from 'x' or 'y'.")
+
+    if axis == 'x':
+        if slice_index < 0 or slice_index >= pad.shape[0]:
+            raise ValueError(f"slice_index {slice_index} out of range for axis 'x' with size {pad.shape[0]}")
+        pad_2d = pad[slice_index, :, :]
+        horizontal_axis_label = 'Y'
+        horizontal_axis_values = horizontal_values if horizontal_values is not None else np.arange(pad.shape[1])
+    else:  # axis == 'y'
+        if slice_index < 0 or slice_index >= pad.shape[1]:
+            raise ValueError(f"slice_index {slice_index} out of range for axis 'y' with size {pad.shape[1]}")
+        pad_2d = pad[:, slice_index, :]
+        horizontal_axis_label = 'X'
+        horizontal_axis_values = horizontal_values if horizontal_values is not None else np.arange(pad.shape[0])
+
+    hag_values = hag_values if hag_values is not None else np.arange(pad.shape[2])
+
+    pad_2d = pad_2d.T
+
+    if horizontal_values is not None:
+        if axis == 'x' and len(horizontal_values) != pad.shape[1]:
+            raise ValueError("Length of horizontal_values does not match the Y dimension of pad.")
+        if axis == 'y' and len(horizontal_values) != pad.shape[0]:
+            raise ValueError("Length of horizontal_values does not match the X dimension of pad.")
+    else:
+        horizontal_axis_values = np.arange(pad.shape[1]) if axis == 'x' else np.arange(pad.shape[0])
+
+    plt.figure(figsize=(10, 6))
+    img = plt.imshow(
+        pad_2d,
+        cmap=cmap,
+        origin='lower',
+        extent=(
+            horizontal_axis_values.min(),
+            horizontal_axis_values.max(),
+            hag_values.min(),
+            hag_values.max()
+        ),
+        aspect='auto'
+    )
+    plt.colorbar(img, label='PAD')
+    plt.title(f'Plant Area Density (PAD) - {horizontal_axis_label} vs dZ at Slice {slice_index}')
+    plt.xlabel(horizontal_axis_label)
+    plt.ylabel('dZ')
+    plt.tight_layout()
     plt.show()

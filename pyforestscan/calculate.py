@@ -2,6 +2,55 @@ import numpy as np
 from scipy.stats import entropy
 
 
+def generate_dtm(ground_points, resolution=2.0):
+    """
+    Generates a Digital Terrain Model (DTM) raster from classified ground points.
+
+    :param ground_points: list
+        Point cloud arrays of classified ground points.
+    :type ground_points: list
+    :param resolution: float, spatial resolution of the DTM in meters.
+    :return: tuple
+        A tuple containing the DTM as a 2D NumPy array and the spatial extent [x_min, x_max, y_min, y_max].
+    :rtype: tuple (numpy.ndarray, list)
+    :raises RuntimeError:
+        If there's an error during the DTM generation pipeline execution.
+    :raises ValueError:
+        If no ground points are found for DTM generation.
+    :raises KeyError:
+        If point cloud data is missing 'X', 'Y', or 'Z' fields.
+    """
+    #todo: add parameter to allow interpolation of NA values.
+    try:
+        x = np.array([pt['X'] for array in ground_points for pt in array])
+        y = np.array([pt['Y'] for array in ground_points for pt in array])
+        z = np.array([pt['Z'] for array in ground_points for pt in array])
+    except KeyError:
+        raise KeyError("Ground point cloud data missing 'X', 'Y', or 'Z' fields.")
+
+    x_min, x_max = x.min(), x.max()
+    y_min, y_max = y.min(), y.max()
+
+    x_bins = np.arange(x_min, x_max + resolution, resolution)
+    y_bins = np.arange(y_min, y_max + resolution, resolution)
+
+    x_indices = np.digitize(x, x_bins) - 1
+    y_indices = np.digitize(y, y_bins) - 1
+
+    dtm = np.full((len(x_bins)-1, len(y_bins)-1), np.nan)
+
+    for xi, yi, zi in zip(x_indices, y_indices, z):
+        if 0 <= xi < dtm.shape[0] and 0 <= yi < dtm.shape[1]:
+            if np.isnan(dtm[xi, yi]) or zi < dtm[xi, yi]:
+                dtm[xi, yi] = zi
+
+    dtm = np.nan_to_num(dtm, nan=-9999)
+
+    extent = [x_min, x_max, y_min, y_max]
+
+    return dtm, extent
+
+
 def assign_voxels(arr, voxel_resolution):
     """
     Assigns voxel grids to spatial data points based on the specified resolutions.
@@ -116,3 +165,44 @@ def calculate_fhd(voxel_returns):
     fhd[sum_counts.squeeze() == 0] = np.nan
 
     return fhd
+
+
+def calculate_chm(arr, voxel_resolution):
+    """
+    Calculate Canopy Height Model (CHM) for a given voxel size.
+    The height is the highest HeightAboveGround value in each (x, y) voxel.
+
+    :param arr: Input array-like object containing point cloud data with 'X', 'Y', and 'HeightAboveGround' fields.
+    :type arr: numpy.ndarray
+    :param voxel_resolution:
+        The resolution for x and y dimensions of the voxel grid.
+    :type voxel_resolution: tuple of floats (x_resolution, y_resolution)
+
+    :return:
+        A tuple containing the CHM as a 2D numpy array and the spatial extent.
+    :rtype: tuple of (numpy.ndarray, list)
+    """
+    x_resolution, y_resolution = voxel_resolution[:2]
+    x = arr['X']
+    y = arr['Y']
+    z = arr['HeightAboveGround']
+
+    x_min, x_max = x.min(), x.max()
+    y_min, y_max = y.min(), y.max()
+
+    x_bins = np.arange(x_min, x_max + x_resolution, x_resolution)
+    y_bins = np.arange(y_min, y_max + y_resolution, y_resolution)
+
+    x_indices = np.digitize(x, x_bins) - 1
+    y_indices = np.digitize(y, y_bins) - 1
+
+    chm = np.full((len(x_bins)-1, len(y_bins)-1), np.nan)
+
+    for xi, yi, zi in zip(x_indices, y_indices, z):
+        if 0 <= xi < chm.shape[0] and 0 <= yi < chm.shape[1]:
+            if np.isnan(chm[xi, yi]) or zi > chm[xi, yi]:
+                chm[xi, yi] = zi
+
+    extent = [x_min, x_max, y_min, y_max]
+
+    return chm, extent

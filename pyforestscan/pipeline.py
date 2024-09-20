@@ -76,6 +76,7 @@ def _filter_hag(lower_limit=0, upper_limit=None):
 
 def _filter_radius(radius):
     """
+    todo: update: this should be described as random down sample. Uses Poisson sampling.
     Generates a filter configuration with a specified radius.
 
     :param radius:
@@ -102,3 +103,83 @@ def _filter_ground():
         "type": "filters.expression",
         "expression": "!(Classification == 2)"
     }
+
+
+def _select_ground():
+    """
+    Generate a PDAL classification filter to select ground points (classification 2).
+
+    :return: dict
+        A dictionary containing the filter type and limits string for selecting ground points.
+    """
+    return {
+        "type": "filters.range",
+        "limits": "Classification[2:2]"
+    }
+
+
+def _filter_expression(expression="Classification == 2"):
+    """
+    Generate a PDAL expression filter configuration.
+
+    :param expression: str, the logical expression to apply.
+    :return: dict representing the PDAL expression filter.
+    """
+    return {
+        "type": "filters.expression",
+        "expression": expression
+    }
+
+
+def _filter_statistical_outlier(mean_k=8, multiplier=3.0):
+    """
+    Generate a PDAL statistical outlier filter configuration.
+
+    :param mean_k: int, number of nearest neighbors to use for mean distance estimation.
+    :param multiplier: float, standard deviation multiplier for identifying outliers.
+    :return: dict representing the PDAL outlier filter.
+    """
+    return {
+        "type": "filters.outlier",
+        "method": "statistical",
+        "mean_k": mean_k,
+        "multiplier": multiplier
+    }
+
+
+def _filter_smrf(
+        cell=1.0,
+        cut=0.0,
+        ignore="Classification[7:7]",
+        returns="last,only",
+        scalar=1.25,
+        slope=0.15,
+        threshold=0.5,
+        window=18.0
+):
+    """
+    Generate a PDAL SMRF filter configuration.
+
+    :param cell: float, cell size in meters.
+    :param cut: float, cut net size (0 skips net cutting).
+    :param ignore: str, a range of values of a dimension to ignore.
+    :param returns: str, return types to include in output ("first", "last", "intermediate", "only").
+    :param scalar: float, elevation scalar.
+    :param slope: float, slope threshold for ground classification.
+    :param threshold: float, elevation threshold.
+    :param window: float, max window size in meters.
+    :return: dict representing the PDAL SMRF filter.
+    """
+    smrf_filter = {
+        "type": "filters.smrf",
+        "cell": cell,
+        "cut": cut,
+        "ignore": ignore,
+        "returns": returns,
+        "scalar": scalar,
+        "slope": slope,
+        "threshold": threshold,
+        "window": window
+    }
+
+    return smrf_filter
