@@ -171,3 +171,6 @@ data/
 # Ignore QGIS generated files
 *.gpkg-shm
 *.gpkg-wal
+
+# tests
+test_data/output.tif

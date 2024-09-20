@@ -58,7 +58,30 @@ To build locally and contribute to PyForestScan, you will need the following dep
 - PDAL and Python PDAL bindings
 - GDAL
 - Python
-- Python requirements (requirements.txt)
+- Python requirements (requirements.txt and requirements-dev.txt)
+
+## Testing
+
+PyForestScan uses `pytest` for running tests. To run the tests, you can follow the steps below:
+
+### Running Tests
+
+1. Install the development dependencies:
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+2. Run the tests using `pytest`:
+   ```bash
+   pytest
+   ```
+
+This will run all the test cases under the `tests/` directory. The tests include functionality checks for filters, forest metrics, and other core components of the PyForestScan library.
+
+You can also run specific tests by passing the test file or function name:
+```bash
+pytest tests/test_calculate.py
+```
 
 ## Contributing
 
