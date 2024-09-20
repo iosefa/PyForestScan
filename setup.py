@@ -34,4 +34,12 @@ setuptools.setup(
         'scipy>=1.14.1',
         'mayavi>=4.8.2',
     ],
+    extras_require={
+        'dev': [
+            'pytest>=7.0.0',
+            'pytest-cov>=4.0.0',
+            'flake8>=6.0.0',
+            'black>=23.0.0',
+        ],
+    },
 )

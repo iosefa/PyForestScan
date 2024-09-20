@@ -167,3 +167,7 @@ data/
 .DS_Store
 */.DS_Store
 **/.DS_Store
+
+# Ignore QGIS generated files
+*.gpkg-shm
+*.gpkg-wal
