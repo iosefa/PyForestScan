@@ -41,22 +41,22 @@ PyForestScan was developed to fill this gap by providing an open-source, Python-
 
 
 $$
-\begin{align}
-  \tag{1}
+\begin{equation}
   PAD_{i-1,i} = \ln\left(\frac{S_e}{S_t}\right) \frac{1}{k \Delta z}
-\end{align}
+  \tag{1}
+\end{equation}
 $$
 $$
-\begin{align}
-  \tag{2}
+\begin{equation}
   PAI = \sum_{i=1}^{n} PAD_{i-1,i}
-\end{align}
+  \tag{2}
+\end{equation}
 $$
 $$
-\begin{align}
-  \tag{3}
+\begin{equation}
   FHD = - \sum_{i=1}^{n} p_i \ln(p_i)
-\end{align}
+  \tag{3}
+\end{equation}
 $$
 
 In equation (1), $PAD_{i-1,i}$ represents the PAD between two adjacent voxels in the canopy, denoted by the indices $i-1$ and $i$. It quantifies the density of plant material within this vertical slice of the forest. Here, $\ln\left(\frac{S_e}{S_t}\right)$ calculates the natural logarithm of the ratio between the number of LiDAR pulses entering a voxel ($S_e$) and the number of pulses exiting the voxel ($S_t$), and $\frac{1}{k \Delta z}$ is the inverse of the extinction coefficient ($k$) as derived from the Beer-Lambert Law,  multiplied by the height of each voxel ($\Delta z$).
