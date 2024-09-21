@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 project = 'pyforestscan'
 copyright = '2024, Joseph Emile Honour Percival'
 author = 'Joseph Emile Honour Percival'
-release = '0.1.0'
+release = '0.1.6'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -27,7 +27,7 @@ extensions = [
 ]
 
 # Add the modules to be mocked here
-autodoc_mock_imports = ['pdal', 'mayavi']
+autodoc_mock_imports = ['pdal']
 
 templates_path = ["_templates"]
 exclude_patterns = []
