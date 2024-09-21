@@ -46,12 +46,14 @@ $$
   PAD_{i-1,i} = \ln\left(\frac{S_e}{S_t}\right) \frac{1}{k \Delta z}
 \end{align}
 $$
+
 $$
 \begin{align}
   \tag{2}
   PAI = \sum_{i=1}^{n} PAD_{i-1,i}
 \end{align}
 $$
+
 $$
 \begin{align}
   \tag{3}
