@@ -14,6 +14,7 @@ authors:
     affiliation: "1,2"
   - name: Benjamin Palsa Leamon
     orcid: 0009-0002-4614-2322
+    affiliation: "3"
   - name: Ryan Perroy
     orcid: 0000-0002-4210-3281
     affiliation: "1,2"
