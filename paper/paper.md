@@ -65,6 +65,10 @@ Equation (2) represents PAI as the vertical summation of PAD across all layers $
 
 In equation (3), $FHD$ is calculated as the Shannon entropy of the vertical distribution of plant material across all layers of the canopy. $p_i$ is the proportion of total plant material in each voxel $i$, relative to the entire vertical column, with $n$ representing the number of vertical layers. 
 
+# Acknowledgements
+
+We would like to express our gratitude to Juan Guerra-Hernandez and Adrian Pascual for providing a noise-free classified point cloud dataset, which was instrumental in testing and validating the PyForestScan library. 
+
 # References
 
 
