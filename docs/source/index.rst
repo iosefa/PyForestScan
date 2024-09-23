@@ -16,6 +16,8 @@ Contents:
 
    introduction
    getting_started
+   metric_calculation
+   benchmarks
    api_reference
 
 Indices and Tables
