@@ -283,12 +283,14 @@ def write_las(arrays, output_file, srs=None, compress=True):
     if srs:
         pipeline_steps.append({
             "type": "filters.reprojection",
+            "in_srs": srs,
             "out_srs": srs
         })
 
     pipeline_steps.append({
         "type": output_format,
         "filename": output_file,
+        "minor_version": "4",
         "extra_dims": "all"
     })
 
