@@ -148,16 +148,20 @@ def calculate_pai(pad, min_height=1, max_height=None):
 
 def calculate_fhd(voxel_returns):
     """
-    Calculate the Frequency Histogram Diversity (FHD) for a given set of voxel returns.
+    Calculate the Foliage Height Diversity (FHD) for a given set of voxel returns.
 
-    This function computes the Frequency Histogram Diversity by calculating the entropy
-    of the voxel return proportions along the z-axis.
+    This function computes Foliage Height Diversity by calculating the entropy
+    of the voxel return proportions along the z-axis, which represents vertical structure
+    in the canopy.
 
     :param voxel_returns:
-        A numpy array of shape (x, y, z) representing voxel returns.
+        A numpy array of shape (x, y, z) representing voxel returns, where x and y are spatial
+        dimensions, and z represents height bins (or layers along the vertical axis).
 
     :return:
-        A numpy array of shape (x, y"""
+        A numpy array of shape (x, y) representing the FHD values for each (x, y) location.
+        Areas with no voxel returns will have NaN values.
+    """
     sum_counts = np.sum(voxel_returns, axis=2, keepdims=True)
 
     with np.errstate(divide='ignore', invalid='ignore'):
