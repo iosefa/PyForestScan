@@ -158,12 +158,13 @@ def validate_crs(crs_list):
     return True
 
 
-def read_lidar(input_file, srs, thin_radius=None, hag=False, hag_dtm=False, dtm=None, crop_poly=False, poly=None):
+def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dtm=False, dtm=None, crop_poly=False, poly=None):
     """
     Reads and processes a LiDAR point cloud file using PDAL based on specified options.
 
-    :param srs:
     :param input_file: str, The path to the input LiDAR file. Supported formats are .las, .laz, .copc, and .copc.laz.
+    :param srs: str, The Spatial Reference System (SRS) of the point cloud.
+    :param bounds:  Bounds within which to crop the data. Must be of the form: ([xmin, xmax], [ymin, ymax], [zmin, zmax])
     :param thin_radius: float, optional, The radius for thinning the point cloud. Must be a positive number.
     :param hag: bool, optional, If True, calculate Height Above Ground (HAG) using Delaunay triangulation.
     :param hag_dtm: bool, optional, If True, calculate Height Above Ground (HAG) using a DTM file.
@@ -183,14 +184,19 @@ def read_lidar(input_file, srs, thin_radius=None, hag=False, hag_dtm=False, dtm=
 
     las_extensions = ('.las', '.laz')
     copc_extensions = ('.copc', '.copc.laz')
+    ept_file = ('ept.json')
 
     file_lower = input_file.lower()
     if file_lower.endswith(las_extensions):
         reader = 'readers.las'
     elif file_lower.endswith(copc_extensions):
         reader = 'readers.copc'
+    elif file_lower.endswith(ept_file):
+        reader = 'readers.ept'
     else:
-        raise ValueError("The input file must be a .las, .laz, .copc, or .copc.laz file.")
+        raise ValueError(
+            "The input file must be a .las, .laz, .copc, .copc.laz file, or an ept.json file."
+        )
 
     if hag and hag_dtm:
         raise ValueError("Cannot use both 'hag' and 'hag_dtm' options at the same time.")
@@ -224,39 +230,16 @@ def read_lidar(input_file, srs, thin_radius=None, hag=False, hag_dtm=False, dtm=
         crs_list.append(crs_raster)
         pipeline_stages.append(_hag_raster(dtm))
 
-    metadata_pipeline = pdal.Pipeline(
-        json.dumps({
-            "pipeline": [
-                {
-                    "type": reader,
-                    "spatialreference": srs, #todo: make srs optional
-                    "filename": input_file
-                },
-                {
-                    "type": "filters.info"
-                }
-            ]
-        })
-    )
-    metadata_pipeline.execute()
-
-    try:
-        crs_pointcloud = metadata_pipeline.metadata['metadata']['readers.las']['spatialreference']
-    except KeyError:
-        try:
-            crs_pointcloud = metadata_pipeline.metadata['metadata']['readers.copc']['spatialreference']
-        except KeyError:
-            raise ValueError("Unable to retrieve spatial reference from the point cloud metadata.")
-    crs_list.append(crs_pointcloud)
-
-    validate_crs(crs_list)
-
+    base_pipeline = {
+        "type": reader,
+        "spatialreference": srs,
+        "filename": input_file
+    }
+    if bounds:
+        base_pipeline["bounds"] = f"{bounds}"
     main_pipeline_json = {
         "pipeline": [
-            {
-                "type": reader,
-                "filename": input_file
-            }
+            base_pipeline
         ] + pipeline_stages
     }
 
