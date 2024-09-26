@@ -205,11 +205,13 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dt
     crs_list = []
 
     if crop_poly:
-        if not poly or not os.path.isfile(poly):
-            raise FileNotFoundError(f"No such polygon file: '{poly}'")
+        if not poly:
+            raise ValueError(f"Must provide a polygon or polygon wkt if cropping to a polygon.")
         if poly.strip().startswith(('POLYGON', 'MULTIPOLYGON')):
             polygon_wkt = poly
         else:
+            if not poly or not os.path.isfile(poly):
+                raise FileNotFoundError(f"No such polygon file: '{poly}'")
             polygon_wkt, crs_vector = load_polygon_from_file(poly)
         pipeline_stages.append(_crop_polygon(polygon_wkt))
 
