@@ -170,7 +170,7 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dt
     :param hag_dtm: bool, optional, If True, calculate Height Above Ground (HAG) using a DTM file.
     :param dtm: str, optional, The path to the DTM file used when hag_dtm is True. Must be a .tif file.
     :param crop_poly: bool, optional, If True, crop the point cloud using the polygon defined in the poly file.
-    :param poly: str, optional, The path to the polygon file used for cropping.
+    :param poly: str, optional, The path to the polygon file used for cropping OR the WKT of the Polygon geometry.
 
     :return: numpy.ndarray, The processed point cloud data or None if no data is retrieved.
 
@@ -207,8 +207,10 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dt
     if crop_poly:
         if not poly or not os.path.isfile(poly):
             raise FileNotFoundError(f"No such polygon file: '{poly}'")
-        polygon_wkt, crs_vector = load_polygon_from_file(poly)
-        crs_list.append(crs_vector)
+        if poly.strip().startswith(('POLYGON', 'MULTIPOLYGON')):
+            polygon_wkt = poly
+        else:
+            polygon_wkt, crs_vector = load_polygon_from_file(poly)
         pipeline_stages.append(_crop_polygon(polygon_wkt))
 
     if thin_radius is not None:
