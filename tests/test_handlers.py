@@ -221,7 +221,7 @@ def test_read_lidar_missing_dtm_file():
 def test_read_lidar_unsupported_input_extension():
     input_file = get_test_data_path("input.txt")
     srs = "EPSG:4326"
-    with pytest.raises(ValueError, match="The input file must be a .las, .laz, .copc, or .copc.laz file."):
+    with pytest.raises(ValueError, match="The input file must be a .las, .laz, .copc, .copc.laz file, or an ept.json file."):
         read_lidar(
             input_file=input_file,
             srs=srs
