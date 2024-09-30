@@ -1,6 +1,13 @@
 Introduction
 ============
 
+.. figure:: images/hag.png
+   :alt: Height above ground
+   :align: center
+   :figclass: align-center
+
+   Height Above Ground visualization of LiDAR point cloud data.
+
 `pyforestscan` is a Python package designed for processing and analyzing LiDAR point cloud data. It simplifies complex LiDAR workflows, making it easier to extract and visualize forest structure metrics such as canopy height, plant area density, and more.
 
 Key Features
@@ -12,6 +19,24 @@ Key Features
 - **Ground Point Classification**: Apply filters like SMRF to classify ground and non-ground points.
 - **Outlier Removal and Point Cloud Cleaning**: Efficiently clean data and remove statistical outliers.
 - **Visualization Tools**: Plot 2D and 3D representations of point clouds and vegetation metrics.
+
+.. list-table::
+   :widths: 45 5 45
+   :header-rows: 0
+
+   * - .. figure:: images/chm.png
+         :alt: Canopy Height Model
+         :width: 300
+
+         Canopy Height Model
+
+     -
+
+     - .. figure:: images/pai.png
+         :alt: Plant Area Index
+         :width: 300
+
+         Plant Area Index
 
 Core Modules
 ------------
