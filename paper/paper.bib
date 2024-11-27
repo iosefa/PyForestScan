@@ -292,3 +292,77 @@ Use of these data requires citation of this dataset},
   doi          = {10.5281/zenodo.13993879},
   url          = {https://doi.org/10.5281/zenodo.13993879}
 }
+
+@software{manning_entwine,
+  author       = {Connor Manning},
+  title        = {Entwine: Open Source Point Cloud Indexing},
+  year         = {2024},
+  url          = {https://entwine.io/},
+  note         = {Latest version accessed on 2024-11-22}
+}
+
+@article{doi:10.1111/2041-210X.13901,
+author = {Borowiec, Marek L. and Dikow, Rebecca B. and Frandsen, Paul B. and McKeeken, Alexander and Valentini, Gabriele and White, Alexander E.},
+title = {Deep learning as a tool for ecology and evolution},
+journal = {Methods in Ecology and Evolution},
+volume = {13},
+number = {8},
+pages = {1640-1660},
+keywords = {artificial intelligence, automation, computer vision, machine learning, modelling, neural networks, statistics},
+doi = {https://doi.org/10.1111/2041-210X.13901},
+url = {https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/2041-210X.13901},
+eprint = {https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/2041-210X.13901},
+abstract = {Abstract Deep learning is driving recent advances behind many everyday technologies, including speech and image recognition, natural language processing and autonomous driving. It is also gaining popularity in biology, where it has been used for automated species identification, environmental monitoring, ecological modelling, behavioural studies, DNA sequencing and population genetics and phylogenetics, among other applications. Deep learning relies on artificial neural networks for predictive modelling and excels at recognizing complex patterns. In this review we synthesize 818 studies using deep learning in the context of ecology and evolution to give a discipline-wide perspective necessary to promote a rethinking of inference approaches in the field. We provide an introduction to machine learning and contrast it with mechanistic inference, followed by a gentle primer on deep learning. We review the applications of deep learning in ecology and evolution and discuss its limitations and efforts to overcome them. We also provide a practical primer for biologists interested in including deep learning in their toolkit and identify its possible future applications. We find that deep learning is being rapidly adopted in ecology and evolution, with 589 studies (64\%) published since the beginning of 2019. Most use convolutional neural networks (496 studies) and supervised learning for image identification but also for tasks using molecular data, sounds, environmental data or video as input. More sophisticated uses of deep learning in biology are also beginning to appear. Operating within the machine learning paradigm, deep learning can be viewed as an alternative to mechanistic modelling. It has desirable properties of good performance and scaling with increasing complexity, while posing unique challenges such as sensitivity to bias in input data. We expect that rapid adoption of deep learning in ecology and evolution will continue, especially in automation of biodiversity monitoring and discovery and inference from genetic data. Increased use of unsupervised learning for discovery and visualization of clusters and gaps, simplification of multi-step analysis pipelines, and integration of machine learning into graduate and postgraduate training are all likely in the near future.},
+year = {2022}
+}
+
+@article{doi:10.1111/2041-210X.14040,
+author = {Atkins, Jeff W. and Costanza, Jennifer and Dahlin, Kyla M. and Dannenberg, Matthew P. and Elmore, Andrew J. and Fitzpatrick, Matthew C. and Hakkenberg, Christopher R. and Hardiman, Brady S. and Kamoske, Aaron and LaRue, Elizabeth A. and Silva, Carlos Alberto and Stovall, Atticus E. L. and Tielens, Elske K.},
+title = {Scale dependency of lidar-derived forest structural diversity},
+journal = {Methods in Ecology and Evolution},
+volume = {14},
+number = {2},
+pages = {708-723},
+keywords = {ecosystem structure, forest structure, forestry, lidar, remote sensing, representative elementary area, scaling},
+doi = {https://doi.org/10.1111/2041-210X.14040},
+url = {https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/2041-210X.14040},
+eprint = {https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/2041-210X.14040},
+abstract = {Abstract Lidar-derived forest structural diversity (FSD) metrics—including measures of forest canopy height, vegetation arrangement, canopy cover (CC), structural complexity and leaf area and density—are increasingly used to describe forest structural characteristics and can be used to infer many ecosystem functions. Despite broad adoption, the importance of spatial resolution (grain and extent) over which these structural metrics are calculated remains largely unconsidered. Often researchers will quantify FSD at the spatial grain size of the process of interest without considering the scale dependency or statistical behaviour of the FSD metric employed. We investigated the appropriate scale of inference for eight lidar-derived spatial metrics—CC, canopy relief ratio, foliar height diversity, leaf area index, mean and median canopy height, mean outer canopy height, and rugosity (RT)--representing five FSD categories—canopy arrangement, CC, canopy height, leaf area and density, and canopy complexity. Optimal scale was determined using the representative elementary area (REA) concept whereby the REA is the smallest grain size representative of the extent. Structural metrics were calculated at increasing canopy spatial grain (from 5 to 1000 m) from aerial lidar data collected at nine different forested ecosystems including sub-boreal, broadleaf temperate, needleleaf temperate, dry tropical, woodland and savanna systems, all sites are part of the National Ecological Observatory Network within the conterminous United States. To identify the REA of each FSD metric, we used changepoint analysis via segmented or piecewise regression which identifies significant changepoints for both the magnitude and variance of each metric. We find that using a spatial grain size between 25 and 75 m sufficiently captures the REA of CC, canopy arrangement, canopy leaf area and canopy complexity metrics across multiple forest types and a grain size of 30–150 m captures the REA of canopy height metrics. However, differences were evident among forest types with higher REA necessary to characterize CC in evergreen needleleaf forests, and canopy height in deciduous broadleaved forests. These findings indicate the appropriate range of spatial grain sizes from which inferences can be drawn from this set of FSD metrics, informing the use of lidar-derived structural metrics for research and management applications.},
+year = {2023}
+}
+
+@article{BUTLER2021104680,
+title = {PDAL: An open source library for the processing and analysis of point clouds},
+journal = {Computers & Geosciences},
+volume = {148},
+pages = {104680},
+year = {2021},
+issn = {0098-3004},
+doi = {https://doi.org/10.1016/j.cageo.2020.104680},
+url = {https://www.sciencedirect.com/science/article/pii/S0098300420306518},
+author = {Howard Butler and Bradley Chambers and Preston Hartzell and Craig Glennie},
+keywords = {Point clouds, Lidar, Open source software, Geospatial, Iterative closest point},
+abstract = {As large point cloud datasets become ubiquitous in the Earth science community, open source libraries and software dedicated to manipulating these data are valuable tools for geospatial scientists and practitioners. We highlight an open source library called the Point Data Abstraction Library, more commonly referred to by its acronym: PDAL. PDAL provides a standalone application for point cloud processing, a C++ library for development of new point cloud applications, and support for Python, MATLAB, Julia, and Java languages. Central to PDAL are the concepts of stages, which implement core capabilities for reading, writing, and filtering point cloud data, and pipelines, which are end-to-end workflows composed of sequential stages for transforming point clouds. We review the motivation for PDAL’s genesis, describe its general structure and functionality, detail several options for conveniently accessing PDAL’s functionality, and provide an example that uses PDAL’s Python extension to estimate earthquake surface deformation from pre- and post-event airborne laser scanning point cloud data using an iterative closest point algorithm.}
+}
+
+@article{DUBAYAH2020100002,
+title = {The Global Ecosystem Dynamics Investigation: High-resolution laser ranging of the Earth’s forests and topography},
+journal = {Science of Remote Sensing},
+volume = {1},
+pages = {100002},
+year = {2020},
+issn = {2666-0172},
+doi = {https://doi.org/10.1016/j.srs.2020.100002},
+url = {https://www.sciencedirect.com/science/article/pii/S2666017220300018},
+author = {Ralph Dubayah and James Bryan Blair and Scott Goetz and Lola Fatoyinbo and Matthew Hansen and Sean Healey and Michelle Hofton and George Hurtt and James Kellner and Scott Luthcke and John Armston and Hao Tang and Laura Duncanson and Steven Hancock and Patrick Jantz and Suzanne Marselis and Paul L. Patterson and Wenlu Qi and Carlos Silva},
+keywords = {Lidar, Ecosystem structure, GEDI, Biomass},
+abstract = {Obtaining accurate and widespread measurements of the vertical structure of the Earth’s forests has been a long-sought goal for the ecological community. Such observations are critical for accurately assessing the existing biomass of forests, and how changes in this biomass caused by human activities or variations in climate may impact atmospheric CO2 concentrations. Additionally, the three-dimensional structure of forests is a key component of habitat quality and biodiversity at local to regional scales. The Global Ecosystem Dynamics Investigation (GEDI) was launched to the International Space Station in late 2018 to provide high-quality measurements of forest vertical structure in temperate and tropical forests between 51.6° N & S latitude. The GEDI instrument is a geodetic-class laser altimeter/waveform lidar comprised of 3 lasers that produce 8 transects of structural information. Over its two-year nominal lifetime GEDI is anticipated to provide over 10 billion waveforms at a footprint resolution of 25 ​m. These data will be used to derive a variety of footprint and gridded products, including canopy height, canopy foliar profiles, Leaf Area Index (LAI), sub-canopy topography and biomass. Additionally, data from GEDI are used to demonstrate the efficacy of its measurements for prognostic ecosystem modeling, habit and biodiversity studies, and for fusion using radar and other remote sensing instruments. GEDI science and technology are unique: no other space-based mission has been created that is specifically optimized for retrieving vegetation vertical structure. As such, GEDI promises to advance our understanding of the importance of canopy vertical variations within an ecological paradigm based on structure, composition and function.}
+}
+
+@software{copc_format,
+  author       = {Howard Butler and Contributors},
+  title        = {Cloud Optimized Point Cloud (COPC)},
+  year         = {2021},
+  url          = {https://copc.io/},
+  note         = {Latest version accessed on 2024-11-22}
+}
