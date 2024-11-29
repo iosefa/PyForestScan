@@ -1,11 +1,13 @@
 import os
-import json
-import rasterio
-import pdal
 import geopandas as gpd
+import json
+import pdal
+import rasterio
 
 from pyproj import CRS
+from rasterio.transform import from_bounds
 from shapely.geometry import MultiPolygon
+
 from pyforestscan.pipeline import _crop_polygon, _filter_radius, _hag_delaunay, _hag_raster
 from pyproj.exceptions import CRSError
 
@@ -164,7 +166,7 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dt
 
     :param input_file: str, The path to the input LiDAR file. Supported formats are .las, .laz, .copc, and .copc.laz.
     :param srs: str, The Spatial Reference System (SRS) of the point cloud.
-    :param bounds:  Bounds within which to crop the data. Must be of the form: ([xmin, xmax], [ymin, ymax], [zmin, zmax])
+    :param bounds:  Bounds within which to crop the data. Only in effect for ept format. Must be of the form: ([xmin, xmax], [ymin, ymax], [zmin, zmax])
     :param thin_radius: float, optional, The radius for thinning the point cloud. Must be a positive number.
     :param hag: bool, optional, If True, calculate Height Above Ground (HAG) using Delaunay triangulation.
     :param hag_dtm: bool, optional, If True, calculate Height Above Ground (HAG) using a DTM file.
@@ -239,7 +241,7 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dt
         "spatialreference": srs,
         "filename": input_file
     }
-    if bounds:
+    if bounds and reader == 'readers.ept':
         base_pipeline["bounds"] = f"{bounds}"
     main_pipeline_json = {
         "pipeline": [
@@ -323,13 +325,17 @@ def create_geotiff(layer, output_file, crs, spatial_extent, nodata=-9999):
     :type nodata: float or int, optional
     :return: None
     :raises rasterio.errors.RasterioError: If there is an error in creating the GeoTIFF.
+    :raises ValueError: If the layer has invalid dimensions or the spatial extent is invalid.
     """
-    import rasterio
-    from rasterio.transform import from_bounds
-
     x_min, x_max, y_min, y_max = spatial_extent
 
-    layer = layer.T  # assumes (X, Y) shape
+    if layer.size == 0 or layer.shape[0] == 0 or layer.shape[1] == 0:
+        raise ValueError(f"Invalid layer dimensions: {layer.shape}. Cannot create GeoTIFF.")
+
+    if x_max <= x_min or y_max <= y_min:
+        raise ValueError(f"Invalid spatial extent: {spatial_extent}.")
+
+    layer = layer.T
 
     transform = from_bounds(
         x_min, y_min, x_max, y_max,

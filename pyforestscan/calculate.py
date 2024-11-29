@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.interpolate import griddata
 from scipy.stats import entropy
 
 
@@ -13,8 +14,6 @@ def generate_dtm(ground_points, resolution=2.0):
     :return: tuple
         A tuple containing the DTM as a 2D NumPy array and the spatial extent [x_min, x_max, y_min, y_max].
     :rtype: tuple (numpy.ndarray, list)
-    :raises RuntimeError:
-        If there's an error during the DTM generation pipeline execution.
     :raises ValueError:
         If no ground points are found for DTM generation.
     :raises KeyError:
@@ -37,7 +36,7 @@ def generate_dtm(ground_points, resolution=2.0):
     x_indices = np.digitize(x, x_bins) - 1
     y_indices = np.digitize(y, y_bins) - 1
 
-    dtm = np.full((len(x_bins)-1, len(y_bins)-1), np.nan)
+    dtm = np.full((len(x_bins) - 1, len(y_bins) - 1), np.nan)
 
     for xi, yi, zi in zip(x_indices, y_indices, z):
         if 0 <= xi < dtm.shape[0] and 0 <= yi < dtm.shape[1]:
@@ -45,6 +44,7 @@ def generate_dtm(ground_points, resolution=2.0):
                 dtm[xi, yi] = zi
 
     dtm = np.nan_to_num(dtm, nan=-9999)
+    dtm = np.flipud(dtm)
 
     extent = [x_min, x_max, y_min, y_max]
 
@@ -110,19 +110,14 @@ def calculate_pad(voxel_returns, voxel_height, beer_lambert_constant=None):
     shots_in = np.cumsum(voxel_returns[::-1], axis=2)[::-1]
     shots_through = shots_in - voxel_returns
 
-    division_result = np.divide(
-        shots_in,
-        shots_through,
-        out=np.ones(shots_in.shape),
-        where=shots_through != 0
-    )
+    with np.errstate(divide='ignore', invalid='ignore'):
+        division_result = np.true_divide(shots_in, shots_through)
+        division_result = np.where((shots_in == 0) & (shots_through == 0), 1, division_result)
+        division_result = np.where((shots_through == 0) & (shots_in != 0), np.nan, division_result)
 
-    k = beer_lambert_constant if beer_lambert_constant else 1
-    dz = voxel_height
+        pad = np.log(division_result) * (1 / (beer_lambert_constant or 1) / voxel_height)
 
-    pad = np.log(division_result) * (1 / (k * dz))
-
-    pad = np.where(np.isinf(pad) | np.isnan(pad) | (pad < 0), 0, pad)
+    pad = np.where(np.isfinite(pad) & (pad > 0), pad, 0)
 
     return pad
 
@@ -141,7 +136,8 @@ def calculate_pai(pad, min_height=1, max_height=None):
         max_height = pad.shape[2]
     if min_height >= max_height:
         raise ValueError("Minimum height index must be less than maximum height index.")
-    pai = np.sum(pad[:, :, min_height:max_height], axis=2)
+
+    pai = np.nansum(pad[:, :, min_height:max_height], axis=2)
 
     return pai
 
@@ -179,7 +175,7 @@ def calculate_fhd(voxel_returns):
     return fhd
 
 
-def calculate_chm(arr, voxel_resolution):
+def calculate_chm(arr, voxel_resolution, interpolation="linear"):
     """
     Calculate Canopy Height Model (CHM) for a given voxel size.
     The height is the highest HeightAboveGround value in each (x, y) voxel.
@@ -188,6 +184,8 @@ def calculate_chm(arr, voxel_resolution):
     :type arr: numpy.ndarray
     :param voxel_resolution:
         The resolution for x and y dimensions of the voxel grid.
+    :param interpolation:
+        method for interpolating pixel caps in the CHM. Supported methods are: "nearest", "linear", and "cubic".
     :type voxel_resolution: tuple of floats (x_resolution, y_resolution)
 
     :return:
@@ -215,6 +213,28 @@ def calculate_chm(arr, voxel_resolution):
             if np.isnan(chm[xi, yi]) or zi > chm[xi, yi]:
                 chm[xi, yi] = zi
 
+    mask = np.isnan(chm)
+
+    x_grid, y_grid = np.meshgrid(
+        (x_bins[:-1] + x_bins[1:]) / 2,
+        (y_bins[:-1] + y_bins[1:]) / 2
+    )
+
+    valid_mask = ~mask.flatten()
+    valid_x = x_grid.flatten()[valid_mask]
+    valid_y = y_grid.flatten()[valid_mask]
+    valid_values = chm.flatten()[valid_mask]
+
+    interp_x = x_grid.flatten()[mask.flatten()]
+    interp_y = y_grid.flatten()[mask.flatten()]
+
+    chm[mask] = griddata(
+        points=(valid_x, valid_y),
+        values=valid_values,
+        xi=(interp_x, interp_y),
+        method=interpolation
+    )
+    chm = np.flipud(chm)
     extent = [x_min, x_max, y_min, y_max]
 
     return chm, extent
