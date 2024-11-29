@@ -38,4 +38,9 @@ jobs:
         shell: bash -l {0}
         run: |
           conda activate pyforestscan_env
-          pytest
+          pytest --cov --cov-report=xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
