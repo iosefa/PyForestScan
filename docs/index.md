@@ -2,43 +2,31 @@
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/iosefa/PyForestScan/HEAD?labpath=docs%2Fexamples%2Fgetting-started.ipynb)
 [![PyPI](https://img.shields.io/pypi/v/PyForestScan.svg)](https://pypi.org/project/PyForestScan/)
+[![Docker Pulls](https://badgen.net/docker/pulls/iosefa/pyforestscan?icon=docker&label=pulls&cache=0)](https://hub.docker.com/r/iosefa/pyforestscan)
 [![Tests](https://img.shields.io/github/actions/workflow/status/iosefa/PyForestScan/main.yml?branch=main)](https://github.com/iosefa/PyForestScan/actions/workflows/main.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/iosefa/PyForestScan/main)](https://codecov.io/gh/iosefa/PyForestScan)
 
-![Height Above Ground visualization of LiDAR point cloud data](images/hag.png)
-*Height Above Ground visualization of LiDAR point cloud data.*
+**Calculate Forest Structural Metrics from lidar point clouds in Python**
+
+![Height Above Ground visualization of lidar point cloud data](images/hag.png)
+*Height Above Ground visualization of lidar point cloud data.*
 
 **pyforestscan** is a Python package designed for processing
-and analyzing LiDAR point cloud data. It simplifies complex LiDAR
+and analyzing lidar point cloud data. It simplifies complex lidar
 workflows, making it easier to extract and visualize forest structure
-metrics such as canopy height, plant area density, and more.
+metrics such as canopy height, plant area density (PAD), plant area index (PAI), foliage height diversity (FHD), and more.
 
-## Key Features
+## Features
 
--   **Voxel-based Canopy Height Model (CHM) Calculation**: Generate 2D
-    CHMs using voxel grids.
--   **Plant Area Density (PAD), Plant Area Index (PAI), and Foliage
-    Height Diversity (FHD)**: Calculate detailed vegetation metrics with
-    voxel-based methods.
--   **Digital Terrain Model (DTM) Generation**: Create terrain models
-    from ground-classified points.
--   **Ground Point Classification**: Apply filters like SMRF to classify
-    ground and non-ground points.
--   **Outlier Removal and Point Cloud Cleaning**: Efficiently clean data
-    and remove statistical outliers.
--   **Visualization Tools**: Plot 2D and 3D representations of point
-    clouds and vegetation metrics.
+- **Forest Metrics**: Calculate and visualize key metrics like Canopy Height, PAI, PAD, and FHD.
+- **Large Point Cloud Support**: Utilizes efficient data formats such as EPT for large point cloud processing.
+- **Visualization**: Create 2D and 3D visualizations of forest structure and structural metrics
+- **Extensibility**: Easily add custom filters and visualization techniques to suit your needs.
 
-<div style="display: flex; justify-content: space-around;">
-    <figure style="margin: 0 10px;">
-        <img src="images/chm.png" alt="Canopy Height Model" width="300" />
-        <figcaption style="text-align: center;">Canopy Height Model</figcaption>
-    </figure>
-    <figure style="margin: 0 10px;">
-        <img src="images/pai.png" alt="Plant Area Index" width="300" />
-        <figcaption style="text-align: center;">Plant Area Index</figcaption>
-    </figure>
-</div>
+## Examples
+
+- jupyter 1
+- 2
 
 ## Core Modules
 
@@ -50,7 +38,3 @@ metrics such as canopy height, plant area density, and more.
     point cloud data, and simplify CRS transformations.
 -   **visualize**: Visualization utilities to plot 2D scatter plots, PAD
     slices, and PAI data.
-
-## Next Steps
-
-For more details on how to get started, see the

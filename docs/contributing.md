@@ -1,6 +1,6 @@
 # Contributing to PyForestScan
 
-Thank you for contributing to PyForestScan! Your involvement helps make this project a great tool for point cloud data processing and visualization.
+Thank you for contributing to PyForestScan! Your involvement helps make this project a great tool for point cloud data processing and visualization of forest structure.
 
 ## Code of Conduct
 

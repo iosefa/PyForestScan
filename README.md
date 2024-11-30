@@ -32,16 +32,17 @@ pip install pyforestscan
 ### Dependencies
 
 > [!IMPORTANT]
-> You MUST have installed PDAL to use PyForestScan. If you use conda to install PDAL, make sure you install pyforestscan in the conda environment with PDAL. See https://pdal.io/en/latest/ for more information.
+> You MUST have installed both PDAL and GDAL to use PyForestScan. If you use conda to install PDAL, make sure you install pyforestscan in the conda environment with PDAL (and GDAL if using conda). See https://pdal.io/en/latest/ for more information on PDAL and https://gdal.org/en/stable/.
 
 - PDAL >= 2.7
+- GDAL >= 3.5
 - Python >= 3.10
 
 ## Quick Start
 
-### Derive Forest Metrics from Airborne Data
+### Calculate, Export, and Plot Plant Area Index
 
-The following snipped shows how you can load a las file, create 5m by 5m by 1m voxels with points assigned to them, and generate plant area density at 1m layers and plant area index for each 5m grid cell before writing the resulting PAI layer to a geotiff and plotting. 
+The following snippet shows how you can load a las file, create 5m by 5m by 1m voxels with points assigned to them, and generate plant area density at 1m layers and plant area index for each 5m grid cell before writing the resulting PAI layer to a geotiff and plotting. 
 
 ```python
 from pyforestscan.handlers import read_lidar, create_geotiff
@@ -97,7 +98,7 @@ pytest tests/test_calculate.py
 
 ## Contributing
 
-We welcome contributions! Please check our [Contributing Guidelines](CONTRIBUTING.md) to get started.
+We welcome contributions! Please check our [Contributing Guidelines](docs/contributing.md) to get started.
 
 ## License
 
