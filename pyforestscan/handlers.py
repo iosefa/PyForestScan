@@ -3,6 +3,7 @@ import geopandas as gpd
 import json
 import pdal
 import rasterio
+import numpy as np
 
 from pyproj import CRS
 from rasterio.transform import from_bounds
@@ -327,6 +328,8 @@ def create_geotiff(layer, output_file, crs, spatial_extent, nodata=-9999):
     :raises rasterio.errors.RasterioError: If there is an error in creating the GeoTIFF.
     :raises ValueError: If the layer has invalid dimensions or the spatial extent is invalid.
     """
+    layer = np.nan_to_num(layer, nan=-9999)
+
     x_min, x_max, y_min, y_max = spatial_extent
 
     if layer.size == 0 or layer.shape[0] == 0 or layer.shape[1] == 0:
