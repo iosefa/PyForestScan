@@ -4,7 +4,7 @@ LABEL repo="https://github.com/iosefa/PyForestScan"
 
 USER 1000
 
-RUN mamba install -c conda-forge pdal -y && \
+RUN mamba install -c conda-forge pdal gdal -y && \
     pip install -U pyforestscan jupyter-server-proxy && \
     mamba update -c conda-forge -y && \
     jupyter server extension enable --sys-prefix jupyter_server_proxy && \
