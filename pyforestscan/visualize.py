@@ -86,8 +86,44 @@ def plot_pai(pai, extent, cmap='viridis', fig_size=None):
     plt.ylabel('Y')
     plt.show()
 
+def plot_metric(title, metric, extent, cmap='viridis', fig_size=None):
+    """
+    Plots a given metric using the provided data and configuration.
 
-def plot_pad_2d(pad, slice_index, axis='x', cmap='viridis', hag_values=None, horizontal_values=None):
+    :param title: string
+        The name of the metric to be plotted
+    :param metric: ndarray
+        2D array representing the metric's values.
+    :param extent: list
+        List of four elements [xmin, xmax, ymin, ymax] defining the extent of the plot.
+    :param cmap: str, optional
+        Colormap to be used for the plot. Default is 'viridis'.
+    :param fig_size: tuple, optional
+        Tuple specifying the size of the figure (width, height). Default is calculated based on the extent.
+    :return: None
+    :rtype: None
+    """
+    if fig_size is None:
+        x_range = extent[1] - extent[0]
+        y_range = extent[3] - extent[2]
+        aspect_ratio = x_range / y_range
+        fig_size = (10 * aspect_ratio, 10)
+
+        max_fig_size = 20  # inches
+        if max(fig_size) > max_fig_size:
+            scale_factor = max_fig_size / max(fig_size)
+            fig_size = (fig_size[0] * scale_factor, fig_size[1] * scale_factor)
+
+    plt.figure(figsize=fig_size)
+
+    plt.imshow(metric.T, extent=extent, cmap=cmap)
+    plt.colorbar(label=title)
+    plt.title(title)
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.show()
+
+def plot_pad(pad, slice_index, axis='x', cmap='viridis', hag_values=None, horizontal_values=None):
     """
     Plots a 2D slice of Plant Area Density (PAD) data with dZ HAG on the Y-axis.
 

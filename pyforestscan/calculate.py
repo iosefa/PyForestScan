@@ -234,7 +234,7 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear"):
         xi=(interp_x, interp_y),
         method=interpolation
     )
-    chm = np.flipud(chm)
+    chm = np.flip(chm, axis=1)
     extent = [x_min, x_max, y_min, y_max]
 
     return chm, extent
