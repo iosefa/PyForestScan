@@ -1,5 +1,10 @@
 # PyForestScan: Airborne Point Cloud Analysis for Forest Structure
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/iosefa/PyForestScan/HEAD?labpath=docs%2Fexamples%2Fgetting-started.ipynb)
+[![PyPI](https://img.shields.io/pypi/v/PyForestScan.svg)](https://pypi.org/project/PyForestScan/)
+[![Tests](https://img.shields.io/github/actions/workflow/status/iosefa/PyForestScan/main.yml?branch=main)](https://github.com/iosefa/PyForestScan/actions/workflows/main.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/iosefa/PyForestScan/main)](https://codecov.io/gh/iosefa/PyForestScan)
+
 ![Height Above Ground](./screenshots/hag.png)
 
 ## Overview
@@ -11,6 +16,7 @@ Plant Area Index (PAI), Canopy Cover, Plant Area Density (PAD), and Foliage Heig
 ## Features
 
 - **Forest Metrics**: Calculate and visualize key metrics like Canopy Height, PAI, PAD, and FHD.
+- **Large Point Cloud Support**: Utilizes efficient data formats such as EPT for large point cloud processing.
 - **Airborne Data Compatibility**: Supports LiDAR and Structure from Motion (SfM) data from drones and UAVs.
 - **Visualization**: Create 2D and 3D visualizations of forest structures.
 - **Extensibility**: Easily add custom filters and visualization techniques to suit your needs.
@@ -35,17 +41,23 @@ pip install pyforestscan
 
 ### Derive Forest Metrics from Airborne Data
 
-The following snipped shows how you can load a las file, create 25m by 25m by 5m voxels with points assigned to them, and generate plant area density at 5m layers and plant area index for each 25m grid cell before writing the resulting PAI layer to a geotiff. 
+The following snipped shows how you can load a las file, create 5m by 5m by 1m voxels with points assigned to them, and generate plant area density at 1m layers and plant area index for each 5m grid cell before writing the resulting PAI layer to a geotiff and plotting. 
+
 ```python
 from pyforestscan.handlers import read_lidar, create_geotiff
 from pyforestscan.calculate import assign_voxels, calculate_pad, calculate_pai
+from pyforestscan.visualize import plot_pai
 
-arrays = read_lidar("path/to/lidar/file.las", "EPSG:32605", hag=True)
-voxels, extent = assign_voxels(arrays[0], (25, 25, 5))
-pad = calculate_pad(voxels, 5)
+arrays = read_lidar("example_data/20191210_5QKB020880.laz", "EPSG:32605", hag=True)
+voxel_resolution = (5, 5, 1)
+voxels, extent = assign_voxels(arrays[0], voxel_resolution)
+pad = calculate_pad(voxels, voxel_resolution[-1])
 pai = calculate_pai(pad)
 create_geotiff(pai, "output_pai.tiff", "EPSG:32605", extent)
+plot_pai(pai, extent, cmap='viridis', fig_size=None)
 ```
+
+![Plant Area Index](./screenshots/pai.png)
 
 ## Documentation
 
