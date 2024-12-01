@@ -64,10 +64,10 @@ In equation (3), $FHD$ is calculated as the Shannon entropy of the vertical dist
 
 # Usage
 
-To facilitate usage of the software, we have included ... 
+To facilitate usage of the software, we have included Jupyter notebooks in the Github repository detailing how to get started using PyForestScan as well as how to calculate forest metrics. The example dataset is a one-square-kilometer tile derived from a 2019 aerial lidar survey of the Big Island of Hawaii [CITE]. The Jupyter notebooks include an example data set of a point cloud with a nominal pulse spacing of 0.35 meters and was captured over a dry forest environment. The data has been preprocessed to classify ground and vegetation points [CITE]. More details are available in the documentation. 
 
 # Contributions
-J.E.H.P developed the concept with input from B.P; J.E.H.P wrote the software and automatic tests; B.P. and J.E.H.P wrote the software documentation; B.P. created Jupyter notebooks for example usage; J.E.H.P and B.P wrote the manuscript.
+JEHP developed the concept with input from BPL; JEHP wrote the initial versions of the software and automatic tests with contributions from BPL; BPL and JEHP wrote the software documentation and created Jupyter notebooks for example usage; and both authors wrote the manuscript.
 
 # Acknowledgements
 
