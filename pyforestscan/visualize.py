@@ -50,7 +50,7 @@ def plot_2d(points, x_dim='X', y_dim='Z', color_map='viridis', alpha=1.0, point_
     plt.colorbar(label='Height Above Ground (m)')
     plt.show()
 
-def plot_metric(title, metric, extent, cmap='viridis', fig_size=None):
+def plot_metric(title, metric, extent, metric_name=None, cmap='viridis', fig_size=None):
     """
     Plots a given metric using the provided data and configuration.
 
@@ -60,6 +60,10 @@ def plot_metric(title, metric, extent, cmap='viridis', fig_size=None):
         2D array representing the metric's values.
     :param extent: list
         List of four elements [xmin, xmax, ymin, ymax] defining the extent of the plot.
+    :param metric_name: string, optional
+        Label to be used for the colorbar. If None, the title is used as the
+        metric name. This is useful for specifying units or a more detailed
+        description of the metric.
     :param cmap: str, optional
         Colormap to be used for the plot. Default is 'viridis'.
     :param fig_size: tuple, optional
@@ -67,13 +71,15 @@ def plot_metric(title, metric, extent, cmap='viridis', fig_size=None):
     :return: None
     :rtype: None
     """
+    if metric_name is None:
+        metric_name = title
     if fig_size is None:
         x_range = extent[1] - extent[0]
         y_range = extent[3] - extent[2]
         aspect_ratio = x_range / y_range
         fig_size = (10 * aspect_ratio, 10)
 
-        max_fig_size = 20  # inches
+        max_fig_size = 20
         if max(fig_size) > max_fig_size:
             scale_factor = max_fig_size / max(fig_size)
             fig_size = (fig_size[0] * scale_factor, fig_size[1] * scale_factor)
@@ -81,7 +87,7 @@ def plot_metric(title, metric, extent, cmap='viridis', fig_size=None):
     plt.figure(figsize=fig_size)
 
     plt.imshow(metric.T, extent=extent, cmap=cmap)
-    plt.colorbar(label=title)
+    plt.colorbar(label=metric_name)
     plt.title(title)
     plt.xlabel('X')
     plt.ylabel('Y')
