@@ -25,6 +25,8 @@ plugins:
 markdown_extensions:
     - attr_list
     - pymdownx.superfences
+    - pymdownx.arithmatex:
+          generic: true
     - pymdownx.highlight:
           linenums: true
     - toc:
@@ -33,15 +35,26 @@ markdown_extensions:
 nav:
     - Home: index.md
     - Installation: installation.md
-    - Usage: usage.md
+    - Usage:
+        - usage/getting-started-import-and-preprocess.md
+        - usage/digital-terrain-models.md
+        - Forest Structure:
+            - usage/forest-structure/intro.md
+            - usage/forest-structure/chm.md
+            - usage/forest-structure/pad.md
+            - usage/forest-structure/pai.md
+            - usage/forest-structure/fhd.md
     - Benchmarks: benchmarks.md
     - Contributing: contributing.md
     - Changelog: changelog.md
     - Report Issues: https://github.com/iosefa/PyForestScan/issues
     - Examples:
-          - examples/getting-started.ipynb
+        - examples/getting-started.ipynb
     - API Reference:
-          - common module: common.md
+        - common module: common.md
 
 extra_css:
     - overrides/custom.css
+
+extra_javascript:
+ - https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js
