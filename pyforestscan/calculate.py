@@ -43,7 +43,6 @@ def generate_dtm(ground_points, resolution=2.0):
             if np.isnan(dtm[xi, yi]) or zi < dtm[xi, yi]:
                 dtm[xi, yi] = zi
 
-    #dtm = np.nan_to_num(dtm, nan=-9999)
     dtm = np.fliplr(dtm)
 
     extent = [x_min, x_max, y_min, y_max]
