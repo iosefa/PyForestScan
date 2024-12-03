@@ -20,6 +20,9 @@ RUN mamba install -c conda-forge sqlite gdal pdal -y && \
 RUN mkdir ./examples
 COPY /docs/examples ./examples
 
+RUN mkdir ./example_data
+COPY /docs/example_data ./example_data
+
 ENV PROJ_LIB='/opt/conda/share/proj'
 ENV JUPYTER_ENABLE_LAB=yes
 
