@@ -1221,7 +1221,8 @@ The height is the highest HeightAboveGround value in each (x, y) voxel.</p>
 :param voxel_resolution:
     The resolution for x and y dimensions of the voxel grid.
 :param interpolation:
-    method for interpolating pixel caps in the CHM. Supported methods are: "nearest", "linear", and "cubic".
+    Method for interpolating pixel gaps in the CHM. Supported methods are: "nearest", "linear", "cubic", or None.
+    If None, no interpolation is performed.
 :type voxel_resolution: tuple of floats (x_resolution, y_resolution)</p>
 <p>:return:
     A tuple containing the CHM as a 2D numpy array and the spatial extent.
@@ -1291,7 +1292,10 @@ The height is the highest HeightAboveGround value in each (x, y) voxel.</p>
 <span class="normal">236</span>
 <span class="normal">237</span>
 <span class="normal">238</span>
-<span class="normal">239</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">calculate_chm</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">):</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">calculate_chm</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate Canopy Height Model (CHM) for a given voxel size.</span>
 <span class="sd">    The height is the highest HeightAboveGround value in each (x, y) voxel.</span>
@@ -1301,7 +1305,8 @@ The height is the highest HeightAboveGround value in each (x, y) voxel.</p>
 <span class="sd">    :param voxel_resolution:</span>
 <span class="sd">        The resolution for x and y dimensions of the voxel grid.</span>
 <span class="sd">    :param interpolation:</span>
-<span class="sd">        method for interpolating pixel caps in the CHM. Supported methods are: &quot;nearest&quot;, &quot;linear&quot;, and &quot;cubic&quot;.</span>
+<span class="sd">        Method for interpolating pixel gaps in the CHM. Supported methods are: &quot;nearest&quot;, &quot;linear&quot;, &quot;cubic&quot;, or None.</span>
+<span class="sd">        If None, no interpolation is performed.</span>
 <span class="sd">    :type voxel_resolution: tuple of floats (x_resolution, y_resolution)</span>
 
 <span class="sd">    :return:</span>
@@ -1322,34 +1327,36 @@ The height is the highest HeightAboveGround value in each (x, y) voxel.</p>
     <span class="n">x_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_bins</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">y_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_bins</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
 
-    <span class="n">chm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x_bins</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_bins</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">chm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x_bins</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_bins</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">,</span> <span class="n">zi</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_indices</span><span class="p">,</span> <span class="n">y_indices</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
         <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">xi</span> <span class="o">&lt;</span> <span class="n">chm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">yi</span> <span class="o">&lt;</span> <span class="n">chm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">chm</span><span class="p">[</span><span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">])</span> <span class="ow">or</span> <span class="n">zi</span> <span class="o">&gt;</span> <span class="n">chm</span><span class="p">[</span><span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">]:</span>
                 <span class="n">chm</span><span class="p">[</span><span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">]</span> <span class="o">=</span> <span class="n">zi</span>
 
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">chm</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">interpolation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">chm</span><span class="p">)</span>
 
-    <span class="n">x_grid</span><span class="p">,</span> <span class="n">y_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
-        <span class="p">(</span><span class="n">x_bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">x_bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="p">(</span><span class="n">y_bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">y_bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mi">2</span>
-    <span class="p">)</span>
+        <span class="n">x_grid</span><span class="p">,</span> <span class="n">y_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">x_bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">x_bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">y_bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">y_bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="p">)</span>
 
-    <span class="n">valid_mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">mask</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-    <span class="n">valid_x</span> <span class="o">=</span> <span class="n">x_grid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">valid_mask</span><span class="p">]</span>
-    <span class="n">valid_y</span> <span class="o">=</span> <span class="n">y_grid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">valid_mask</span><span class="p">]</span>
-    <span class="n">valid_values</span> <span class="o">=</span> <span class="n">chm</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">valid_mask</span><span class="p">]</span>
+        <span class="n">valid_mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">mask</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">valid_x</span> <span class="o">=</span> <span class="n">x_grid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">valid_mask</span><span class="p">]</span>
+        <span class="n">valid_y</span> <span class="o">=</span> <span class="n">y_grid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">valid_mask</span><span class="p">]</span>
+        <span class="n">valid_values</span> <span class="o">=</span> <span class="n">chm</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">valid_mask</span><span class="p">]</span>
 
-    <span class="n">interp_x</span> <span class="o">=</span> <span class="n">x_grid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">mask</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
-    <span class="n">interp_y</span> <span class="o">=</span> <span class="n">y_grid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">mask</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+        <span class="n">interp_x</span> <span class="o">=</span> <span class="n">x_grid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">mask</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+        <span class="n">interp_y</span> <span class="o">=</span> <span class="n">y_grid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">mask</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
 
-    <span class="n">chm</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">griddata</span><span class="p">(</span>
-        <span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="n">valid_x</span><span class="p">,</span> <span class="n">valid_y</span><span class="p">),</span>
-        <span class="n">values</span><span class="o">=</span><span class="n">valid_values</span><span class="p">,</span>
-        <span class="n">xi</span><span class="o">=</span><span class="p">(</span><span class="n">interp_x</span><span class="p">,</span> <span class="n">interp_y</span><span class="p">),</span>
-        <span class="n">method</span><span class="o">=</span><span class="n">interpolation</span>
-    <span class="p">)</span>
+        <span class="n">chm</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">griddata</span><span class="p">(</span>
+            <span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="n">valid_x</span><span class="p">,</span> <span class="n">valid_y</span><span class="p">),</span>
+            <span class="n">values</span><span class="o">=</span><span class="n">valid_values</span><span class="p">,</span>
+            <span class="n">xi</span><span class="o">=</span><span class="p">(</span><span class="n">interp_x</span><span class="p">,</span> <span class="n">interp_y</span><span class="p">),</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">interpolation</span>
+        <span class="p">)</span>
+
     <span class="n">chm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">extent</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">,</span> <span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">]</span>
 
