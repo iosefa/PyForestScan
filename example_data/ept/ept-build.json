@@ -1,0 +1,7 @@
+{
+  "laz_14": false,
+  "maxNodeSize": 65536,
+  "minNodeSize": 16384,
+  "software": "Entwine",
+  "version": "3.1.0"
+}
