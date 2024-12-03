@@ -13,7 +13,7 @@ Steps to install PDAL and GDAL:
 1.  Install PDAL and GDAL using `conda`:
 
 ``` bash
-conda create -n pyforestscan_env pdal gdal
+conda create -n pyforestscan_env -c conda-forge pdal gdal
 ```
 
 2. Activate the conda env:

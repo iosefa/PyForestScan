@@ -48,7 +48,7 @@ The following snippet shows how you can load a las file, create 5m by 5m by 1m v
 ```python
 from pyforestscan.handlers import read_lidar, create_geotiff
 from pyforestscan.calculate import assign_voxels, calculate_pad, calculate_pai
-from pyforestscan.visualize import plot_pai
+from pyforestscan.visualize import plot_metric
 
 arrays = read_lidar("example_data/20191210_5QKB020880.laz", "EPSG:32605", hag=True)
 voxel_resolution = (5, 5, 1)
@@ -56,7 +56,7 @@ voxels, extent = assign_voxels(arrays[0], voxel_resolution)
 pad = calculate_pad(voxels, voxel_resolution[-1])
 pai = calculate_pai(pad)
 create_geotiff(pai, "output_pai.tiff", "EPSG:32605", extent)
-plot_pai(pai, extent, cmap='viridis', fig_size=None)
+plot_metric('Plant Area Index', pai, extent, metric_name='PAI', cmap='viridis', fig_size=None)
 ```
 
 ![Plant Area Index](./screenshots/pai.png)
