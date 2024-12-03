@@ -1,4 +1,5 @@
 site_name: PyForestScan
+site_url: https://pyforestscan.sefa.ai
 repo_url: https://github.com/iosefa/PyForestScan
 
 theme:
