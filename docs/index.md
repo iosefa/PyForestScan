@@ -24,9 +24,22 @@ PyForestScan is a Python library designed for analyzing and visualizing forest s
 
 ## Examples
 
+The examples below are jupyter notebooks and can help you get started!
+
 - [Getting Started: DTM and CHM](examples/getting-started.ipynb)
 - [Calculating Forest Metrics](examples/calculate-forest-metrics.ipynb)
 - [Working with Large Point Clouds](examples/working-with-large-point-clouds.ipynb)
+
+To install jupyter, you can use conda or pip, with either:
+
+```python
+conda install jupyter
+```
+or 
+
+```python
+pip install jupyter
+```
 
 ## Attribution
 
