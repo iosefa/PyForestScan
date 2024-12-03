@@ -71,7 +71,7 @@ JEHP developed the concept with input from BPL; JEHP wrote the initial versions 
 
 # Acknowledgements
 
-We would like to express our gratitude to Juan Guerra-Hernandez and Adrian Pascual for providing a noise-free classified point cloud dataset [@guerra-hernandezHighresolutionCanopyHeight2024], which was instrumental in testing and validating the PyForestScan library. We would also like to thank Ryan Perroy for his feedback and help in revising this manuscript. This work was enabled in part by funding from the National Science Foundation award: 2149133. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.
+We would like to express our gratitude to Juan Guerra-Hernandez and Adrian Pascual for providing a noise-free classified point cloud dataset [@guerra-hernandezHighresolutionCanopyHeight2024], which was instrumental in testing and validating the PyForestScan library. We would also like to thank Ryan Perroy for his guidance, feedback, and help in revising this manuscript. This work was enabled in part by funding from the National Science Foundation award: 2149133. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.
  
 
 # References
