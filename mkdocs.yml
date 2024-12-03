@@ -1,0 +1,68 @@
+site_name: PyForestScan
+site_url: https://pyforestscan.sefa.ai
+repo_url: https://github.com/iosefa/PyForestScan
+
+theme:
+    name: material
+    palette:
+        primary: green
+        accent: deep-orange
+    icon:
+        repo: fontawesome/brands/github
+    features:
+        - navigation.instant
+        - search.highlight
+    custom_dir: overrides
+
+plugins:
+    - search
+    - mkdocstrings
+    - git-revision-date
+    - mkdocs-jupyter:
+        include_source: true
+        execute: false
+        ignore_h1_titles: true
+
+markdown_extensions:
+    - attr_list
+    - pymdownx.superfences
+    - pymdownx.arithmatex:
+          generic: true
+    - pymdownx.highlight:
+          linenums: true
+    - toc:
+          permalink: true
+
+nav:
+    - Home: index.md
+    - Installation: installation.md
+    - Usage:
+        - usage/getting-started-import-and-preprocess.md
+        - usage/digital-terrain-models.md
+        - Forest Structure:
+            - usage/forest-structure/intro.md
+            - usage/forest-structure/chm.md
+            - usage/forest-structure/pad.md
+            - usage/forest-structure/pai.md
+            - usage/forest-structure/fhd.md
+    - Benchmarks: benchmarks.md
+    - Contributing: contributing.md
+    - Changelog: https://github.com/iosefa/PyForestScan/releases
+    - Report Issues: https://github.com/iosefa/PyForestScan/issues
+    - Examples:
+        - examples/getting-started-importing-preprocessing-dtm-chm.ipynb
+        - examples/calculate-forest-metrics.ipynb
+        - examples/working-with-large-point-clouds.ipynb
+    - API Reference:
+        - calculate module: api/calculate.md
+        - filters module: api/filters.md
+        - handlers module: api/handlers.md
+        - pipeline module: api/pipeline.md
+        - process module: api/process.md
+        - visualize module: api/visualize.md
+
+extra_css:
+    - overrides/custom.css
+
+extra_javascript:
+ - https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js

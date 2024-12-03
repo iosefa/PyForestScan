@@ -12,6 +12,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
     steps:
       - name: Check out the repository
         uses: actions/checkout@v3
@@ -20,12 +24,12 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
           channels: conda-forge
 
-      - name: Create Conda environment with Python 3.10 and PDAL
+      - name: Create Conda environment with Python and PDAL
         run: |
-          conda create --name pyforestscan_env python=3.10 pdal gdal -c conda-forge -v
+          conda create --name pyforestscan_env python=${{ matrix.python-version }} pdal gdal -c conda-forge -v
 
       - name: Activate Conda environment and install dependencies
         shell: bash -l {0}

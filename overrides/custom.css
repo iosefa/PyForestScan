@@ -1,0 +1,16 @@
+:root {
+    --md-primary-fg-color: #228B22;
+    --md-primary-bg-color: #228B22;
+}
+
+.md-header {
+    color: #FFFFFF;
+}
+
+.md-nav__link {
+    color: #FFFFFF;
+}
+
+.md-nav__link:hover {
+    color: #FFD700;
+}

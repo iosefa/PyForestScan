@@ -1,0 +1,7 @@
+mkdocs>=1.4.0
+mkdocs-material>=9.0.0
+mkdocs-jupyter>=0.24.0
+mkdocstrings>=0.21.0
+mkdocstrings-python>=0.10.0
+mkdocs-git-revision-date-plugin>=0.3.3
+pymdown-extensions>=9.10
