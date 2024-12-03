@@ -299,6 +299,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#attribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attribution
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -965,6 +974,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#attribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attribution
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1002,11 +1020,22 @@
 <li><strong>Extensibility</strong>: Easily add custom filters and visualization techniques to suit your needs.</li>
 </ul>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<p>The examples below are jupyter notebooks and can help you get started!</p>
 <ul>
 <li><a href="examples/getting-started.ipynb">Getting Started: DTM and CHM</a></li>
 <li><a href="examples/calculate-forest-metrics/">Calculating Forest Metrics</a></li>
 <li><a href="examples/working-with-large-point-clouds/">Working with Large Point Clouds</a></li>
 </ul>
+<p>To install jupyter, you can use conda or pip, with either:</p>
+<p><div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">conda</span> <span class="n">install</span> <span class="n">jupyter</span>
+</code></pre></div></td></tr></table></div>
+or </p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">pip</span> <span class="n">install</span> <span class="n">jupyter</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="attribution">Attribution<a class="headerlink" href="#attribution" title="Permanent link">&para;</a></h2>
+<p>This library makes heavy use of PDAL (Butler et al. 2024; Butler et al. 2021) for its IO operations. PDAL and the PDAL Python Bindings provide excellent functional support for conducting standard operations on point clouds. Our work to calculate forest structural metrics would have been a lot harder without PDAL. </p>
+<p>Butler, H., Bell, A., Gerlek, M. P., chambbj, Gadomski, P., Manning, C., Łoskot, M., Couwenberg, B., Barker, N., Ramsey, P., Dark, J., Mann, K., Chaulet, N., Rouault, E., Villemin, G., Foster, C., Moore, O., Rosen, M., Lewis, S., ... Brookes, D. (2024). PDAL/PDAL: 2.8.1 (Version 2.8.1). Zenodo. https://doi.org/10.5281/zenodo.13993879</p>
+<p>Butler, H., Chambers, B., Hartzell, P., &amp; Glennie, C. (2021). PDAL: An open source library for the processing and analysis of point clouds. Computers &amp; Geosciences, 148, 104680. https://doi.org/https://doi.org/10.1016/j.cageo.2020.104680</p>
 
 
 
@@ -1027,7 +1056,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    2024-12-02
+    2024-12-03
   </span>
 
     
