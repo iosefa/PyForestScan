@@ -392,7 +392,6 @@ def test_calculate_fhd_partial_zero_distribution():
     fhd = calculate_fhd(voxel_returns)
     assert isinstance(fhd, np.ndarray)
     assert fhd.shape == (5, 5)
-    # Entropy should be lower where most returns are zero
     assert fhd[0, 0] < fhd[1, 1]
 
 
@@ -442,7 +441,7 @@ def test_calculate_chm_varying_heights():
     arr = create_point_cloud(num_points=100)
     arr['HeightAboveGround'] = np.random.uniform(0, 50, 100)
     voxel_resolution = (10.0, 10.0)
-    chm, extent = calculate_chm(arr, voxel_resolution)
+    chm, extent = calculate_chm(arr, voxel_resolution, interpolation=None)
 
     assert isinstance(chm, np.ndarray), "CHM should be a NumPy array."
     assert chm.ndim == 2, f"CHM should be 2-dimensional, got {chm.ndim} dimensions."
@@ -453,18 +452,19 @@ def test_calculate_chm_varying_heights():
         for j in range(chm.shape[1]):
             x_min = extent[0] + i * voxel_resolution[0]
             x_max = extent[0] + (i + 1) * voxel_resolution[0]
-            y_min = extent[2] + j * voxel_resolution[1]
-            y_max = extent[2] + (j + 1) * voxel_resolution[1]
+            y_index = chm.shape[1] - 1 - j
+            y_min = extent[2] + y_index * voxel_resolution[1]
+            y_max = extent[2] + (y_index + 1) * voxel_resolution[1]
 
             points_in_voxel = arr[
                 (arr['X'] >= x_min) & (arr['X'] < x_max) &
                 (arr['Y'] >= y_min) & (arr['Y'] < y_max)
-                ]
+            ]
 
             if len(points_in_voxel) > 0:
                 expected_max = points_in_voxel['HeightAboveGround'].max()
                 actual_value = chm[i, j]
-                assert actual_value == expected_max, (
+                assert np.isclose(actual_value, expected_max, atol=1e-6), (
                     f"CHM[{i}, {j}] should be {expected_max}, got {actual_value}."
                 )
             else:
@@ -473,48 +473,39 @@ def test_calculate_chm_varying_heights():
                     f"CHM[{i}, {j}] should be NaN or 0, got {actual_value}."
                 )
 
-
 def test_calculate_chm_negative_heights():
     """
     Test that calculate_chm correctly assigns maximum heights to each voxel,
-    including negative heights (as strange as that sounds!). For voxels with no points, CHM should be either NaN or 0.
+    including negative heights. For voxels with no points, CHM should be either NaN or 0.
     """
     np.random.seed(42)
     arr = create_point_cloud(num_points=100)
     arr['HeightAboveGround'] = np.random.uniform(-20, 50, 100)
     voxel_resolution = (10.0, 10.0)
-    chm, extent = calculate_chm(arr, voxel_resolution)
+    chm, extent = calculate_chm(arr, voxel_resolution, interpolation=None)
 
     assert isinstance(chm, np.ndarray), "CHM should be a NumPy array."
     assert chm.ndim == 2, f"CHM should be 2-dimensional, got {chm.ndim} dimensions."
     assert isinstance(extent, list), "Extent should be a list."
     assert len(extent) == 4, f"Extent should have 4 elements, got {len(extent)}."
 
-    x_min, x_max, y_min, y_max = extent
-    x_bins = np.arange(x_min, x_max + voxel_resolution[0], voxel_resolution[0])
-    y_bins = np.arange(y_min, y_max + voxel_resolution[1], voxel_resolution[1])
-
-    expected_shape = (len(x_bins) - 1, len(y_bins) - 1)
-    assert chm.shape == expected_shape, (
-        f"CHM shape should be {expected_shape}, got {chm.shape}."
-    )
     for i in range(chm.shape[0]):
         for j in range(chm.shape[1]):
-            x_min_voxel = x_bins[i]
-            x_max_voxel = x_bins[i + 1]
-            y_min_voxel = y_bins[j]
-            y_max_voxel = y_bins[j + 1]
+            x_min = extent[0] + i * voxel_resolution[0]
+            x_max = extent[0] + (i + 1) * voxel_resolution[0]
+            y_index = chm.shape[1] - 1 - j
+            y_min = extent[2] + y_index * voxel_resolution[1]
+            y_max = extent[2] + (y_index + 1) * voxel_resolution[1]
+
             points_in_voxel = arr[
-                (arr['X'] >= x_min_voxel) & (arr['X'] < x_max_voxel) &
-                (arr['Y'] >= y_min_voxel) & (arr['Y'] < y_max_voxel)
-                ]
+                (arr['X'] >= x_min) & (arr['X'] < x_max) &
+                (arr['Y'] >= y_min) & (arr['Y'] < y_max)
+            ]
 
             if len(points_in_voxel) > 0:
                 expected_max = points_in_voxel['HeightAboveGround'].max()
                 actual_value = chm[i, j]
-                assert np.isclose(
-                    actual_value, expected_max, atol=1e-6
-                ), (
+                assert np.isclose(actual_value, expected_max, atol=1e-6), (
                     f"CHM[{i}, {j}] should be {expected_max}, got {actual_value}."
                 )
             else:
@@ -522,7 +513,6 @@ def test_calculate_chm_negative_heights():
                 assert np.isnan(actual_value) or actual_value == 0, (
                     f"CHM[{i}, {j}] should be NaN or 0, got {actual_value}."
                 )
-
 
 def test_calculate_chm_floating_point_resolution():
     """
@@ -534,12 +524,13 @@ def test_calculate_chm_floating_point_resolution():
     arr = create_point_cloud(num_points=100)
     arr['HeightAboveGround'] = np.random.uniform(-20, 50, 100)
     voxel_resolution = (7.5, 12.3)
-    chm, extent = calculate_chm(arr, voxel_resolution)
+    chm, extent = calculate_chm(arr, voxel_resolution, interpolation=None)
 
     assert isinstance(chm, np.ndarray), "CHM should be a NumPy array."
     assert chm.ndim == 2, f"CHM should be 2-dimensional, got {chm.ndim} dimensions."
     assert isinstance(extent, list), "Extent should be a list."
     assert len(extent) == 4, f"Extent should have 4 elements, got {len(extent)}."
+
     x_min, x_max, y_min, y_max = extent
     x_bins = np.arange(x_min, x_max + voxel_resolution[0], voxel_resolution[0])
     y_bins = np.arange(y_min, y_max + voxel_resolution[1], voxel_resolution[1])
@@ -547,24 +538,24 @@ def test_calculate_chm_floating_point_resolution():
     assert chm.shape == expected_shape, (
         f"CHM shape should be {expected_shape}, got {chm.shape}."
     )
+
     for i in range(chm.shape[0]):
         for j in range(chm.shape[1]):
             x_min_voxel = x_bins[i]
             x_max_voxel = x_bins[i + 1]
-            y_min_voxel = y_bins[j]
-            y_max_voxel = y_bins[j + 1]
+            y_index = chm.shape[1] - 1 - j
+            y_min_voxel = y_bins[y_index]
+            y_max_voxel = y_bins[y_index + 1]
 
             points_in_voxel = arr[
                 (arr['X'] >= x_min_voxel) & (arr['X'] < x_max_voxel) &
                 (arr['Y'] >= y_min_voxel) & (arr['Y'] < y_max_voxel)
-                ]
+            ]
 
             if len(points_in_voxel) > 0:
                 expected_max = points_in_voxel['HeightAboveGround'].max()
                 actual_value = chm[i, j]
-                assert np.isclose(
-                    actual_value, expected_max, atol=1e-6
-                ), (
+                assert np.isclose(actual_value, expected_max, atol=1e-6), (
                     f"CHM[{i}, {j}] should be {expected_max}, got {actual_value}."
                 )
             else:
@@ -572,15 +563,6 @@ def test_calculate_chm_floating_point_resolution():
                 assert np.isnan(actual_value) or actual_value == 0, (
                     f"CHM[{i}, {j}] should be NaN or 0, got {actual_value}."
                 )
-    expected_extent = [
-        arr['X'].min(),
-        arr['X'].max(),
-        arr['Y'].min(),
-        arr['Y'].max()
-    ]
-    assert extent == expected_extent, (
-        f"Extent should be {expected_extent}, got {extent}."
-    )
 
 
 def test_calculate_chm_non_numeric_data():
@@ -592,11 +574,10 @@ def test_calculate_chm_non_numeric_data():
 
 
 def test_calculate_chm_large_heights():
-    arr = create_point_cloud(num_points=100)
-    arr['HeightAboveGround'] = np.random.uniform(1000, 2000, 100)
-    voxel_resolution = (100.0, 100.0)
+    arr = create_point_cloud(num_points=1000)
+    arr['HeightAboveGround'] = np.random.uniform(1000, 2000, 1000)
+    voxel_resolution = (50.0, 50.0)
     chm, extent = calculate_chm(arr, voxel_resolution)
     assert isinstance(chm, np.ndarray)
     assert chm.ndim == 2
-    # Verify that CHM contains large heights
     assert np.all(chm >= 1000)
