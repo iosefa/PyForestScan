@@ -46,12 +46,19 @@ nav:
             - usage/forest-structure/fhd.md
     - Benchmarks: benchmarks.md
     - Contributing: contributing.md
-    - Changelog: changelog.md
+    - Changelog: https://github.com/iosefa/PyForestScan/releases
     - Report Issues: https://github.com/iosefa/PyForestScan/issues
     - Examples:
-        - examples/getting-started.ipynb
+        - examples/getting-started-importing-preprocessing-dtm-chm.ipynb
+        - examples/calculate-forest-metrics.ipynb
+        - examples/working-with-large-point-clouds.ipynb
     - API Reference:
-        - common module: common.md
+        - calculate module: api/calculate.md
+        - filters module: api/filters.md
+        - handlers module: api/handlers.md
+        - pipeline module: api/pipeline.md
+        - process module: api/process.md
+        - visualize module: api/visualize.md
 
 extra_css:
     - overrides/custom.css

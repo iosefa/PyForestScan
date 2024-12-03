@@ -8,9 +8,18 @@ import numpy as np
 from pyproj import CRS
 from rasterio.transform import from_bounds
 from shapely.geometry import MultiPolygon
+from urllib.parse import urlparse
 
 from pyforestscan.pipeline import _crop_polygon, _filter_radius, _hag_delaunay, _hag_raster
 from pyproj.exceptions import CRSError
+
+
+def _is_url(input_str):
+    try:
+        result = urlparse(input_str)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
 
 
 def simplify_crs(crs_list):
@@ -182,7 +191,7 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dt
                         both 'hag' and 'hag_dtm' are True simultaneously, or the DTM file path is not
                         provided when 'hag_dtm' is True.
     """
-    if not os.path.isfile(input_file):
+    if not _is_url(input_file) and not os.path.isfile(input_file):
         raise FileNotFoundError(f"No such file: '{input_file}'")
 
     las_extensions = ('.las', '.laz')

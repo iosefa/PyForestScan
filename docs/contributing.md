@@ -4,7 +4,7 @@ Thank you for contributing to PyForestScan! Your involvement helps make this pro
 
 ## Code of Conduct
 
-By participating in this project, please follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+By participating in this project, please follow our [Code of Conduct](code_of_conduct.md).
 
 ## How Can I Contribute?
 

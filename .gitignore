@@ -174,3 +174,5 @@ test_data/output.tif
 
 # tifs created from tests
 *.tif
+
+docs/example_data/ept

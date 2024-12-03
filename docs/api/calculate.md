@@ -1,3 +1,3 @@
-# API Documentation
+# Calculate Module
 
 ::: pyforestscan.calculate

@@ -16,3 +16,6 @@ create_geotiff(dtm, "../example_data/20191210_5QKB020880_DS05_dtm.tif", "EPSG:32
 
 plot_metric('Digital Terrain Model', dtm, extent, metric_name='Elevation (m)', cmap='viridis', fig_size=None)
 ```
+
+![puu_2d.png](../images/dtm.png)
+

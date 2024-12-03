@@ -43,7 +43,7 @@ def get_bounds(ept_file):
 
 
 def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buffer_size=0.1, srs=None, hag=False,
-                       hag_dtm=False, dtm=None):
+                       hag_dtm=False, dtm=None, bounds=None):
     """
     Processes a large EPT point cloud by tiling, calculates CHM or other metrics for each tile,
     and writes the results to the specified output path.
@@ -106,10 +106,11 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buf
                         raise FileNotFoundError(f"DTM file is required for HAG calculation using DTM: {dtm}")
                     tile_pipeline_stages.append(_hag_raster(dtm))
 
+                base_pipeline = {"type": "readers.ept", "filename": ept_file}
+                if bounds:
+                    base_pipeline["bounds"] = f"{bounds}"
                 tile_pipeline_json = {
-                    "pipeline": [
-                                    {"type": "readers.ept", "filename": ept_file}
-                                ] + tile_pipeline_stages
+                    "pipeline": [base_pipeline] + tile_pipeline_stages
                 }
 
                 tile_pipeline = pdal.Pipeline(json.dumps(tile_pipeline_json))
