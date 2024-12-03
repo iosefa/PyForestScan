@@ -184,7 +184,8 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear"):
     :param voxel_resolution:
         The resolution for x and y dimensions of the voxel grid.
     :param interpolation:
-        method for interpolating pixel caps in the CHM. Supported methods are: "nearest", "linear", and "cubic".
+        Method for interpolating pixel gaps in the CHM. Supported methods are: "nearest", "linear", "cubic", or None.
+        If None, no interpolation is performed.
     :type voxel_resolution: tuple of floats (x_resolution, y_resolution)
 
     :return:
@@ -205,34 +206,36 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear"):
     x_indices = np.digitize(x, x_bins) - 1
     y_indices = np.digitize(y, y_bins) - 1
 
-    chm = np.full((len(x_bins)-1, len(y_bins)-1), np.nan)
+    chm = np.full((len(x_bins) - 1, len(y_bins) - 1), np.nan)
 
     for xi, yi, zi in zip(x_indices, y_indices, z):
         if 0 <= xi < chm.shape[0] and 0 <= yi < chm.shape[1]:
             if np.isnan(chm[xi, yi]) or zi > chm[xi, yi]:
                 chm[xi, yi] = zi
 
-    mask = np.isnan(chm)
+    if interpolation is not None:
+        mask = np.isnan(chm)
 
-    x_grid, y_grid = np.meshgrid(
-        (x_bins[:-1] + x_bins[1:]) / 2,
-        (y_bins[:-1] + y_bins[1:]) / 2
-    )
+        x_grid, y_grid = np.meshgrid(
+            (x_bins[:-1] + x_bins[1:]) / 2,
+            (y_bins[:-1] + y_bins[1:]) / 2
+        )
 
-    valid_mask = ~mask.flatten()
-    valid_x = x_grid.flatten()[valid_mask]
-    valid_y = y_grid.flatten()[valid_mask]
-    valid_values = chm.flatten()[valid_mask]
+        valid_mask = ~mask.flatten()
+        valid_x = x_grid.flatten()[valid_mask]
+        valid_y = y_grid.flatten()[valid_mask]
+        valid_values = chm.flatten()[valid_mask]
 
-    interp_x = x_grid.flatten()[mask.flatten()]
-    interp_y = y_grid.flatten()[mask.flatten()]
+        interp_x = x_grid.flatten()[mask.flatten()]
+        interp_y = y_grid.flatten()[mask.flatten()]
 
-    chm[mask] = griddata(
-        points=(valid_x, valid_y),
-        values=valid_values,
-        xi=(interp_x, interp_y),
-        method=interpolation
-    )
+        chm[mask] = griddata(
+            points=(valid_x, valid_y),
+            values=valid_values,
+            xi=(interp_x, interp_y),
+            method=interpolation
+        )
+
     chm = np.flip(chm, axis=1)
     extent = [x_min, x_max, y_min, y_max]
 
