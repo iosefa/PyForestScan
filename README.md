@@ -1,7 +1,9 @@
 # PyForestScan: Airborne Point Cloud Analysis for Forest Structure
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/iosefa/PyForestScan/HEAD?labpath=docs%2Fexamples%2Fgetting-started.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/iosefa/PyForestScan/HEAD?labpath=docs%2Fexamples%2Fgetting-started-importing-preprocessing-dtm-chm.ipynb)
 [![PyPI](https://img.shields.io/pypi/v/PyForestScan.svg)](https://pypi.org/project/PyForestScan/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/iosefa/pyforestscan?logo=docker&label=pulls)](https://hub.docker.com/r/iosefa/pyforestscan)
+[![Contributors](https://img.shields.io/github/contributors/iosefa/PyForestScan.svg?label=contributors)](https://github.com/iosefa/PyForestScan/graphs/contributors)
 [![Tests](https://img.shields.io/github/actions/workflow/status/iosefa/PyForestScan/main.yml?branch=main)](https://github.com/iosefa/PyForestScan/actions/workflows/main.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/iosefa/PyForestScan/main)](https://codecov.io/gh/iosefa/PyForestScan)
 
