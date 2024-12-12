@@ -63,7 +63,7 @@ plot_metric('Plant Area Index', pai, extent, metric_name='PAI', cmap='viridis', 
 
 ## Documentation
 
-For detailed instructions and examples, visit our [documentation](https://pyforestscan.readthedocs.io/).
+For detailed instructions and examples, visit our [documentation](https://pyforestscan.sefa.ai/).
 
 ## Developer Guides
 
