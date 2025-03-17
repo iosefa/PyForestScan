@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_2d(points, x_dim='X', y_dim='Z', color_map='viridis', alpha=1.0, point_size=1, fig_size=None):
+def plot_2d(points, x_dim='X', y_dim='Z', color_map='viridis', alpha=1.0, point_size=1, fig_size=None, fig_title=None):
     """
     Plots a 2D scatter plot from a set of points with customizable dimensions, colors, and sizes.
 
@@ -41,12 +41,15 @@ def plot_2d(points, x_dim='X', y_dim='Z', color_map='viridis', alpha=1.0, point_
             scale_factor = max_fig_size / max(fig_size)
             fig_size = (fig_size[0] * scale_factor, fig_size[1] * scale_factor)
 
+    if fig_title is None:
+        fig_title = f'{x_dim} vs {y_dim} Colored by Height Above Ground'
+
     plt.figure(figsize=fig_size)
 
     plt.scatter(x, y, c=colors, cmap=color_map, alpha=alpha, s=point_size)
     plt.xlabel(x_dim)
     plt.ylabel(y_dim)
-    plt.title(f'{x_dim} vs {y_dim} Colored by Height Above Ground')
+    plt.title(fig_title)
     plt.colorbar(label='Height Above Ground (m)')
     plt.show()
 
