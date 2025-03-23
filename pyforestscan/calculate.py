@@ -100,11 +100,13 @@ def calculate_pad(voxel_returns, voxel_height, beer_lambert_constant=None):
     """
     Calculate the Plant Area Density (PAD) using the Beer-Lambert Law.
 
-    :param voxel_returns: numpy array representing the returns from each voxel (x, y, z).
+    :param voxel_returns: numpy array of shape (X, Y, Z) representing
+                          the returns in each voxel column.
     :param voxel_height: float, height of each voxel.
-    :param beer_lambert_constant: Optional Beer-Lambert constant, defaults to 1 if not provided.
+    :param beer_lambert_constant: optional float. If not provided, defaults to 1.
 
-    :return: numpy array containing PAD values for each voxel.
+    :return: A numpy array containing PAD values for each voxel (same shape as voxel_returns).
+             Columns that have zero returns across all Z are set to NaN.
     """
     shots_in = np.cumsum(voxel_returns[::-1], axis=2)[::-1]
     shots_through = shots_in - voxel_returns
@@ -117,6 +119,9 @@ def calculate_pad(voxel_returns, voxel_height, beer_lambert_constant=None):
         pad = np.log(division_result) * (1 / (beer_lambert_constant or 1) / voxel_height)
 
     pad = np.where(np.isfinite(pad) & (pad > 0), pad, 0)
+    sum_across_z = np.sum(voxel_returns, axis=2, keepdims=True)
+    empty_mask = (sum_across_z == 0)
+    pad = np.where(empty_mask, np.nan, pad)
 
     return pad
 
@@ -136,7 +141,11 @@ def calculate_pai(pad, min_height=1, max_height=None):
     if min_height >= max_height:
         raise ValueError("Minimum height index must be less than maximum height index.")
 
-    pai = np.nansum(pad[:, :, min_height:max_height], axis=2)
+    slice_3d = pad[:, :, min_height:max_height]
+
+    sum_vals = np.nansum(slice_3d, axis=2)
+    count_non_nan = np.sum(~np.isnan(slice_3d), axis=2)
+    pai = np.where(count_non_nan == 0, np.nan, sum_vals)
 
     return pai
 

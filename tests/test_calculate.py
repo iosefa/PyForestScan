@@ -140,8 +140,8 @@ def test_calculate_pad_with_zero_shots():
     pad = calculate_pad(voxel_returns, voxel_height)
     assert isinstance(pad, np.ndarray)
     assert pad.shape == voxel_returns.shape
-    # PAD should be zero where shots_through == 0
-    assert np.all(pad == 0)
+    # PAD should be nan where shots_through == 0
+    assert np.all(np.isnan(pad))
 
 
 def test_calculate_pad_with_inf_nan_values():
