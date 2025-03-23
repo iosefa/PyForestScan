@@ -47,22 +47,31 @@ def filter_select_ground(arrays):
     return pipeline.arrays
 
 
-def remove_outliers_and_clean(arrays, mean_k=8, multiplier=3.0):
+def remove_outliers_and_clean(arrays, mean_k=8, multiplier=3.0, remove=False):
     """
-    Removes statistical outliers from the point cloud to enhance data quality.
+    Processes input arrays by removing statistical outliers and optionally cleans
+    the data, filtering out specific classifications.
+    By default, this function only labels outliers as "7" (outlier).
 
-    :param arrays: list
-        List of point cloud arrays obtained from read_lidar.
-    :type point_cloud_arrays: list
-    :param mean_k: int, number of nearest neighbors for outlier removal.
-    :param multiplier: float, standard deviation multiplier for outlier removal.
-    :return: list
-        Cleaned array of point cloud data without outliers.
-    :rtype: list
-    :raises RuntimeError:
-        If there's an error during the pipeline execution.
-    :raises ValueError:
-        If no data is returned after outlier removal.
+    # todo: this function will be renamed in a future release.
+
+    Args:
+        arrays: The input arrays to process, typically a list of structured arrays or
+            similar data types.
+        mean_k (int, optional): The number of neighbors to analyze for each point for
+            statistical outlier removal. Default is 8.
+        multiplier (float, optional): The multiplication factor for the standard deviation
+            threshold to classify an outlier. Default is 3.0.
+        remove (bool, optional): If True, additional cleaning is performed to remove points
+            specifically classified as outliers. Defaults to False.
+
+    Returns:
+        list: A list of processed arrays after outlier removal, and optionally after
+        cleaning, if specified.
+
+    Raises:
+        RuntimeError: If the outlier removal pipeline fails during execution.
+        ValueError: If no data is returned after applying outlier removal.
     """
     pipeline_stages = [
         _filter_statistical_outlier(mean_k=mean_k, multiplier=multiplier)
@@ -73,7 +82,15 @@ def remove_outliers_and_clean(arrays, mean_k=8, multiplier=3.0):
     except RuntimeError as e:
         raise RuntimeError(f"Outlier Removal Pipeline Failed: {e}")
 
-    processed_arrays = pipeline.arrays
+    if remove:
+        clean_arrays = []
+        for arr in pipeline.arrays:
+            mask = (arr["Classification"] != 7)
+            cleaned = arr[mask]
+            clean_arrays.append(cleaned)
+        processed_arrays = clean_arrays
+    else:
+        processed_arrays = pipeline.arrays
 
     if not processed_arrays:
         raise ValueError("No data returned after outlier removal.")
