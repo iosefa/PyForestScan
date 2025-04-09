@@ -33,7 +33,6 @@ def _crop_dtm(dtm_path, tile_min_x, tile_min_y, tile_max_x, tile_max_y):
         new_transform = src.window_transform(window)
 
         fd, cropped_path = tempfile.mkstemp(suffix=".tif")
-        print(cropped_path)
         os.close(fd)
 
         new_profile = src.profile.copy()
@@ -83,8 +82,6 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buf
 
     if not srs:
         srs = get_srs_from_ept(ept_file)
-
-    print(srs)
 
     num_tiles_x = int(np.ceil((max_x - min_x) / tile_size[0]))
     num_tiles_y = int(np.ceil((max_y - min_y) / tile_size[1]))

@@ -81,7 +81,6 @@ def assign_voxels(arr, voxel_resolution):
     y_min, y_max = y.min(), y.max()
     z_min, z_max = z.min(), z.max()
 
-    print(z_min, z_max)
     x_bins = np.arange(x_min, x_max + x_resolution, x_resolution)
     y_bins = np.arange(y_min, y_max + y_resolution, y_resolution)
     z_bins = np.arange(z_min, z_max + z_resolution, z_resolution)

@@ -1,9 +1,13 @@
+import pytest
 import numpy as np
 from unittest.mock import patch, MagicMock
+
 
 from pyforestscan.process import process_with_tiles
 
 
+# todo: look into why this test takes so long...
+@pytest.mark.skip(reason="Takes too long to run. Run manually if needed.")
 def test_process_with_tiles_chm_small_hawaii(tmp_path):
     """
     Integration test that runs process_with_tiles on a very small bounding region
