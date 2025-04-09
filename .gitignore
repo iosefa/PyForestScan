@@ -174,5 +174,6 @@ test_data/output.tif
 
 # tifs created from tests
 *.tif
+!docs/example_data/USGS_1M_4_x83y219_HI_Hawaii_Island_Lidar_NOAA_2017_B17_cropped_3857.tif
 
 docs/example_data/ept
