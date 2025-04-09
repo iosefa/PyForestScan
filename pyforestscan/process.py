@@ -1,49 +1,56 @@
 import json
-
-from pyforestscan.calculate import calculate_fhd, calculate_pad, calculate_pai, assign_voxels, calculate_chm
-from pyforestscan.handlers import create_geotiff
-
+import pdal
 import numpy as np
 import os
-import pdal
+
 from tqdm import tqdm
 
+from pyforestscan.calculate import calculate_fhd, calculate_pad, calculate_pai, assign_voxels, calculate_chm
+from pyforestscan.filters import remove_outliers_and_clean
+from pyforestscan.handlers import create_geotiff
 from pyforestscan.pipeline import _hag_raster, _hag_delaunay
+from pyforestscan.utils import get_bounds_from_ept, get_srs_from_ept
 
 
-def get_bounds(ept_file):
+import tempfile
+import os
+import rasterio
+from rasterio.windows import from_bounds
+
+
+def _crop_dtm(dtm_path, tile_min_x, tile_min_y, tile_max_x, tile_max_y):
     """
-    Extracts the spatial bounds of a point cloud from an ept file using PDAL.
-
-    :param ept_file: Path to the ept file containing the point cloud data.
-    :return: A tuple with bounds in the format (min_x, max_x, min_y, max_y).
+    Crops the input DTM TIFF to the given bounding box (in the same CRS),
+    saves it to a temporary file, and returns the path to that temp file.
     """
-    pipeline_json = f"""
-    {{
-        "pipeline": [
-            "{ept_file}",
-            {{
-                "type": "filters.info"
-            }}
-        ]
-    }}
-    """
+    with rasterio.open(dtm_path) as src:
+        window = from_bounds(
+            left=tile_min_x, bottom=tile_min_y,
+            right=tile_max_x, top=tile_max_y,
+            transform=src.transform
+        )
+        data = src.read(1, window=window)
+        new_transform = src.window_transform(window)
 
-    pipeline = pdal.Pipeline(pipeline_json)
-    pipeline.execute()
-    metadata = pipeline.metadata['metadata']
-    try:
-        min_x = metadata['filters.info']['bbox']['minx']
-        max_x = metadata['filters.info']['bbox']['maxx']
-        min_y = metadata['filters.info']['bbox']['miny']
-        max_y = metadata['filters.info']['bbox']['maxy']
-        return min_x, max_x, min_y, max_y
-    except KeyError:
-        raise KeyError("Bounds information is not available in the metadata.")
+        fd, cropped_path = tempfile.mkstemp(suffix=".tif")
+        print(cropped_path)
+        os.close(fd)
+
+        new_profile = src.profile.copy()
+        new_profile.update({
+            "height": data.shape[0],
+            "width": data.shape[1],
+            "transform": new_transform
+        })
+
+        with rasterio.open(cropped_path, "w", **new_profile) as dst:
+            dst.write(data, 1)
+
+    return cropped_path
 
 
 def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buffer_size=0.1, srs=None, hag=False,
-                       hag_dtm=False, dtm=None, bounds=None):
+                       hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False):
     """
     Processes a large EPT point cloud by tiling, calculates CHM or other metrics for each tile,
     and writes the results to the specified output path.
@@ -58,8 +65,27 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buf
     :param hag: Boolean indicating whether to compute Height Above Ground using Delaunay triangulation.
     :param hag_dtm: Boolean indicating whether to compute Height Above Ground using a provided DTM raster.
     :param dtm: Path to the DTM raster file (required if hag_dtm is True).
+    :param interpolation: Interpolation method to use for CHM calculation (e.g., "linear", "cubic", "nearest", or None).
+    :param bounds: Bounds within which to crop the data. Must be of the form: ([xmin, xmax], [ymin, ymax], [zmin, zmax]) or ([xmin, xmax], [ymin, ymax]). If none is given, tiling will happen on the entire dataset.
+    :param remove_outliers: Boolean indicating whether to remove statistical outliers before calculating metrics.
     """
-    min_x, max_x, min_y, max_y = get_bounds(ept_file)
+    if metric not in ["chm", "fhd", "pai"]:
+        raise ValueError(f"Unsupported metric: {metric}")
+
+    (min_z, max_z) = (None, None)
+    if bounds:
+        if len(bounds) == 2:
+            (min_x, max_x), (min_y, max_y) = bounds
+        else:
+            (min_x, max_x), (min_y, max_y), (min_z, max_z) = bounds
+    else:
+        min_x, max_x, min_y, max_y, min_z, max_z = get_bounds_from_ept(ept_file)
+
+    if not srs:
+        srs = get_srs_from_ept(ept_file)
+
+    print(srs)
+
     num_tiles_x = int(np.ceil((max_x - min_x) / tile_size[0]))
     num_tiles_y = int(np.ceil((max_y - min_y) / tile_size[1]))
     total_tiles = num_tiles_x * num_tiles_y
@@ -92,30 +118,38 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buf
                     pbar.update(1)
                     continue
 
-                tile_pipeline_stages = [
-                    {
-                        "type": "filters.crop",
-                        "bounds": f"([{tile_min_x},{tile_max_x}], [{tile_min_y},{tile_max_y}])"
-                    }
-                ]
+                if min_z and max_z:
+                    tile_bounds = ([tile_min_x, tile_max_x], [tile_min_y, tile_max_y], [min_z, max_z])
+                else:
+                    tile_bounds = ([tile_min_x, tile_max_x], [tile_min_y, tile_max_y])
+                tile_pipeline_stages = []
 
                 if hag:
                     tile_pipeline_stages.append(_hag_delaunay())
                 elif hag_dtm:
                     if not dtm or not os.path.isfile(dtm):
                         raise FileNotFoundError(f"DTM file is required for HAG calculation using DTM: {dtm}")
-                    tile_pipeline_stages.append(_hag_raster(dtm))
-
-                base_pipeline = {"type": "readers.ept", "filename": ept_file}
-                if bounds:
-                    base_pipeline["bounds"] = f"{bounds}"
+                    cropped_dtm_path = _crop_dtm(
+                        dtm,
+                        tile_min_x, tile_min_y,
+                        tile_max_x, tile_max_y
+                    )
+                    tile_pipeline_stages.append(_hag_raster(cropped_dtm_path))
+                base_pipeline = {
+                    "type": "readers.ept",
+                    "filename": ept_file,
+                    "bounds": f"{tile_bounds}",
+                }
                 tile_pipeline_json = {
                     "pipeline": [base_pipeline] + tile_pipeline_stages
                 }
 
                 tile_pipeline = pdal.Pipeline(json.dumps(tile_pipeline_json))
                 tile_pipeline.execute()
-                tile_points = tile_pipeline.arrays[0]
+                if remove_outliers:
+                    tile_points = remove_outliers_and_clean(tile_pipeline.arrays)[0]
+                else:
+                    tile_points = tile_pipeline.arrays[0]
 
                 if tile_points.size == 0:
                     print(f"Warning: No data in tile ({i}, {j}). Skipping.")
@@ -126,7 +160,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buf
                 buffer_pixels_y = int(np.ceil(buffer_y / voxel_size[1]))
 
                 if metric == "chm":
-                    chm, extent = calculate_chm(tile_points, voxel_size)
+                    chm, extent = calculate_chm(tile_points, voxel_size, interpolation=interpolation)
 
                     if buffer_pixels_x * 2 >= chm.shape[1] or buffer_pixels_y * 2 >= chm.shape[0]:
                         print(
@@ -162,7 +196,9 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buf
                     if current_buffer_size > 0:
                         if buffer_pixels_x * 2 >= result.shape[1] or buffer_pixels_y * 2 >= result.shape[0]:
                             print(
-                                f"Warning: Buffer size exceeds {metric.upper()} dimensions for tile ({i}, {j}). Adjusting buffer size.")
+                                f"Warning: Buffer size exceeds {metric.upper()} dimensions for tile ({i}, {j}). "
+                                f"Adjusting buffer size."
+                            )
                             buffer_pixels_x = max(0, result.shape[1] // 2 - 1)
                             buffer_pixels_y = max(0, result.shape[0] // 2 - 1)
 
