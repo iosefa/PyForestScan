@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyforestscan",
-    version="0.2.3",
+    version="0.2.4",
     author="Joseph Emile Honour Percival",
     author_email="ipercival@gmail.com",
     description="Analyzing forest structure using aerial LiDAR data",
@@ -23,6 +23,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires=">=3.10",
     install_requires=[
+        'requests>=2.32.3',
         'rasterio>=1.3.11',
         'pdal>=3.4.5',
         'geopandas>=1.0.1',
