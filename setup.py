@@ -23,6 +23,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires=">=3.10",
     install_requires=[
+        'requests>=2.32.3',
         'rasterio>=1.3.11',
         'pdal>=3.4.5',
         'geopandas>=1.0.1',
