@@ -55,16 +55,12 @@ def assign_voxels(arr, voxel_resolution):
     """
     Assigns voxel grids to spatial data points based on the specified resolutions.
 
-        :param arr:
-            Input array-like object containing point cloud data with 'X', 'Y', and 'HeightAboveGround' fields.
-        :type arr: numpy.ndarray
-        :param voxel_resolution:
-            The resolution for x, y, and z dimensions of the voxel grid.
-        :type voxel_resolution: tuple of floats
+    Args:
+        arr (numpy.ndarray): Input array-like object containing point cloud data with 'X', 'Y', and 'HeightAboveGround' fields.
+        voxel_resolution (tuple of floats): The resolution for x, y, and z dimensions of the voxel grid.
 
-        :return:
-            A tuple containing the histogram of the voxel grid (with corrected orientation) and the extent of the point cloud.
-        :rtype: tuple of (numpy.ndarray, list)
+    Returns:
+        tuple of (numpy.ndarray, list): A tuple containing the histogram of the voxel grid (with corrected orientation) and the extent of the point cloud.
     """
     dx, dy, dz = voxel_resolution
 
