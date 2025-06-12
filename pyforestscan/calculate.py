@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.interpolate import griddata
 from scipy.stats import entropy
+from scipy import ndimage
 
 
 def generate_dtm(ground_points, resolution=2.0):
@@ -183,7 +184,8 @@ def calculate_fhd(voxel_returns):
     return fhd
 
 
-def calculate_chm(arr, voxel_resolution, interpolation="linear"):
+def calculate_chm(arr, voxel_resolution, interpolation="linear",
+                  interp_valid_region=False, interp_clean_edges=False):
     """
     Calculate Canopy Height Model (CHM) for a given voxel size.
     The height is the highest HeightAboveGround value in each (x, y) voxel.
@@ -192,10 +194,19 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear"):
     :type arr: numpy.ndarray
     :param voxel_resolution:
         The resolution for x and y dimensions of the voxel grid.
+    :type voxel_resolution: tuple of floats (x_resolution, y_resolution)
     :param interpolation:
         Method for interpolating pixel gaps in the CHM. Supported methods are: "nearest", "linear", "cubic", or None.
         If None, no interpolation is performed.
-    :type voxel_resolution: tuple of floats (x_resolution, y_resolution)
+    :type interpolation: str or None
+    :param interp_valid_region:
+        Whether to calculate a valid region mask using morphological operations for interpolation. If True,
+        interpolation is only applied within the valid data region. If False (default), interpolation is applied to all
+        NaN values. Ignored if `interpolation` is None.
+    :type interp_valid_region: bool
+    :param interp_clean_edges:
+        Whether to clean edge fringes of the interpolated CHM. Default is False. Ignored if `interpolation` is None.
+    :type interp_clean_edges: bool
 
     :return:
         A tuple containing the CHM as a 2D numpy array and the spatial extent.
@@ -223,29 +234,59 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear"):
                 chm[xi, yi] = zi
 
     if interpolation is not None:
-        mask = np.isnan(chm)
+        if interp_valid_region is True:
+            valid_region_mask = _calc_valid_region_mask(chm)
+            interp_mask = np.isnan(chm) & valid_region_mask
+        else:
+            interp_mask = np.isnan(chm)
 
-        x_grid, y_grid = np.meshgrid(
-            (x_bins[:-1] + x_bins[1:]) / 2,
-            (y_bins[:-1] + y_bins[1:]) / 2
-        )
+        if np.any(interp_mask):
+            x_grid, y_grid = np.meshgrid(
+                (x_bins[:-1] + x_bins[1:]) / 2,
+                (y_bins[:-1] + y_bins[1:]) / 2
+            )
 
-        valid_mask = ~mask.flatten()
-        valid_x = x_grid.flatten()[valid_mask]
-        valid_y = y_grid.flatten()[valid_mask]
-        valid_values = chm.flatten()[valid_mask]
+            valid_mask = ~np.isnan(chm)
+            valid_x = x_grid.flatten()[valid_mask.flatten()]
+            valid_y = y_grid.flatten()[valid_mask.flatten()]
+            valid_values = chm.flatten()[valid_mask.flatten()]
 
-        interp_x = x_grid.flatten()[mask.flatten()]
-        interp_y = y_grid.flatten()[mask.flatten()]
+            interp_coords = np.column_stack([
+                x_grid.flatten()[interp_mask.flatten()],
+                y_grid.flatten()[interp_mask.flatten()]
+            ])
 
-        chm[mask] = griddata(
-            points=(valid_x, valid_y),
-            values=valid_values,
-            xi=(interp_x, interp_y),
-            method=interpolation
-        )
+            if len(interp_coords) > 0 and len(valid_values) > 0:
+                chm[interp_mask] = griddata(
+                    points=np.column_stack([valid_x, valid_y]),
+                    values=valid_values,
+                    xi=interp_coords,
+                    method=interpolation
+                )
+            if interp_clean_edges:
+                chm = _clean_edges(chm)
 
     chm = np.flip(chm, axis=1)
     extent = [x_min, x_max, y_min, y_max]
 
     return chm, extent
+
+
+def _calc_valid_region_mask(arr):
+    """Create valid region mask using morphological operations."""
+    kernel = ndimage.generate_binary_structure(2, 1)
+    valid_cells = ~np.isnan(arr)
+    valid_mask = ndimage.binary_dilation(valid_cells, structure=kernel)
+    valid_mask = ndimage.binary_fill_holes(valid_mask, structure=kernel)
+    return valid_mask
+
+
+def _clean_edges(arr, distance=5):
+    """Clean edges by excluding cells within a certain distance from the edge."""
+    kernel = ndimage.generate_binary_structure(2, 1)
+    valid_cells = ~np.isnan(arr)
+    valid_mask = ndimage.binary_erosion(valid_cells, structure=kernel, iterations=2)
+    distance_from_edge = ndimage.distance_transform_edt(valid_mask)
+    valid_mask = (distance_from_edge >= distance) & valid_mask
+    arr_cleaned = np.where(valid_mask, arr, np.nan)
+    return arr_cleaned
