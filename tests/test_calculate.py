@@ -114,9 +114,26 @@ def test_assign_voxels_non_uniform_resolution():
     assert isinstance(histogram, np.ndarray)
     assert histogram.ndim == 3
     # Verify histogram shape
-    expected_x_bins = math.ceil((arr['X'].max() - arr['X'].min()) / voxel_resolution[0])
-    expected_y_bins = math.ceil((arr['Y'].max() - arr['Y'].min()) / voxel_resolution[1])
-    expected_z_bins = math.ceil((arr['HeightAboveGround'].max() - arr['HeightAboveGround'].min()) / voxel_resolution[2])
+    x_bins = np.arange(
+        np.floor(arr['X'].min() / voxel_resolution[0]) * voxel_resolution[0],
+        arr['X'].max() + voxel_resolution[0],
+        voxel_resolution[0]
+    )
+    expected_x_bins = len(x_bins) - 1
+
+    y_bins = np.arange(
+        np.floor(arr['Y'].min() / voxel_resolution[1]) * voxel_resolution[1],
+        arr['Y'].max() + voxel_resolution[1],
+        voxel_resolution[1]
+    )
+    expected_y_bins = len(y_bins) - 1
+
+    z_bins = np.arange(
+        np.floor(arr['HeightAboveGround'].min() / voxel_resolution[2]) * voxel_resolution[2],
+        arr['HeightAboveGround'].max() + voxel_resolution[2],
+        voxel_resolution[2]
+    )
+    expected_z_bins = len(z_bins) - 1
     assert histogram.shape == (expected_x_bins, expected_y_bins, expected_z_bins)
 
 
@@ -131,7 +148,7 @@ def test_calculate_pad_success():
     assert isinstance(pad, np.ndarray)
     assert pad.shape == voxel_returns.shape
     # Check that PAD values are non-negative
-    assert np.all(pad >= 0)
+    assert np.nanmin(pad) >= 0
 
 
 def test_calculate_pad_with_zero_shots():
@@ -151,8 +168,8 @@ def test_calculate_pad_with_inf_nan_values():
     pad = calculate_pad(voxel_returns, voxel_height)
     assert isinstance(pad, np.ndarray)
     assert pad.shape == voxel_returns.shape
-    # PAD at (0,0,0) should be zero due to division by zero
-    assert pad[0, 0, 0] == 0
+    # PAD at (0,0,0) should be nan due to division by zero
+    assert np.isnan(pad[0, 0, 0])
 
 
 def test_calculate_pad_with_custom_lambert_constant():
@@ -174,17 +191,15 @@ def test_calculate_pad_large_dataset():
     assert isinstance(pad, np.ndarray)
     assert pad.shape == voxel_returns.shape
     # Verify that PAD values are computed
-    assert np.all(pad >= 0)
+    assert np.any(~np.isnan(pad))
+    assert np.all(pad[~np.isnan(pad)] >= 0)
 
 
 def test_calculate_pad_negative_voxel_height():
     voxel_returns = np.random.randint(1, 10, size=(5, 5, 5))
-    voxel_height = -1.0
-    pad = calculate_pad(voxel_returns, voxel_height)
-    assert isinstance(pad, np.ndarray)
-    assert pad.shape == voxel_returns.shape
-    # PAD values should be zero where pad < 0
-    assert np.all(pad >= 0)
+
+    with pytest.raises(ValueError):
+        calculate_pad(voxel_returns, voxel_height=-1.0)
 
 
 def test_calculate_pad_non_integer_returns():
@@ -205,8 +220,11 @@ def test_calculate_pad_mixed_data_types():
     pad = calculate_pad(voxel_returns, voxel_height)
     assert isinstance(pad, np.ndarray)
     assert pad.shape == voxel_returns.shape
-    # Ensure PAD is computed correctly
-    assert np.all(pad >= 0)
+
+    assert np.isnan(pad[:, :, 0]).all()
+
+    finite_mask = np.isfinite(pad)
+    assert np.all(pad[finite_mask] >= 0)
 
 
 def test_calculate_pad_non_finite_returns():
@@ -218,8 +236,9 @@ def test_calculate_pad_non_finite_returns():
     pad = calculate_pad(voxel_returns, voxel_height)
     assert isinstance(pad, np.ndarray)
     assert pad.shape == voxel_returns.shape
-    # PAD should handle Inf correctly, setting to zero
-    assert pad[1, 1, 0] == 0
+    assert np.isnan(pad[1, 1, 0])
+    finite_mask = np.isfinite(pad)
+    assert np.nanmin(pad[finite_mask]) >= 0
 
 
 # ----------------------------
@@ -228,7 +247,7 @@ def test_calculate_pad_non_finite_returns():
 
 def test_calculate_pai_success():
     pad = np.random.rand(10, 10, 5)
-    pai = calculate_pai(pad, min_height=1, max_height=4)
+    pai = calculate_pai(pad, 1, min_height=1, max_height=4)
     assert isinstance(pai, np.ndarray)
     assert pai.shape == (10, 10)
     # PAI should be the sum across specified height axis
@@ -238,7 +257,7 @@ def test_calculate_pai_success():
 
 def test_calculate_pai_max_height_none():
     pad = np.random.rand(10, 10, 5)
-    pai = calculate_pai(pad, min_height=2)
+    pai = calculate_pai(pad, 1, min_height=2)
     assert isinstance(pai, np.ndarray)
     assert pai.shape == (10, 10)
     # PAI should be the sum from min_height to end
@@ -249,18 +268,18 @@ def test_calculate_pai_max_height_none():
 def test_calculate_pai_min_height_greater_than_max():
     pad = np.random.rand(10, 10, 5)
     with pytest.raises(ValueError):
-        calculate_pai(pad, min_height=6, max_height=4)
+        calculate_pai(pad, 5, min_height=6, max_height=4)
 
 
 def test_calculate_pai_min_height_equals_max():
     pad = np.random.rand(10, 10, 5)
     with pytest.raises(ValueError):
-        calculate_pai(pad, min_height=3, max_height=3)
+        calculate_pai(pad, 5, min_height=3, max_height=3)
 
 
 def test_calculate_pai_all_heights():
     pad = np.random.rand(10, 10, 5)
-    pai = calculate_pai(pad, min_height=0)
+    pai = calculate_pai(pad, 1, min_height=0)
     assert isinstance(pai, np.ndarray), "PAI should be a NumPy array."
     assert pai.shape == (10, 10), f"PAI shape should be (10, 10), got {pai.shape}."
     expected_pai = np.sum(pad, axis=2)
@@ -270,13 +289,14 @@ def test_calculate_pai_all_heights():
 def test_calculate_pai_invalid_pad_dimensions():
     pad = np.random.rand(10, 10)  # 2D array instead of 3D
     with pytest.raises(IndexError):
-        calculate_pai(pad, min_height=1, max_height=4)
+        calculate_pai(pad, 1, min_height=1, max_height=4)
 
 
 def test_calculate_pai_varying_height_ranges():
     pad = np.ones((10, 10, 10))
-    pai = calculate_pai(pad, min_height=2, max_height=5)
-    expected_pai = np.sum(pad[:, :, 2:5], axis=2)
+    voxel_height = 1.0
+    pai = calculate_pai(pad, voxel_height, min_height=2, max_height=5)
+    expected_pai = np.sum(pad[:, :, 2:5], axis=2) * voxel_height
     assert np.array_equal(pai, expected_pai)
     # Expected PAI should be 3 for each (x, y) voxel
     assert np.all(pai == 3)
@@ -284,7 +304,7 @@ def test_calculate_pai_varying_height_ranges():
 
 def test_calculate_pai_all_zero_pad():
     pad = np.zeros((10, 10, 5))
-    pai = calculate_pai(pad)
+    pai = calculate_pai(pad, 5)
     assert isinstance(pai, np.ndarray)
     assert pai.shape == (10, 10)
     assert np.all(pai == 0)

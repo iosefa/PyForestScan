@@ -99,6 +99,10 @@ def calculate_pad(voxel_returns,
         :return: A numpy array containing PAD values for each voxel (same shape as voxel_returns).
                  Columns that have zero returns across all Z are set to NaN.
     """
+    if voxel_height <= 0:
+        raise ValueError(
+            f"voxel_height must be > 0 metres (got {voxel_height})"
+        )
     reversed_cols = voxel_returns[:, :, ::-1]
 
     total = np.sum(reversed_cols, axis=2, keepdims=True)
@@ -142,6 +146,9 @@ def calculate_pai(pad,
     if max_height is None:
         max_height = pad.shape[2] * voxel_height
 
+    if min_height >= max_height:
+        raise ValueError("Minimum height index must be less than maximum height index.")
+
     start_idx = int(np.ceil(min_height / voxel_height))
     end_idx   = int(np.floor(max_height / voxel_height))
 
@@ -166,20 +173,18 @@ def calculate_fhd(voxel_returns):
         A numpy array of shape (x, y) representing the FHD values for each (x, y) location.
         Areas with no voxel returns will have NaN values.
     """
-    sum_counts = np.sum(voxel_returns, axis=2, keepdims=True)
+    sum_counts = np.sum(voxel_returns, axis=2)
 
     with np.errstate(divide='ignore', invalid='ignore'):
         proportions = np.divide(
             voxel_returns,
-            sum_counts,
+            sum_counts[..., None],
             out=np.zeros_like(voxel_returns, dtype=float),
-            where=sum_counts != 0
+            where=sum_counts[..., None] != 0
         )
 
     fhd = entropy(proportions, axis=2)
-
-    fhd[sum_counts.squeeze() == 0] = np.nan
-
+    fhd[sum_counts == 0] = np.nan
     return fhd
 
 
