@@ -24,13 +24,16 @@ def _is_url(input_str):
 
 def simplify_crs(crs_list):
     """
-    Converts a list of CRS representations to their corresponding EPSG codes.
+    Convert a list of coordinate reference system (CRS) representations to their corresponding EPSG codes.
 
-    :param crs_list: List of CRS definitions to be simplified.
-    :type crs_list: list
-    :return: List of EPSG codes corresponding to the input CRS definitions.
-    :rtype: list
-    :raises CRSError: If any of the CRS definitions cannot be converted to an EPSG code.
+    Args:
+        crs_list (list): List of CRS definitions to be simplified. Each element may be any format accepted by pyproj.CRS (e.g., WKT string, PROJ string, EPSG code, etc.).
+
+    Returns:
+        list: List of EPSG codes corresponding to the input CRS definitions.
+
+    Raises:
+        CRSError: If any of the CRS definitions cannot be converted to an EPSG code.
     """
     epsg_codes = []
     for crs in crs_list:
@@ -49,11 +52,18 @@ def load_polygon_from_file(vector_file_path, index=0):
     """
     Load a polygon geometry and its CRS from a given vector file.
 
-    :param vector_file_path: str, Path to the vector file containing the polygon.
-    :param index: int, optional, Index of the polygon to be loaded (default is 0).
-    :return: tuple, containing the Well-Known Text (WKT) representation of the polygon and the coordinate reference system (CRS) as a string.
-    :raises FileNotFoundError: If the vector file does not exist.
-    :raises ValueError: If the file cannot be read or is not a valid vector file format.
+    Args:
+        vector_file_path (str): Path to the vector file containing the polygon geometry.
+        index (int, optional): Index of the polygon to load from the file. Defaults to 0.
+
+    Returns:
+        tuple: A tuple containing:
+            - str: Well-Known Text (WKT) representation of the selected polygon.
+            - str: Coordinate reference system (CRS) of the vector file as a string.
+
+    Raises:
+        FileNotFoundError: If the specified vector file does not exist.
+        ValueError: If the file cannot be read or is not a valid vector file format.
     """
     if not os.path.isfile(vector_file_path):
         raise FileNotFoundError(f"No such file: '{vector_file_path}'")
@@ -73,12 +83,14 @@ def get_raster_epsg(dtm_path):
     """
     Retrieve the EPSG code from a raster file.
 
-    :param dtm_path: str
-        The file path to the raster file.
-    :return: str
-        The EPSG code as a string.
-    :raises FileNotFoundError:
-        If the specified file does not exist.
+    Args:
+        dtm_path (str): File path to the raster file.
+
+    Returns:
+        str: The EPSG code or CRS string of the raster file.
+
+    Raises:
+        FileNotFoundError: If the specified file does not exist.
     """
     if not os.path.isfile(dtm_path):
         raise FileNotFoundError(f"No such file: '{dtm_path}'")
@@ -88,17 +100,15 @@ def get_raster_epsg(dtm_path):
 
 def validate_extensions(las_file_path, dtm_file_path):
     """
-    Validates the extensions of the provided file paths to check if they match
-    the required .las/.laz for point cloud files and .tif for DTM files.
+    Validate that input file paths have the correct extensions for point cloud and DTM files.
 
-    :param las_file_path: The file path of the point cloud file.
-                            Supported extensions are .las and .laz.
-    :type las_file_path: str
-    :param dtm_file_path: The file path of the DTM (Digital Terrain Model) file.
-                            Supported extension is .tif.
-    :type dtm_file_path: str
-    :raises ValueError: If the point cloud file does not have a .las or .laz extension.
-    :raises ValueError: If the DTM file does not have a .tif extension.
+    Args:
+        las_file_path (str): File path of the point cloud file. Supported extensions are .las and .laz.
+        dtm_file_path (str): File path of the DTM (Digital Terrain Model) file. Supported extension is .tif.
+
+    Raises:
+        ValueError: If the point cloud file does not have a .las or .laz extension.
+        ValueError: If the DTM file does not have a .tif extension.
     """
     if not las_file_path.lower().endswith(('.las', '.laz')):
         raise ValueError("The point cloud file must be a .las or .laz file.")
@@ -156,13 +166,16 @@ def _build_pdal_pipeline(arrays, pipeline_stages):
 
 def validate_crs(crs_list):
     """
-    Validate that all CRS representations in the list are identical.
+    Validate that all CRS (Coordinate Reference System) representations in the list are identical.
 
-    :param crs_list: List of coordinate reference systems to validate.
-    :type crs_list: list
-    :return: True if all CRSs match.
-    :rtype: bool
-    :raises ValueError: If the CRSs do not match.
+    Args:
+        crs_list (list): List of coordinate reference system definitions to validate.
+
+    Returns:
+        bool: True if all CRSs match.
+
+    Raises:
+        ValueError: If the CRSs do not match.
     """
     simplified_crs_list = simplify_crs(crs_list)
     if not all(crs == simplified_crs_list[0] for crs in simplified_crs_list[1:]):
@@ -172,24 +185,30 @@ def validate_crs(crs_list):
 
 def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dtm=False, dtm=None, crop_poly=False, poly=None):
     """
-    Reads and processes a LiDAR point cloud file using PDAL based on specified options.
+    Read and process a LiDAR point cloud file using PDAL with various options.
 
-    :param input_file: str, The path to the input LiDAR file. Supported formats are .las, .laz, .copc, and .copc.laz.
-    :param srs: str, The Spatial Reference System (SRS) of the point cloud.
-    :param bounds:  Bounds within which to crop the data. Only in effect for ept format. Must be of the form: ([xmin, xmax], [ymin, ymax], [zmin, zmax])
-    :param thin_radius: float, optional, The radius for thinning the point cloud. Must be a positive number.
-    :param hag: bool, optional, If True, calculate Height Above Ground (HAG) using Delaunay triangulation.
-    :param hag_dtm: bool, optional, If True, calculate Height Above Ground (HAG) using a DTM file.
-    :param dtm: str, optional, The path to the DTM file used when hag_dtm is True. Must be a .tif file.
-    :param crop_poly: bool, optional, If True, crop the point cloud using the polygon defined in the poly file.
-    :param poly: str, optional, The path to the polygon file used for cropping OR the WKT of the Polygon geometry.
+    Args:
+        input_file (str): Path to the input LiDAR file. Supported formats: .las, .laz, .copc, .copc.laz, or ept.json.
+        srs (str): Spatial Reference System (SRS) of the point cloud.
+        bounds (tuple or list, optional): Bounds for cropping data (only applies to EPT format).
+            Format: ([xmin, xmax], [ymin, ymax], [zmin, zmax]).
+        thin_radius (float, optional): Radius for thinning the point cloud. Must be positive.
+        hag (bool, optional): If True, calculate Height Above Ground (HAG) using Delaunay triangulation.
+            Defaults to False.
+        hag_dtm (bool, optional): If True, calculate Height Above Ground (HAG) using a DTM file.
+            Defaults to False.
+        dtm (str, optional): Path to the DTM (.tif) file, required if hag_dtm is True.
+        crop_poly (bool, optional): If True, crop the point cloud using a polygon. Defaults to False.
+        poly (str, optional): Path to a polygon file or the WKT string of the polygon geometry.
 
-    :return: numpy.ndarray, The processed point cloud data or None if no data is retrieved.
+    Returns:
+        np.ndarray or None: Processed point cloud data as a NumPy array, or None if no data is retrieved.
 
-    :raises FileNotFoundError: If the input file, polygon file, or DTM file does not exist.
-    :raises ValueError: If the input file extension is unsupported, thinning radius is non-positive, or
-                        both 'hag' and 'hag_dtm' are True simultaneously, or the DTM file path is not
-                        provided when 'hag_dtm' is True.
+    Raises:
+        FileNotFoundError: If the input file, DTM file, or polygon file does not exist.
+        ValueError: If the input file extension is unsupported; thinning radius is non-positive;
+            both 'hag' and 'hag_dtm' are True at the same time; or a required parameter (e.g., DTM for hag_dtm)
+            is missing or invalid.
     """
     if not _is_url(input_file) and not os.path.isfile(input_file):
         raise FileNotFoundError(f"No such file: '{input_file}'")
@@ -268,16 +287,20 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dt
 
 def write_las(arrays, output_file, srs=None, compress=True):
     """
-    Writes point cloud data to a LAS or LAZ file.
+    Write point cloud data to a LAS or LAZ file.
 
-    :param arrays: The point cloud data arrays.
-    :param output_file: The path of the output file.
-    :param srs: Optional; Spatial Reference System to reproject the data.
-    :param compress: Optional; Boolean flag to compress the output. Defaults to True.
-    :raises ValueError: If 'compress' is True and output file extension is not .laz.
-    :raises ValueError: If 'compress' is False and output file extension is not .las.
+    Args:
+        arrays (list or np.ndarray): Point cloud data arrays to write.
+        output_file (str): Path for the output file. Must end with .las (if uncompressed) or .laz (if compressed).
+        srs (str, optional): Spatial Reference System to reproject the data. If provided, reprojection is applied.
+        compress (bool, optional): If True, write a compressed LAZ file (.laz). If False, write an uncompressed LAS file (.las). Defaults to True.
 
-    :return: None
+    Raises:
+        ValueError: If 'compress' is True and the output file extension is not .laz.
+        ValueError: If 'compress' is False and the output file extension is not .las.
+
+    Returns:
+        None
     """
     output_extension = os.path.splitext(output_file)[1].lower()
 
@@ -321,21 +344,23 @@ def write_las(arrays, output_file, srs=None, compress=True):
 
 def create_geotiff(layer, output_file, crs, spatial_extent, nodata=-9999):
     """
-    Creates a GeoTIFF file from the given data layer. Note, it performs a transpose on the layer.
+    Create a GeoTIFF file from the given data layer.
 
-    :param layer: The data layer to be written into the GeoTIFF file. Assumes (X, Y) shape.
-    :type layer: numpy.ndarray
-    :param output_file: The path where the GeoTIFF file will be saved.
-    :type output_file: str
-    :param crs: The coordinate reference system for the GeoTIFF.
-    :type crs: str
-    :param spatial_extent: The spatial extent of the data, defined as (x_min, x_max, y_min, y_max).
-    :type spatial_extent: tuple
-    :param nodata: The value to use for NoData areas in the GeoTIFF. Defaults to -9999.
-    :type nodata: float or int, optional
-    :return: None
-    :raises rasterio.errors.RasterioError: If there is an error in creating the GeoTIFF.
-    :raises ValueError: If the layer has invalid dimensions or the spatial extent is invalid.
+    The function transposes the input layer before saving and writes it as a single-band GeoTIFF.
+
+    Args:
+        layer (np.ndarray): The data layer to write, assumed to have shape (X, Y).
+        output_file (str): Path where the GeoTIFF file will be saved.
+        crs (str): Coordinate Reference System for the GeoTIFF.
+        spatial_extent (tuple): The spatial extent as (x_min, x_max, y_min, y_max).
+        nodata (float or int, optional): Value to use for NoData areas. Defaults to -9999.
+
+    Returns:
+        None
+
+    Raises:
+        rasterio.errors.RasterioError: If there is an error creating the GeoTIFF.
+        ValueError: If the layer has invalid dimensions or the spatial extent is invalid.
     """
     layer = np.nan_to_num(layer, nan=-9999)
 

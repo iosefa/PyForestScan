@@ -48,25 +48,37 @@ def _crop_dtm(dtm_path, tile_min_x, tile_min_y, tile_max_x, tile_max_y):
     return cropped_path
 
 
-def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buffer_size=0.1, srs=None, hag=False,
+def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
+                       voxel_height=1, buffer_size=0.1, srs=None, hag=False,
                        hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False):
     """
-    Processes a large EPT point cloud by tiling, calculates CHM or other metrics for each tile,
-    and writes the results to the specified output path.
+    Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,
+    and write the results to the specified output directory.
 
-    :param ept_file: Path to the EPT file containing the point cloud data.
-    :param tile_size: Tuple (tile_width, tile_height) specifying the size of each tile.
-    :param output_path: Directory where the output files will be saved.
-    :param metric: Metric to compute ("chm", "fhd", or "pai").
-    :param voxel_size: Tuple specifying the voxel resolution (x_resolution, y_resolution, z_resolution).
-    :param buffer_size: Fractional buffer size relative to tile size (e.g., 0.1 for 10% buffer).
-    :param srs: Spatial reference system (optional).
-    :param hag: Boolean indicating whether to compute Height Above Ground using Delaunay triangulation.
-    :param hag_dtm: Boolean indicating whether to compute Height Above Ground using a provided DTM raster.
-    :param dtm: Path to the DTM raster file (required if hag_dtm is True).
-    :param interpolation: Interpolation method to use for CHM calculation (e.g., "linear", "cubic", "nearest", or None).
-    :param bounds: Bounds within which to crop the data. Must be of the form: ([xmin, xmax], [ymin, ymax], [zmin, zmax]) or ([xmin, xmax], [ymin, ymax]). If none is given, tiling will happen on the entire dataset.
-    :param remove_outliers: Boolean indicating whether to remove statistical outliers before calculating metrics.
+    Args:
+        ept_file (str): Path to the EPT file containing the point cloud data.
+        tile_size (tuple): Size of each tile as (tile_width, tile_height).
+        output_path (str): Directory where the output files will be saved.
+        metric (str): Metric to compute for each tile ("chm", "fhd", or "pai").
+        voxel_size (tuple): Voxel resolution as (x_resolution, y_resolution, z_resolution).
+        voxel_height (float, optional): Height of each voxel in meters. Required if metric is "pai".
+        buffer_size (float, optional): Fractional buffer size relative to tile size (e.g., 0.1 for 10% buffer). Defaults to 0.1.
+        srs (str, optional): Spatial Reference System for the output. If None, uses SRS from the EPT file.
+        hag (bool, optional): If True, compute Height Above Ground using Delaunay triangulation. Defaults to False.
+        hag_dtm (bool, optional): If True, compute Height Above Ground using a provided DTM raster. Defaults to False.
+        dtm (str, optional): Path to the DTM raster file. Required if hag_dtm is True.
+        bounds (tuple, optional): Spatial bounds to crop the data. Must be of the form
+            ([xmin, xmax], [ymin, ymax], [zmin, zmax]) or ([xmin, xmax], [ymin, ymax]).
+            If None, tiling is done over the entire dataset.
+        interpolation (str or None, optional): Interpolation method for CHM calculation ("linear", "cubic", "nearest", or None).
+        remove_outliers (bool, optional): Whether to remove statistical outliers before calculating metrics. Defaults to False.
+
+    Returns:
+        None
+
+    Raises:
+        ValueError: If an unsupported metric is requested, if buffer or voxel sizes are invalid, or required arguments are missing.
+        FileNotFoundError: If the EPT or DTM file does not exist, or a required file for processing is missing.
     """
     if metric not in ["chm", "fhd", "pai"]:
         raise ValueError(f"Unsupported metric: {metric}")
@@ -182,12 +194,15 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buf
                     if metric == "fhd":
                         result = calculate_fhd(voxels)
                     elif metric == "pai":
+                        if not voxel_height:
+                            raise ValueError(f"voxel_height is required for metric {metric}")
+
                         pad = calculate_pad(voxels, voxel_size[-1])
 
                         if np.all(pad == 0):
                             result = np.zeros((pad.shape[0], pad.shape[1]))
                         else:
-                            result = calculate_pai(pad)
+                            result = calculate_pai(pad, voxel_height)
                         result = np.where(np.isfinite(result), result, 0)
 
                     if current_buffer_size > 0:
