@@ -52,3 +52,34 @@ jobs:
 
       - name: Push Docker image
         run: docker push iosefa/pyforestscan:latest
+
+  docs:
+    runs-on: ubuntu-latest
+    needs: docker
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install MkDocs and plugins
+        run: |
+          pip install \
+            mkdocs \
+            mkdocs-material \
+            mkdocstrings \
+            git-revision-date \
+            mkdocs-jupyter \
+            pymdown-extensions
+
+      - name: Build MkDocs site
+        run: mkdocs build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GH_PAGES_TOKEN }}
+          publish_dir: ./site
