@@ -84,7 +84,7 @@ def assign_voxels(arr, voxel_resolution):
 
 def calculate_pad(voxel_returns,
                   voxel_height=1.0,
-                  beer_lambert_constant =1.0,
+                  beer_lambert_constant=1.0,
                   drop_ground=True
                   ):
     """

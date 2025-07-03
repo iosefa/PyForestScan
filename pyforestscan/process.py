@@ -48,7 +48,8 @@ def _crop_dtm(dtm_path, tile_min_x, tile_min_y, tile_max_x, tile_max_y):
     return cropped_path
 
 
-def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buffer_size=0.1, srs=None, hag=False,
+def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
+                       voxel_height=1, buffer_size=0.1, srs=None, hag=False,
                        hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False):
     """
     Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,
@@ -60,6 +61,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buf
         output_path (str): Directory where the output files will be saved.
         metric (str): Metric to compute for each tile ("chm", "fhd", or "pai").
         voxel_size (tuple): Voxel resolution as (x_resolution, y_resolution, z_resolution).
+        voxel_height (float, optional): Height of each voxel in meters. Required if metric is "pai".
         buffer_size (float, optional): Fractional buffer size relative to tile size (e.g., 0.1 for 10% buffer). Defaults to 0.1.
         srs (str, optional): Spatial Reference System for the output. If None, uses SRS from the EPT file.
         hag (bool, optional): If True, compute Height Above Ground using Delaunay triangulation. Defaults to False.
@@ -192,12 +194,15 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size, buf
                     if metric == "fhd":
                         result = calculate_fhd(voxels)
                     elif metric == "pai":
+                        if not voxel_height:
+                            raise ValueError(f"voxel_height is required for metric {metric}")
+
                         pad = calculate_pad(voxels, voxel_size[-1])
 
                         if np.all(pad == 0):
                             result = np.zeros((pad.shape[0], pad.shape[1]))
                         else:
-                            result = calculate_pai(pad)
+                            result = calculate_pai(pad, voxel_height)
                         result = np.where(np.isfinite(result), result, 0)
 
                     if current_buffer_size > 0:
