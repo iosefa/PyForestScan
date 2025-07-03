@@ -65,6 +65,46 @@ plot_metric('Plant Area Index', pai, extent, metric_name='PAI', cmap='viridis', 
 
 For detailed instructions and examples, visit our [documentation](https://pyforestscan.sefa.ai/).
 
+### Editing and Publishing Documentation
+
+If you want to add new documentation or update existing docs for PyForestScan, follow these steps:
+
+#### 1. Editing Documentation
+
+- Documentation sources are typically found in the `docs/` directory.
+- You can add new Markdown (`.md`) files or update existing ones as needed.
+- To add a new doc page, simply create a new file in the `docs/` folder and link to it from the relevant index or summary page if needed.
+
+#### 2. Building and Viewing Docs Locally
+
+PyForestScan uses a static site generator like MkDocs (or similar) for documentation.
+
+- Make sure you have the required dependencies listed in `requirements-doc.txt`.
+- Install dependencies if needed:
+  ```bash
+  pip install -r requirements-doc.txt
+  ```
+- Build and serve the documentation locally:
+  ```bash
+  mkdocs serve
+  ```
+- Visit `http://127.0.0.1:8000` in your browser to preview your changes.
+
+#### 3. Publishing/Updating the Documentation
+
+- Once you are satisfied with your changes, commit and push them to your fork or branch:
+  ```bash
+  git add docs/
+  git commit -m "Update documentation"
+  git push
+  ```
+- Open a Pull Request (PR) if contributing to the main repository.
+
+- On merge to the `main` branch, documentation deployment is usually handled automatically (for example, via GitHub Actions or Read the Docs). Check the repository’s specific instructions or workflows if manual steps are required.
+
+**Tip:** If you encounter issues with the docs build or deployment, refer to any [Contributing Guidelines](docs/contributing.md), `mkdocs.yml` configuration, or open an issue for help.
+
+
 ## Developer Guides
 
 To build locally and contribute to PyForestScan, you will need the following dependencies:

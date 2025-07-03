@@ -5,17 +5,23 @@ from pyforestscan.pipeline import _filter_hag, _filter_ground, _filter_statistic
 
 def filter_hag(arrays, lower_limit=0, upper_limit=None):
     """
-    Applies a Height Above Ground (HAG) filter to the input arrays.
+    Apply a Height Above Ground (HAG) filter to a list of point cloud arrays.
 
-    :param arrays: List of point cloud arrays to be processed.
-    :type arrays: list
-    :param lower_limit: The minimum value for the height filter, defaults to 0.
-    :type lower_limit: int, optional
-    :param upper_limit: The maximum value for the height filter, defaults to None.
-    :type upper_limit: int, optional
-    :return: Processed point cloud arrays after applying the HAG filter.
-    :rtype: list
-    :raises ValueError: If upper_limit is less than lower_limit.
+    Filters each input array to include only points where Height Above Ground is
+    within the specified range.
+
+    Args:
+        arrays (list): List of point cloud arrays to be processed.
+        lower_limit (int or float, optional): Minimum Height Above Ground value to keep.
+            Defaults to 0.
+        upper_limit (int or float, optional): Maximum Height Above Ground value to keep.
+            If None, no upper limit is applied. Defaults to None.
+
+    Returns:
+        list: List of processed point cloud arrays after applying the HAG filter.
+
+    Raises:
+        ValueError: If upper_limit is specified and is less than lower_limit.
     """
     pipeline = _build_pdal_pipeline(arrays, [_filter_hag(lower_limit, upper_limit)])
     return pipeline.arrays
@@ -23,12 +29,13 @@ def filter_hag(arrays, lower_limit=0, upper_limit=None):
 
 def filter_ground(arrays):
     """
-    Applies a filter to remove ground points (classification 2) from the input arrays.
+    Remove ground points (classification 2) from a list of point cloud arrays.
 
-    :param arrays: List of point cloud arrays to be processed.
-    :type arrays: list
-    :return: Processed point cloud arrays after removing ground points.
-    :rtype: list
+    Args:
+        arrays (list): List of point cloud arrays to be processed.
+
+    Returns:
+        list: List of point cloud arrays after removing points classified as ground (classification 2).
     """
     pipeline = _build_pdal_pipeline(arrays, [_filter_ground()])
     return pipeline.arrays
@@ -36,12 +43,13 @@ def filter_ground(arrays):
 
 def filter_select_ground(arrays):
     """
-    Applies a filter to select ground points (classification 2) from the input arrays.
+    Select only ground points (classification 2) from a list of point cloud arrays.
 
-    :param arrays: List of point cloud arrays to be processed.
-    :type arrays: list
-    :return: Processed point cloud arrays after removing ground points.
-    :rtype: list
+    Args:
+        arrays (list): List of point cloud arrays to be processed.
+
+    Returns:
+        list: List of point cloud arrays containing only points classified as ground (classification 2).
     """
     pipeline = _build_pdal_pipeline(arrays, [_select_ground()])
     return pipeline.arrays
@@ -56,18 +64,17 @@ def remove_outliers_and_clean(arrays, mean_k=8, multiplier=3.0, remove=False):
     # todo: this function will be renamed in a future release.
 
     Args:
-        arrays: The input arrays to process, typically a list of structured arrays or
-            similar data types.
-        mean_k (int, optional): The number of neighbors to analyze for each point for
-            statistical outlier removal. Default is 8.
-        multiplier (float, optional): The multiplication factor for the standard deviation
-            threshold to classify an outlier. Default is 3.0.
-        remove (bool, optional): If True, additional cleaning is performed to remove points
-            specifically classified as outliers. Defaults to False.
+        arrays (list): Input arrays to process, typically a list of structured arrays or
+            similar data types (e.g., numpy structured arrays with a 'Classification' field).
+        mean_k (int, optional): Number of neighbors to analyze for each point during
+            statistical outlier removal. Defaults to 8.
+        multiplier (float, optional): Multiplication factor for the standard deviation
+            threshold to classify a point as an outlier. Defaults to 3.0.
+        remove (bool, optional): If True, remove points classified as outliers (Classification == 7)
+            after labeling. If False, only label outliers. Defaults to False.
 
     Returns:
-        list: A list of processed arrays after outlier removal, and optionally after
-        cleaning, if specified.
+        list: List of processed arrays after outlier removal and, if specified, cleaning.
 
     Raises:
         RuntimeError: If the outlier removal pipeline fails during execution.
@@ -110,26 +117,28 @@ def classify_ground_points(
         window=18.0
 ):
     """
-    Applies the SMRF filter to classify ground points in the point cloud.
+    Apply the SMRF (Simple Morphological Filter) to classify ground points in the point cloud arrays.
 
-    :param arrays: list
-        Cleaned point cloud arrays after outlier removal.
-    :type arrays: list
-    :param ignore_class: str, classification codes to ignore during filtering.
-    :param cell: float, cell size in meters.
-    :param cut: float, cut net size (0 skips net cutting).
-    :param returns: str, return types to include in output ("first", "last", "intermediate", "only").
-    :param scalar: float, elevation scalar.
-    :param slope: float, slope threshold for ground classification.
-    :param threshold: float, elevation threshold.
-    :param window: float, max window size in meters.
-    :return: list
-        Point cloud arrays with classified ground points.
-    :rtype: list
-    :raises RuntimeError:
-        If there's an error during the pipeline execution.
-    :raises ValueError:
-        If no data is returned after SMRF classification.
+    Args:
+        arrays (list): Cleaned point cloud arrays after outlier removal, typically as a list
+            of structured arrays.
+        ignore_class (str, optional): Classification codes to ignore during filtering,
+            e.g., "Classification[7:7]". Defaults to "Classification[7:7]".
+        cell (float, optional): Cell size in meters for the morphological filter grid. Defaults to 1.0.
+        cut (float, optional): Cut net size; if set to 0, net cutting is skipped. Defaults to 0.0.
+        returns (str, optional): Return types to include in output. Supported values include
+            "first", "last", "intermediate", "only". Defaults to "last,only".
+        scalar (float, optional): Elevation scalar for filter sensitivity. Defaults to 1.25.
+        slope (float, optional): Slope threshold for ground classification. Defaults to 0.15.
+        threshold (float, optional): Elevation threshold for morphological operations. Defaults to 0.5.
+        window (float, optional): Maximum window size in meters for filter application. Defaults to 18.0.
+
+    Returns:
+        list: Point cloud arrays with classified ground points.
+
+    Raises:
+        RuntimeError: If there is an error during pipeline execution.
+        ValueError: If no data is returned after SMRF classification.
     """
     pipeline_stages = [
         _filter_smrf(
@@ -158,5 +167,18 @@ def classify_ground_points(
 
 
 def downsample_poisson(arrays, thin_radius):
+    """
+    Downsample point cloud arrays using Poisson (radius-based) thinning.
+
+    This function applies a radius-based filter to the input point cloud arrays,
+    reducing the point density so that no two points are closer than the specified radius.
+
+    Args:
+        arrays (list): List of point cloud arrays to be downsampled.
+        thin_radius (float): Minimum allowed distance (radius) between retained points, in the same units as the point cloud coordinates.
+
+    Returns:
+        list: List of downsampled point cloud arrays.
+    """
     pipeline = _build_pdal_pipeline(arrays, [_filter_radius(thin_radius)])
     return pipeline.arrays

@@ -23,13 +23,16 @@ def _read_ept_json(ept_source):
 
 def get_srs_from_ept(ept_file):
     """
-    Extracts the Spatial Reference System (SRS) from an EPT (Entwine Point Tile) file.
+    Extract the Spatial Reference System (SRS) from an EPT (Entwine Point Tile) file.
 
     This function reads the EPT JSON file and retrieves the SRS information, if available.
-    The SRS is returned in the format '{authority}:{horizontal}'.
+    The SRS is returned as a string in the format '{authority}:{horizontal}'.
 
-    :param ept_file: Path to the ept file containing the point cloud data.
-    :return: The SRS string in the format '{authority}:{horizontal}' if available,
+    Args:
+        ept_file (str): Path to the EPT file containing the point cloud data.
+
+    Returns:
+        str or None: The SRS string in the format '{authority}:{horizontal}' if available,
             otherwise None.
     """
     ept_json = _read_ept_json(ept_file)
@@ -45,10 +48,16 @@ def get_srs_from_ept(ept_file):
 
 def get_bounds_from_ept(ept_file):
     """
-    Extracts the spatial bounds of a point cloud from an ept file using PDAL.
+    Extract the spatial bounds of a point cloud from an EPT (Entwine Point Tile) file using PDAL.
 
-    :param ept_file: Path to the ept file containing the point cloud data.
-    :return: A tuple with bounds in the format (min_x, max_x, min_y, max_y, min_z, max_z).
+    Args:
+        ept_file (str): Path to the EPT file containing the point cloud data.
+
+    Returns:
+        tuple: A tuple of bounds in the format (min_x, max_x, min_y, max_y, min_z, max_z).
+
+    Raises:
+        KeyError: If bounds information is not available in the EPT metadata.
     """
     ept_json = _read_ept_json(ept_file)
 
@@ -68,16 +77,25 @@ def tile_las_in_memory(
         srs=None
 ):
     """
-    Reads the entire LAS file into memory, then subdivides it into tiles
-    with a specified overlap on the right and bottom edges.
+    Read an entire LAS/LAZ/COPC file into memory and subdivide it into tiles
+    with a specified overlap on the right and bottom edges. Writes each tile as a new LAS file.
 
-    :param las_file: Path to the source .las/.laz/.copc/.copc.laz file
-    :param tile_width: Tile width in map units (meters if in UTM)
-    :param tile_height: Tile height in map units
-    :param overlap: Overlap (meters) to apply on the right & bottom edges
-    :param output_dir: Directory where the tiled outputs will be written
-    :param srs: Spatial reference for the input data (e.g., 'EPSG:32610').
-                Pass None if not needed or if the file already has it.
+    Args:
+        las_file (str): Path to the source .las, .laz, .copc, or .copc.laz file.
+        tile_width (float): Tile width in map units (e.g., meters if in UTM).
+        tile_height (float): Tile height in map units.
+        overlap (float): Overlap (in map units) to apply to the right and bottom edges of each tile.
+        output_dir (str): Directory where the tiled output files will be written.
+        srs (str, optional): Spatial reference for the input data (e.g., 'EPSG:32610'). Pass None if not needed or if the file already has SRS.
+
+    Returns:
+        None
+
+    Notes:
+        - Tiles are written in uncompressed LAS format (.las).
+        - Only non-empty tiles are written.
+        - The function creates output_dir if it does not exist.
+        - The input file is fully loaded into memory; not recommended for extremely large files.
     """
     arrays = read_lidar(
         input_file=las_file,

@@ -8,17 +8,16 @@ def generate_dtm(ground_points, resolution=2.0):
     """
     Generates a Digital Terrain Model (DTM) raster from classified ground points.
 
-    :param ground_points: list
-        Point cloud arrays of classified ground points.
-    :type ground_points: list
-    :param resolution: float, spatial resolution of the DTM in meters.
-    :return: tuple
-        A tuple containing the DTM as a 2D NumPy array and the spatial extent [x_min, x_max, y_min, y_max].
-    :rtype: tuple (numpy.ndarray, list)
-    :raises ValueError:
-        If no ground points are found for DTM generation.
-    :raises KeyError:
-        If point cloud data is missing 'X', 'Y', or 'Z' fields.
+    Args:
+        ground_points (list): Point cloud arrays of classified ground points.
+        resolution (float): Spatial resolution of the DTM in meters.
+
+    Returns:
+        tuple: A tuple containing the DTM as a 2D NumPy array and the spatial extent [x_min, x_max, y_min, y_max].
+
+    Raises:
+        ValueError: If no ground points are found for DTM generation.
+        KeyError: If point cloud data is missing 'X', 'Y', or 'Z' fields.
     """
     #todo: add parameter to allow interpolation of NA values.
     try:
@@ -91,13 +90,18 @@ def calculate_pad(voxel_returns,
     """
     Calculate the Plant Area Density (PAD) using the Beer-Lambert Law.
 
-        :param voxel_returns: numpy array of shape (X, Y, Z) representing
-                              the returns in each voxel column.
-        :param voxel_height: float, height of each voxel.
-        :param beer_lambert_constant: optional float. If not provided, defaults to 1.
+    Args:
+        voxel_returns (np.ndarray): 3D numpy array of shape (X, Y, Z) representing
+            the LiDAR returns in each voxel column.
+        voxel_height (float, optional): Height of each voxel. Defaults to 1.0.
+        beer_lambert_constant (float, optional): The Beer-Lambert constant used
+            in the calculation. Defaults to 1.0.
+        drop_ground (bool, optional): If True, sets PAD values in the ground (lowest)
+            voxel layer to NaN in the output. Defaults to True.
 
-        :return: A numpy array containing PAD values for each voxel (same shape as voxel_returns).
-                 Columns that have zero returns across all Z are set to NaN.
+    Returns:
+        np.ndarray: 3D numpy array containing PAD values for each voxel, same shape as `voxel_returns`.
+            Columns that have zero returns across all Z are set to NaN.
     """
     if voxel_height <= 0:
         raise ValueError(
@@ -134,14 +138,19 @@ def calculate_pai(pad,
                   min_height=1.0,
                   max_height=None):
     """
-    Calculate Plant Area Index (PAI) from Plant Area Density (PAD) data by summing PAD values across the Z (height) axis.
+    Calculate Plant Area Index (PAI) from Plant Area Density (PAD) data by summing PAD values along the height (Z) axis.
 
-        :param pad: A 3D numpy array representing the Plant Area Density (PAD) values.
-        :param voxel_height: float, height of each voxel.
-        :param min_height: Minimum height in meters for summing PAD values (optional).
-        :param max_height: Maximum height in meters for summing PAD values (optional).
+    Args:
+        pad (np.ndarray): 3D numpy array representing Plant Area Density (PAD) values, shape (X, Y, Z).
+        voxel_height (float): Height of each voxel in meters.
+        min_height (float, optional): Minimum height in meters for summing PAD values. Defaults to 1.0.
+        max_height (float, optional): Maximum height in meters for summing PAD values. If None, uses the full height of the input array. Defaults to None.
 
-        :return: A 2D numpy array with PAI values for each (x, y) voxel column.
+    Returns:
+        np.ndarray: 2D numpy array of shape (X, Y) with PAI values for each (x, y) voxel column.
+
+    Raises:
+        ValueError: If min_height is greater than or equal to max_height.
     """
     if max_height is None:
         max_height = pad.shape[2] * voxel_height
@@ -161,17 +170,16 @@ def calculate_fhd(voxel_returns):
     """
     Calculate the Foliage Height Diversity (FHD) for a given set of voxel returns.
 
-    This function computes Foliage Height Diversity by calculating the entropy
-    of the voxel return proportions along the z-axis, which represents vertical structure
-    in the canopy.
+    This function computes FHD by calculating the entropy of the voxel return proportions
+    along the Z (height) axis, which represents the vertical diversity of canopy structure.
 
-    :param voxel_returns:
-        A numpy array of shape (x, y, z) representing voxel returns, where x and y are spatial
-        dimensions, and z represents height bins (or layers along the vertical axis).
+    Args:
+        voxel_returns (np.ndarray): 3D numpy array of shape (X, Y, Z) representing voxel returns,
+            where X and Y are spatial dimensions and Z represents height bins (vertical layers).
 
-    :return:
-        A numpy array of shape (x, y) representing the FHD values for each (x, y) location.
-        Areas with no voxel returns will have NaN values.
+    Returns:
+        np.ndarray: 2D numpy array of shape (X, Y) with FHD values for each (X, Y) location.
+            Areas with no voxel returns will have NaN values.
     """
     sum_counts = np.sum(voxel_returns, axis=2)
 
@@ -191,30 +199,35 @@ def calculate_fhd(voxel_returns):
 def calculate_chm(arr, voxel_resolution, interpolation="linear",
                   interp_valid_region=False, interp_clean_edges=False):
     """
-    Calculate Canopy Height Model (CHM) for a given voxel size.
-    The height is the highest HeightAboveGround value in each (x, y) voxel.
+    Calculate the Canopy Height Model (CHM) for a given voxel grid.
 
-    :param arr: Input array-like object containing point cloud data with 'X', 'Y', and 'HeightAboveGround' fields.
-    :type arr: numpy.ndarray
-    :param voxel_resolution:
-        The resolution for x and y dimensions of the voxel grid.
-    :type voxel_resolution: tuple of floats (x_resolution, y_resolution)
-    :param interpolation:
-        Method for interpolating pixel gaps in the CHM. Supported methods are: "nearest", "linear", "cubic", or None.
-        If None, no interpolation is performed.
-    :type interpolation: str or None
-    :param interp_valid_region:
-        Whether to calculate a valid region mask using morphological operations for interpolation. If True,
-        interpolation is only applied within the valid data region. If False (default), interpolation is applied to all
-        NaN values. Ignored if `interpolation` is None.
-    :type interp_valid_region: bool
-    :param interp_clean_edges:
-        Whether to clean edge fringes of the interpolated CHM. Default is False. Ignored if `interpolation` is None.
-    :type interp_clean_edges: bool
+    The CHM is computed as the maximum 'HeightAboveGround' value within each (X, Y) voxel.
+    Optionally, gaps in the CHM can be filled using interpolation.
 
-    :return:
-        A tuple containing the CHM as a 2D numpy array and the spatial extent.
-    :rtype: tuple of (numpy.ndarray, list)
+    Args:
+        arr (np.ndarray): Input structured numpy array containing point cloud data
+            with fields 'X', 'Y', and 'HeightAboveGround'.
+        voxel_resolution (tuple of float): The resolution for the X and Y dimensions
+            of the voxel grid, specified as (x_resolution, y_resolution).
+        interpolation (str or None, optional): Method for interpolating gaps in the CHM.
+            Supported methods are "nearest", "linear", "cubic", or None. If None, no interpolation
+            is performed. Defaults to "linear".
+        interp_valid_region (bool): Whether to calculate a valid region mask using morphological operations for
+            interpolation. If True, interpolation is only applied within the valid data region. If False (default),
+            interpolation is applied to all NaN values. Ignored if `interpolation` is None.
+        interp_clean_edges (bool): Whether to clean edge fringes of the interpolated CHM. Default is False.
+            Ignored if `interpolation` is None.
+
+    Returns:
+        tuple:
+            - np.ndarray: 2D numpy array representing the CHM, with each value corresponding to the maximum
+                height in that (X, Y) voxel.
+            - list: The spatial extent as [x_min, x_max, y_min, y_max].
+
+    Raises:
+        ValueError: If input array does not contain the required fields.
+        ValueError: If `interpolation` is specified but not one of the supported methods.
+
     """
     x_resolution, y_resolution = voxel_resolution[:2]
     x = arr['X']

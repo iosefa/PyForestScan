@@ -11,32 +11,30 @@ def plot_2d(points, x_dim='X',
             slice_tolerance=5, save_fname=None
 ):
     """
-    Plots a 2D scatter plot of data points with customizable axes, coloring, and display settings.
+    Plot a 2D scatter plot of point cloud data with customizable axes, coloring, slicing, and figure settings.
 
     Args:
-        points (np.ndarray): A structured array with named columns like 'X','Y','Z','Classification', etc.
-        x_dim (str): The column name for the horizontal axis. Defaults to 'X'.
-        y_dim (str): The column name for the vertical axis. Defaults to 'Z'.
-        color_by (str): The column name used to color the points. Defaults to 'HeightAboveGround'.
-                       If 'HeightAboveGround' doesn't exist, pick e.g. 'Classification' or another column.
-        color_map (str): A valid matplotlib colormap name. Defaults to 'viridis'.
-        colorbar_label (str): Label for the colorbar. If None, uses color_by.
-        alpha (float): Transparency of the points (0 to 1). Defaults to 1.0 (opaque).
-        point_size (int): Size of the scatter points. Defaults to 1.
-        fig_size (tuple): (width, height) in inches. If None, auto-derive from data aspect ratio.
-        fig_title (str): Title of the plot. If None, auto-generated.
-        slice_dim (str): If provided, dimension to "fix" at a slice_val (e.g. 'Y').
-        slice_val (float): The coordinate value at which to slice the slice_dim dimension.
-        slice_tolerance (float): Allowed absolute difference when matching slice_val.
-                                 (Helps with floating-point comparisons.)
-        save_fname (str): If provided, will be forwarded to `plt.savefig` to save the figure.
+        points (np.ndarray): Structured numpy array with named columns (e.g., 'X', 'Y', 'Z', 'Classification', 'HeightAboveGround', etc.).
+        x_dim (str, optional): Column name for the horizontal axis. Defaults to 'X'.
+        y_dim (str, optional): Column name for the vertical axis. Defaults to 'Z'.
+        color_by (str, optional): Column name to use for point color values. Defaults to 'HeightAboveGround'.
+        color_map (str, optional): Name of the matplotlib colormap to use. Defaults to 'viridis'.
+        colorbar_label (str, optional): Label for the colorbar. If None, uses `color_by`. Defaults to None.
+        alpha (float, optional): Transparency of scatter points (0–1). Defaults to 1.0.
+        point_size (int, optional): Size of the points in the scatter plot. Defaults to 1.
+        fig_size (tuple, optional): Figure size as (width, height) in inches. If None, auto-derive from aspect ratio. Defaults to None.
+        fig_title (str, optional): Title for the plot. If None, auto-generated. Defaults to None.
+        slice_dim (str, optional): Name of the dimension to "slice" (fix) at a specific value. Defaults to None.
+        slice_val (float, optional): Value to use for slicing the `slice_dim` dimension. Defaults to 0.0.
+        slice_tolerance (float, optional): Allowed difference for slice matching. Defaults to 5.
+        save_fname (str, optional): If provided, will be forwarded to `plt.savefig` to save the figure.
 
     Returns:
         None
 
     Raises:
-        ValueError: If the `x_dim` or `y_dim` parameter is not one of ['X', 'Y', 'Z',
-            'HeightAboveGround'].
+        ValueError: If `x_dim` or `y_dim` is not in ['X', 'Y', 'Z', 'HeightAboveGround'].
+        ValueError: If required dimension names are not present in `points.dtype.names`.
     """
     valid_dims = ['X', 'Y', 'Z', 'HeightAboveGround']
     if x_dim not in valid_dims or y_dim not in valid_dims:
@@ -88,26 +86,19 @@ def plot_2d(points, x_dim='X',
 def plot_metric(title, metric, extent, metric_name=None, cmap='viridis', fig_size=None,
                 save_fname=None):
     """
-    Plots a given metric using the provided data and configuration.
+    Plot a 2D metric array as an image with geospatial extent, colorbar, and customizable settings.
 
-    :param title: string
-        The name of the metric to be plotted
-    :param metric: ndarray
-        2D array representing the metric's values.
-    :param extent: list
-        List of four elements [xmin, xmax, ymin, ymax] defining the extent of the plot.
-    :param metric_name: string, optional
-        Label to be used for the colorbar. If None, the title is used as the
-        metric name. This is useful for specifying units or a more detailed
-        description of the metric.
-    :param cmap: str, optional
-        Colormap to be used for the plot. Default is 'viridis'.
-    :param fig_size: tuple, optional
-        Tuple specifying the size of the figure (width, height). Default is calculated based on the extent.
-    :param save_fname: str, optional
-        If provided, will be forwarded to `plt.savefig` to save the figure.
-    :return: None
-    :rtype: None
+    Args:
+        title (str): Title of the plot.
+        metric (np.ndarray): 2D array representing the metric values to plot.
+        extent (list): List of four elements [xmin, xmax, ymin, ymax] defining the spatial extent of the plot.
+        metric_name (str, optional): Label for the colorbar. If None, uses `title`. Useful for specifying units or a more detailed description.
+        cmap (str, optional): Matplotlib colormap name for the plot. Defaults to 'viridis'.
+        fig_size (tuple, optional): Figure size as (width, height) in inches. If None, computed from aspect ratio and extent.
+        save_fname (str, optional): If provided, will be forwarded to `plt.savefig` to save the figure.
+
+    Returns:
+        None
     """
     if metric_name is None:
         metric_name = title
@@ -137,42 +128,28 @@ def plot_metric(title, metric, extent, metric_name=None, cmap='viridis', fig_siz
 def plot_pad(pad, slice_index=None, axis='x', cmap='viridis',
              hag_values=None, horizontal_values=None, title=None, save_fname=None):
     """
-    Plots the plant area density (PAD) data as a 2D image visualization.
+    Visualize 3D Plant Area Density (PAD) data as a 2D image, using projection or slicing.
 
-    This function projects or slices 3D PAD data based on the specified axis and
-    optional slice index. It visualizes the density using a colormap and displays
-    the data with respect to the specified coordinates and labels.
+    Projects or slices a 3D PAD array along a specified axis and displays the result as an image with a colormap.
 
     Args:
-        pad: A 3D numpy array representing PAD values (shape: dZ x Y x X).
-        slice_index: Optional; An integer specifying the index of the 2D slice
-            along the given axis. If None, the PAD data will be collapsed along
-            the axis using the maximum value.
-        axis: A string specifying the axis ('x' or 'y') to use for slicing
-            or projection. Defaults to 'x'.
-        cmap: A string specifying the colormap to use for visualization.
-            Defaults to 'viridis'.
-        hag_values: Optional; A 1D numpy array representing height above ground
-            (dZ) values. If None, an array from 0 to the size of the dZ axis
-            will be used.
-        horizontal_values: Optional; A 1D numpy array representing horizontal
-            axis values (X or Y, depending on `axis`). If None, an array from
-            0 to the corresponding size of the horizontal axis will be used.
-        title: Optional; A string specifying the title of the plot. If None, an
-            appropriate default title will be generated based on the input
-            parameters.
-        save_fname: Optional; A string that will be forwarded to `plt.savefig` to save
+        pad (np.ndarray): 3D numpy array of PAD values, shape (X, Y, dZ) or (dZ, Y, X).
+        slice_index (int, optional): Index at which to take a 2D slice along the specified axis. If None, the PAD data is collapsed along the axis using the maximum value. Defaults to None.
+        axis (str, optional): Axis along which to slice or project ('x' or 'y'). Defaults to 'x'.
+        cmap (str, optional): Name of the matplotlib colormap for visualization. Defaults to 'viridis'.
+        hag_values (np.ndarray, optional): 1D array of height-above-ground (dZ) values. If None, uses a range based on the PAD array shape.
+        horizontal_values (np.ndarray, optional): 1D array of horizontal axis values (X or Y, depending on `axis`). If None, uses a range based on PAD array shape.
+        title (str, optional): Title for the plot. If None, generates an appropriate title.
+        save_fname (str, optional): A string that will be forwarded to `plt.savefig` to save
             the figure.
 
     Returns:
-        None. The function visualizes the PAD data using matplotlib.
+        None
 
     Raises:
         ValueError: If `axis` is not 'x' or 'y'.
-        ValueError: If `slice_index` is out of the valid range for the specified
-            axis.
-        ValueError: If the length of `horizontal_values` does not match the
-            dimension of the specified axis.
+        ValueError: If `slice_index` is out of range for the specified axis.
+        ValueError: If the length of `horizontal_values` does not match the dimension of the specified axis.
     """
     # Validate axis
     if axis not in ['x', 'y']:
