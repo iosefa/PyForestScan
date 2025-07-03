@@ -6,6 +6,7 @@
 [![Contributors](https://img.shields.io/github/contributors/iosefa/PyForestScan.svg?label=contributors)](https://github.com/iosefa/PyForestScan/graphs/contributors)
 [![Tests](https://img.shields.io/github/actions/workflow/status/iosefa/PyForestScan/main.yml?branch=main)](https://github.com/iosefa/PyForestScan/actions/workflows/main.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/iosefa/PyForestScan/main)](https://codecov.io/gh/iosefa/PyForestScan)
+[![PyPI Downloads](https://static.pepy.tech/badge/pyforestscan)](https://pepy.tech/projects/pyforestscan)
 
 **Calculate Forest Structural Metrics from lidar point clouds in Python**
 
