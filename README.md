@@ -37,7 +37,7 @@ pip install pyforestscan
 
 - PDAL >= 2.7
 - GDAL >= 3.5
-- Python >= 3.10
+- Python >= 3.11
 
 ## Quick Start
 
