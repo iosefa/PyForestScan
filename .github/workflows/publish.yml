@@ -71,7 +71,8 @@ jobs:
             mkdocs \
             mkdocs-material \
             mkdocstrings \
-            git-revision-date \
+            mkdocstrings-python \
+            mkdocs-git-revision-date-plugin \
             mkdocs-jupyter \
             pymdown-extensions
 
