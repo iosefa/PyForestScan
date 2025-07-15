@@ -8,7 +8,7 @@ import pyforestscan
 
 Then, you can use it to load point cloud data and extract forest structure metrics. 
 
-The following sections will provide an overview of usage of the major functions of pyforestscan. For a complete reference of all functions in pyforestscan, please check the [API documentation](api.md). For comprehensive examples of these functions, please see the [example jupyter notebooks](examples). 
+The following sections will provide an overview of usage of the major functions of pyforestscan. For a complete reference of all functions in pyforestscan, please check the [API documentation](/api/calculate/). For comprehensive examples of these functions, please see the [example jupyter notebooks](/examples/getting-started-importing-preprocessing-dtm-chm/). 
 
 ## Importing Point Cloud Data
 

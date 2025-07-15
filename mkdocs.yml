@@ -47,6 +47,7 @@ nav:
             - usage/forest-structure/fhd.md
     - Benchmarks: benchmarks.md
     - Contributing: contributing.md
+    - Code of Conduct: code_of_conduct.md
     - Changelog: https://github.com/iosefa/PyForestScan/releases
     - Report Issues: https://github.com/iosefa/PyForestScan/issues
     - Examples:

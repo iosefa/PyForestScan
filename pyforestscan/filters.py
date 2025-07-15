@@ -1,9 +1,11 @@
+from typing import List
+
 from pyforestscan.handlers import _build_pdal_pipeline
 from pyforestscan.pipeline import _filter_hag, _filter_ground, _filter_statistical_outlier, _filter_smrf, \
     _filter_radius, _select_ground
 
 
-def filter_hag(arrays, lower_limit=0, upper_limit=None):
+def filter_hag(arrays, lower_limit=0, upper_limit=None) -> List:
     """
     Apply a Height Above Ground (HAG) filter to a list of point cloud arrays.
 
@@ -27,7 +29,7 @@ def filter_hag(arrays, lower_limit=0, upper_limit=None):
     return pipeline.arrays
 
 
-def filter_ground(arrays):
+def filter_ground(arrays) -> List:
     """
     Remove ground points (classification 2) from a list of point cloud arrays.
 
@@ -41,7 +43,7 @@ def filter_ground(arrays):
     return pipeline.arrays
 
 
-def filter_select_ground(arrays):
+def filter_select_ground(arrays) -> List:
     """
     Select only ground points (classification 2) from a list of point cloud arrays.
 
@@ -55,7 +57,7 @@ def filter_select_ground(arrays):
     return pipeline.arrays
 
 
-def remove_outliers_and_clean(arrays, mean_k=8, multiplier=3.0, remove=False):
+def remove_outliers_and_clean(arrays, mean_k=8, multiplier=3.0, remove=False) -> List:
     """
     Processes input arrays by removing statistical outliers and optionally cleans
     the data, filtering out specific classifications.
@@ -115,7 +117,7 @@ def classify_ground_points(
         slope=0.15,
         threshold=0.5,
         window=18.0
-):
+) -> List:
     """
     Apply the SMRF (Simple Morphological Filter) to classify ground points in the point cloud arrays.
 
@@ -166,7 +168,7 @@ def classify_ground_points(
     return processed_arrays
 
 
-def downsample_poisson(arrays, thin_radius):
+def downsample_poisson(arrays, thin_radius) -> List:
     """
     Downsample point cloud arrays using Poisson (radius-based) thinning.
 

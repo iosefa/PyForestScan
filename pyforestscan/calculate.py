@@ -1,10 +1,12 @@
 import numpy as np
+
 from scipy.interpolate import griddata
 from scipy.stats import entropy
 from scipy import ndimage
+from typing import List, Tuple
 
 
-def generate_dtm(ground_points, resolution=2.0):
+def generate_dtm(ground_points, resolution=2.0) -> Tuple[np.ndarray, List]:
     """
     Generates a Digital Terrain Model (DTM) raster from classified ground points.
 
@@ -50,7 +52,7 @@ def generate_dtm(ground_points, resolution=2.0):
     return dtm, extent
 
 
-def assign_voxels(arr, voxel_resolution):
+def assign_voxels(arr, voxel_resolution) -> Tuple[np.ndarray, List]:
     """
     Assigns voxel grids to spatial data points based on the specified resolutions.
 
@@ -59,7 +61,7 @@ def assign_voxels(arr, voxel_resolution):
         voxel_resolution (tuple of floats): The resolution for x, y, and z dimensions of the voxel grid.
 
     Returns:
-        tuple of (numpy.ndarray, list): A tuple containing the histogram of the voxel grid (with corrected orientation) and the extent of the point cloud.
+        tuple of (numpy.ndarray, List): A tuple containing the histogram of the voxel grid (with corrected orientation) and the extent of the point cloud.
     """
     dx, dy, dz = voxel_resolution
 
@@ -86,7 +88,7 @@ def calculate_pad(voxel_returns,
                   voxel_height=1.0,
                   beer_lambert_constant=1.0,
                   drop_ground=True
-                  ):
+                  ) -> np.ndarray:
     """
     Calculate the Plant Area Density (PAD) using the Beer-Lambert Law.
 
@@ -136,7 +138,7 @@ def calculate_pad(voxel_returns,
 def calculate_pai(pad,
                   voxel_height,
                   min_height=1.0,
-                  max_height=None):
+                  max_height=None) -> np.ndarray:
     """
     Calculate Plant Area Index (PAI) from Plant Area Density (PAD) data by summing PAD values along the height (Z) axis.
 
@@ -166,7 +168,7 @@ def calculate_pai(pad,
     return pai
 
 
-def calculate_fhd(voxel_returns):
+def calculate_fhd(voxel_returns) -> np.ndarray:
     """
     Calculate the Foliage Height Diversity (FHD) for a given set of voxel returns.
 
@@ -197,7 +199,7 @@ def calculate_fhd(voxel_returns):
 
 
 def calculate_chm(arr, voxel_resolution, interpolation="linear",
-                  interp_valid_region=False, interp_clean_edges=False):
+                  interp_valid_region=False, interp_clean_edges=False) -> Tuple[np.ndarray, List]:
     """
     Calculate the Canopy Height Model (CHM) for a given voxel grid.
 

@@ -50,7 +50,7 @@ def _crop_dtm(dtm_path, tile_min_x, tile_min_y, tile_max_x, tile_max_y):
 
 def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        voxel_height=1, buffer_size=0.1, srs=None, hag=False,
-                       hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False):
+                       hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False) -> None:
     """
     Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,
     and write the results to the specified output directory.

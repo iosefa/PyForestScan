@@ -21,7 +21,7 @@ def _read_ept_json(ept_source):
     return ept_json
 
 
-def get_srs_from_ept(ept_file):
+def get_srs_from_ept(ept_file) -> str or None:
     """
     Extract the Spatial Reference System (SRS) from an EPT (Entwine Point Tile) file.
 
@@ -46,7 +46,7 @@ def get_srs_from_ept(ept_file):
         return None
 
 
-def get_bounds_from_ept(ept_file):
+def get_bounds_from_ept(ept_file) -> tuple[float, float, float, float, float, float]:
     """
     Extract the spatial bounds of a point cloud from an EPT (Entwine Point Tile) file using PDAL.
 
@@ -75,7 +75,7 @@ def tile_las_in_memory(
         overlap,
         output_dir,
         srs=None
-):
+) -> None:
     """
     Read an entire LAS/LAZ/COPC file into memory and subdivide it into tiles
     with a specified overlap on the right and bottom edges. Writes each tile as a new LAS file.

@@ -1,4 +1,5 @@
 import os
+
 import geopandas as gpd
 import json
 import pdal
@@ -8,6 +9,7 @@ import numpy as np
 from pyproj import CRS
 from rasterio.transform import from_bounds
 from shapely.geometry import MultiPolygon
+from typing import List, Tuple
 from urllib.parse import urlparse
 
 from pyforestscan.pipeline import _crop_polygon, _filter_radius, _hag_delaunay, _hag_raster
@@ -22,7 +24,7 @@ def _is_url(input_str):
         return False
 
 
-def simplify_crs(crs_list):
+def simplify_crs(crs_list) -> List:
     """
     Convert a list of coordinate reference system (CRS) representations to their corresponding EPSG codes.
 
@@ -48,7 +50,7 @@ def simplify_crs(crs_list):
     return epsg_codes
 
 
-def load_polygon_from_file(vector_file_path, index=0):
+def load_polygon_from_file(vector_file_path, index=0) -> Tuple[str, str]:
     """
     Load a polygon geometry and its CRS from a given vector file.
 
@@ -79,7 +81,7 @@ def load_polygon_from_file(vector_file_path, index=0):
     return polygon.wkt, gdf.crs.to_string()
 
 
-def get_raster_epsg(dtm_path):
+def get_raster_epsg(dtm_path) -> str:
     """
     Retrieve the EPSG code from a raster file.
 
@@ -164,7 +166,7 @@ def _build_pdal_pipeline(arrays, pipeline_stages):
     return pipeline
 
 
-def validate_crs(crs_list):
+def validate_crs(crs_list) -> bool:
     """
     Validate that all CRS (Coordinate Reference System) representations in the list are identical.
 
@@ -183,7 +185,9 @@ def validate_crs(crs_list):
     return True
 
 
-def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dtm=False, dtm=None, crop_poly=False, poly=None):
+def read_lidar(input_file, srs, bounds=None, thin_radius=None,
+               hag=False, hag_dtm=False, dtm=None, crop_poly=False,
+               poly=None) -> np.ndarray or None:
     """
     Read and process a LiDAR point cloud file using PDAL with various options.
 
@@ -285,7 +289,7 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None, hag=False, hag_dt
     return point_cloud if point_cloud else None
 
 
-def write_las(arrays, output_file, srs=None, compress=True):
+def write_las(arrays, output_file, srs=None, compress=True) -> None:
     """
     Write point cloud data to a LAS or LAZ file.
 
@@ -342,7 +346,7 @@ def write_las(arrays, output_file, srs=None, compress=True):
     pipeline.execute()
 
 
-def create_geotiff(layer, output_file, crs, spatial_extent, nodata=-9999):
+def create_geotiff(layer, output_file, crs, spatial_extent, nodata=-9999) -> None:
     """
     Create a GeoTIFF file from the given data layer.
 

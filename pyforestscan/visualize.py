@@ -9,7 +9,7 @@ def plot_2d(points, x_dim='X',
             fig_size=None, fig_title=None,
             slice_dim=None, slice_val=0.0,
             slice_tolerance=5, save_fname=None
-):
+) -> None:
     """
     Plot a 2D scatter plot of point cloud data with customizable axes, coloring, slicing, and figure settings.
 
@@ -84,7 +84,7 @@ def plot_2d(points, x_dim='X',
 
 
 def plot_metric(title, metric, extent, metric_name=None, cmap='viridis', fig_size=None,
-                save_fname=None):
+                save_fname=None) -> None:
     """
     Plot a 2D metric array as an image with geospatial extent, colorbar, and customizable settings.
 
@@ -126,7 +126,8 @@ def plot_metric(title, metric, extent, metric_name=None, cmap='viridis', fig_siz
 
 
 def plot_pad(pad, slice_index=None, axis='x', cmap='viridis',
-             hag_values=None, horizontal_values=None, title=None, save_fname=None):
+             hag_values=None, horizontal_values=None, title=None,
+             save_fname=None) -> None:
     """
     Visualize 3D Plant Area Density (PAD) data as a 2D image, using projection or slicing.
 
