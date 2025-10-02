@@ -168,6 +168,62 @@ def calculate_pai(pad,
     return pai
 
 
+def calculate_canopy_cover(pad: np.ndarray,
+                           voxel_height: float,
+                           min_height: float = 2.0,
+                           max_height: float | None = None,
+                           k: float = 0.5) -> np.ndarray:
+    """
+    Calculate GEDI-style canopy cover at a height threshold using PAD.
+
+    Uses the Beer–Lambert relation: Cover(z) = 1 - exp(-k * PAI_above(z)), where
+    PAI_above(z) is the integrated Plant Area Index above height z.
+
+    Args:
+        pad (np.ndarray): 3D array of PAD values with shape (X, Y, Z).
+        voxel_height (float): Height of each voxel in meters (> 0).
+        min_height (float, optional): Height-above-ground threshold z (in meters) at which
+            to compute canopy cover. Defaults to 2.0 m (GEDI convention).
+        max_height (float or None, optional): Maximum height to integrate up to. If None,
+            integrates to the top of the PAD volume. Defaults to None.
+        k (float, optional): Extinction coefficient (Beer–Lambert constant). Defaults to 0.5.
+
+    Returns:
+        np.ndarray: 2D array (X, Y) of canopy cover values in [0, 1], with NaN where
+            PAD is entirely missing for the integration range.
+
+    Raises:
+        ValueError: If parameters are invalid (e.g., non-positive voxel_height, k < 0,
+            or min_height >= max_height).
+    """
+    if voxel_height <= 0:
+        raise ValueError(f"voxel_height must be > 0 metres (got {voxel_height})")
+    if k < 0:
+        raise ValueError(f"k must be >= 0 (got {k})")
+
+    # Compute PAI integrated from min_height up to max_height/top
+    pai_above = calculate_pai(pad, voxel_height, min_height=min_height, max_height=max_height)
+
+    # Identify columns that are entirely NaN within the integration range
+    if max_height is None:
+        max_height = pad.shape[2] * voxel_height
+    if min_height >= max_height:
+        raise ValueError("Minimum height index must be less than maximum height index.")
+    start_idx = int(np.ceil(min_height / voxel_height))
+    end_idx = int(np.floor(max_height / voxel_height))
+    range_slice = pad[:, :, start_idx:end_idx]
+    all_nan_mask = np.all(np.isnan(range_slice), axis=2)
+
+    # Beer–Lambert canopy cover
+    cover = 1.0 - np.exp(-k * pai_above)
+
+    # Clamp to [0,1] and set invalids
+    cover = np.where(np.isfinite(cover), cover, np.nan)
+    cover = np.clip(cover, 0.0, 1.0)
+    cover[all_nan_mask] = np.nan
+    return cover
+
+
 def calculate_fhd(voxel_returns) -> np.ndarray:
     """
     Calculate the Foliage Height Diversity (FHD) for a given set of voxel returns.

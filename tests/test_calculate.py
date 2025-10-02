@@ -7,7 +7,8 @@ from pyforestscan.calculate import (
     calculate_pad,
     calculate_pai,
     calculate_fhd,
-    calculate_chm
+    calculate_chm,
+    calculate_canopy_cover
 )
 import math
 
@@ -601,3 +602,42 @@ def test_calculate_chm_large_heights():
     assert isinstance(chm, np.ndarray)
     assert chm.ndim == 2
     assert np.all(chm >= 1000)
+
+
+# ----------------------------
+# Tests for calculate_canopy_cover
+# ----------------------------
+
+def test_calculate_canopy_cover_basic():
+    pad = np.ones((4, 3, 10), dtype=float)
+    voxel_height = 1.0
+    z = 2.0
+    k = 0.5
+    # PAI above z=2 with dz=1 and 10 layers => sum from idx 2..9 = 8
+    expected_cover = 1.0 - np.exp(-k * 8.0)
+    cov = calculate_canopy_cover(pad, voxel_height, min_height=z, k=k)
+    assert cov.shape == (4, 3)
+    assert np.allclose(cov, expected_cover)
+
+
+def test_calculate_canopy_cover_zero_pad():
+    pad = np.zeros((2, 2, 5), dtype=float)
+    cov = calculate_canopy_cover(pad, voxel_height=1.0, min_height=2.0, k=0.5)
+    assert np.all(cov == 0.0)
+
+
+def test_calculate_canopy_cover_nans_propagate():
+    pad = np.ones((2, 2, 6), dtype=float)
+    pad[:, :, 3:] = np.nan  # everything above z=3 m is NaN
+    cov = calculate_canopy_cover(pad, voxel_height=1.0, min_height=3.0, k=0.5)
+    # All NaN in integration range -> NaN in cover
+    assert np.all(np.isnan(cov))
+
+
+def test_calculate_canopy_cover_monotonic_with_height():
+    pad = np.ones((3, 3, 10), dtype=float)
+    cov0 = calculate_canopy_cover(pad, voxel_height=1.0, min_height=0.0, k=0.5)
+    cov2 = calculate_canopy_cover(pad, voxel_height=1.0, min_height=2.0, k=0.5)
+    cov5 = calculate_canopy_cover(pad, voxel_height=1.0, min_height=5.0, k=0.5)
+    assert np.all(cov0 >= cov2)
+    assert np.all(cov2 >= cov5)

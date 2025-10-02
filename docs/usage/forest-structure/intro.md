@@ -13,6 +13,7 @@ Most calculations for the metrics follows the method outlined in Kamoske et al. 
 * [Plant Area Density (PAD)](pad.md)
 * [Plant Area Index (PAI)](pai.md)
 * [Foliage Height Diversity (FHD)](fhd.md)
+* [Canopy Cover](canopy_cover.md)
 
 ## References
 
