@@ -130,7 +130,9 @@ def calculate_pad(voxel_returns,
     if drop_ground:
         pad[:, :, 0] = np.nan
 
-    pad[voxel_returns[:, :, 0] == 0, :] = np.nan
+    # Mask only columns that have zero returns across all Z (true empty columns)
+    empty_columns = (np.sum(voxel_returns, axis=2) == 0)
+    pad[empty_columns, :] = np.nan
 
     return pad
 
