@@ -1471,7 +1471,9 @@ integrates to the top of the PAD volume. Defaults to None.</p>
             <td>
               <div class="doc-md-description">
                 <p>np.ndarray: 2D array (X, Y) of canopy cover values in [0, 1], with NaN where
-PAD is entirely missing for the integration range.</p>
+PAD is entirely missing for the integration range. If the requested
+integration range is empty (e.g., min_height &gt;= available max height),
+returns a zeros array (no canopy above the threshold).</p>
               </div>
             </td>
           </tr>
@@ -1558,7 +1560,11 @@ or min_height &gt;= max_height).</p>
 <span class="normal">223</span>
 <span class="normal">224</span>
 <span class="normal">225</span>
-<span class="normal">226</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_canopy_cover</span><span class="p">(</span><span class="n">pad</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_canopy_cover</span><span class="p">(</span><span class="n">pad</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                            <span class="n">voxel_height</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                            <span class="n">min_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
                            <span class="n">max_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1580,7 +1586,9 @@ or min_height &gt;= max_height).</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        np.ndarray: 2D array (X, Y) of canopy cover values in [0, 1], with NaN where</span>
-<span class="sd">            PAD is entirely missing for the integration range.</span>
+<span class="sd">            PAD is entirely missing for the integration range. If the requested</span>
+<span class="sd">            integration range is empty (e.g., min_height &gt;= available max height),</span>
+<span class="sd">            returns a zeros array (no canopy above the threshold).</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If parameters are invalid (e.g., non-positive voxel_height, k &lt; 0,</span>
@@ -1591,16 +1599,18 @@ or min_height &gt;= max_height).</p>
     <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;k must be &gt;= 0 (got </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Compute PAI integrated from min_height up to max_height/top</span>
+    <span class="c1"># Determine effective max height and handle empty integration range</span>
+    <span class="n">effective_max_height</span> <span class="o">=</span> <span class="n">max_height</span> <span class="k">if</span> <span class="n">max_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pad</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">voxel_height</span>
+    <span class="k">if</span> <span class="n">min_height</span> <span class="o">&gt;=</span> <span class="n">effective_max_height</span><span class="p">:</span>
+        <span class="c1"># No foliage above threshold: cover is zero everywhere</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">pad</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pad</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="c1"># Compute PAI integrated from min_height up to effective_max_height/top</span>
     <span class="n">pai_above</span> <span class="o">=</span> <span class="n">calculate_pai</span><span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">voxel_height</span><span class="p">,</span> <span class="n">min_height</span><span class="o">=</span><span class="n">min_height</span><span class="p">,</span> <span class="n">max_height</span><span class="o">=</span><span class="n">max_height</span><span class="p">)</span>
 
     <span class="c1"># Identify columns that are entirely NaN within the integration range</span>
-    <span class="k">if</span> <span class="n">max_height</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">max_height</span> <span class="o">=</span> <span class="n">pad</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">voxel_height</span>
-    <span class="k">if</span> <span class="n">min_height</span> <span class="o">&gt;=</span> <span class="n">max_height</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Minimum height index must be less than maximum height index.&quot;</span><span class="p">)</span>
     <span class="n">start_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">min_height</span> <span class="o">/</span> <span class="n">voxel_height</span><span class="p">))</span>
-    <span class="n">end_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">max_height</span> <span class="o">/</span> <span class="n">voxel_height</span><span class="p">))</span>
+    <span class="n">end_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">effective_max_height</span> <span class="o">/</span> <span class="n">voxel_height</span><span class="p">))</span>
     <span class="n">range_slice</span> <span class="o">=</span> <span class="n">pad</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
     <span class="n">all_nan_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">range_slice</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
@@ -1798,11 +1808,7 @@ Ignored if <code>interpolation</code> is None.</p>
 
             <details class="quote">
               <summary>Source code in <code>pyforestscan/calculate.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">259</span>
-<span class="normal">260</span>
-<span class="normal">261</span>
-<span class="normal">262</span>
-<span class="normal">263</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">263</span>
 <span class="normal">264</span>
 <span class="normal">265</span>
 <span class="normal">266</span>
@@ -1888,7 +1894,11 @@ Ignored if <code>interpolation</code> is None.</p>
 <span class="normal">346</span>
 <span class="normal">347</span>
 <span class="normal">348</span>
-<span class="normal">349</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_chm</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_chm</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span>
                   <span class="n">interp_valid_region</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interp_clean_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the Canopy Height Model (CHM) for a given voxel grid.</span>
@@ -2059,11 +2069,7 @@ Areas with no voxel returns will have NaN values.</p>
 
             <details class="quote">
               <summary>Source code in <code>pyforestscan/calculate.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">229</span>
-<span class="normal">230</span>
-<span class="normal">231</span>
-<span class="normal">232</span>
-<span class="normal">233</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">233</span>
 <span class="normal">234</span>
 <span class="normal">235</span>
 <span class="normal">236</span>
@@ -2086,7 +2092,11 @@ Areas with no voxel returns will have NaN values.</p>
 <span class="normal">253</span>
 <span class="normal">254</span>
 <span class="normal">255</span>
-<span class="normal">256</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_fhd</span><span class="p">(</span><span class="n">voxel_returns</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_fhd</span><span class="p">(</span><span class="n">voxel_returns</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the Foliage Height Diversity (FHD) for a given set of voxel returns.</span>
 
