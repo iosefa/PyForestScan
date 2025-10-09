@@ -8,22 +8,24 @@
       
       
       
+        <link rel="canonical" href="https://pyforestscan.sefa.ai/usage/forest-structure/canopy_cover/">
       
       
       
-      <link rel="icon" href="/assets/images/favicon.png">
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.21">
     
     
       
-        <title>PyForestScan</title>
+        <title>Canopy Cover (GEDI-style) - PyForestScan</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.2a3383ac.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.2a3383ac.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -42,11 +44,11 @@
       
     
     
-      <link rel="stylesheet" href="/assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="/overrides/custom.css">
+      <link rel="stylesheet" href="../../../overrides/custom.css">
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -69,6 +71,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#canopy-cover-gedi-style" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -81,7 +88,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="PyForestScan" class="md-header__button md-logo" aria-label="PyForestScan" data-md-component="logo">
+    <a href="../../.." title="PyForestScan" class="md-header__button md-logo" aria-label="PyForestScan" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -101,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Canopy Cover (GEDI-style)
             
           </span>
         </div>
@@ -191,7 +198,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="PyForestScan" class="md-nav__button md-logo" aria-label="PyForestScan" data-md-component="logo">
+    <a href="../../.." title="PyForestScan" class="md-nav__button md-logo" aria-label="PyForestScan" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -221,7 +228,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -243,7 +250,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/installation/" class="md-nav__link">
+      <a href="../../../installation/" class="md-nav__link">
         
   
   
@@ -303,7 +310,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/usage/getting-started-import-and-preprocess/" class="md-nav__link">
+      <a href="../../getting-started-import-and-preprocess/" class="md-nav__link">
         
   
   
@@ -326,7 +333,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/usage/digital-terrain-models/" class="md-nav__link">
+      <a href="../../digital-terrain-models/" class="md-nav__link">
         
   
   
@@ -387,7 +394,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/usage/forest-structure/intro/" class="md-nav__link">
+      <a href="../intro/" class="md-nav__link">
         
   
   
@@ -410,7 +417,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/usage/forest-structure/chm/" class="md-nav__link">
+      <a href="../chm/" class="md-nav__link">
         
   
   
@@ -433,7 +440,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/usage/forest-structure/pad/" class="md-nav__link">
+      <a href="../pad/" class="md-nav__link">
         
   
   
@@ -456,7 +463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/usage/forest-structure/pai/" class="md-nav__link">
+      <a href="../pai/" class="md-nav__link">
         
   
   
@@ -479,7 +486,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/usage/forest-structure/fhd/" class="md-nav__link">
+      <a href="../fhd/" class="md-nav__link">
         
   
   
@@ -517,7 +524,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/benchmarks/" class="md-nav__link">
+      <a href="../../../benchmarks/" class="md-nav__link">
         
   
   
@@ -539,7 +546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/contributing/" class="md-nav__link">
+      <a href="../../../contributing/" class="md-nav__link">
         
   
   
@@ -561,7 +568,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/code_of_conduct/" class="md-nav__link">
+      <a href="../../../code_of_conduct/" class="md-nav__link">
         
   
   
@@ -665,7 +672,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/examples/getting-started-importing-preprocessing-dtm-chm/" class="md-nav__link">
+      <a href="../../../examples/getting-started-importing-preprocessing-dtm-chm/" class="md-nav__link">
         
   
   
@@ -688,7 +695,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/examples/calculate-forest-metrics/" class="md-nav__link">
+      <a href="../../../examples/calculate-forest-metrics/" class="md-nav__link">
         
   
   
@@ -711,7 +718,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/examples/working-with-large-point-clouds/" class="md-nav__link">
+      <a href="../../../examples/working-with-large-point-clouds/" class="md-nav__link">
         
   
   
@@ -779,7 +786,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/api/calculate/" class="md-nav__link">
+      <a href="../../../api/calculate/" class="md-nav__link">
         
   
   
@@ -802,7 +809,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/api/filters/" class="md-nav__link">
+      <a href="../../../api/filters/" class="md-nav__link">
         
   
   
@@ -825,7 +832,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/api/handlers/" class="md-nav__link">
+      <a href="../../../api/handlers/" class="md-nav__link">
         
   
   
@@ -848,7 +855,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/api/pipeline/" class="md-nav__link">
+      <a href="../../../api/pipeline/" class="md-nav__link">
         
   
   
@@ -871,7 +878,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/api/process/" class="md-nav__link">
+      <a href="../../../api/process/" class="md-nav__link">
         
   
   
@@ -894,7 +901,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/api/visualize/" class="md-nav__link">
+      <a href="../../../api/visualize/" class="md-nav__link">
         
   
   
@@ -934,6 +941,43 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Definition
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -945,8 +989,107 @@
             <div class="md-content" data-md-component="content">
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+  
+  
+
+
+<h1 id="canopy-cover-gedi-style">Canopy Cover (GEDI-style)<a class="headerlink" href="#canopy-cover-gedi-style" title="Permanent link">&para;</a></h1>
+<h2 id="definition">Definition<a class="headerlink" href="#definition" title="Permanent link">&para;</a></h2>
+<p>Canopy cover at height z is the fraction of ground area occluded by vegetation above z meters (Height Above Ground).
+Following GEDI, we model the gap probability using the Beer–Lambert law:</p>
+<p>Cover(z) = 1 − exp(−k · PAI_above(z))</p>
+<p>Where:
+- <code>k</code> is the extinction coefficient (default 0.5 for spherical leaf-angle assumption).
+- <code>PAI_above(z)</code> is the vertical integral of Plant Area Density (PAD) above height <code>z</code>.</p>
+<p>Common choices:
+- Tree canopy cover (GEDI-like): z = 2.0 m.
+- Total vegetative cover: z = 0.0 m.</p>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.handlers</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_lidar</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">filter_hag</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.calculate</span><span class="w"> </span><span class="kn">import</span> <span class="n">assign_voxels</span><span class="p">,</span> <span class="n">calculate_pad</span><span class="p">,</span> <span class="n">calculate_canopy_cover</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.visualize</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_metric</span>
+
+<span class="n">file_path</span> <span class="o">=</span> <span class="s2">&quot;../example_data/20191210_5QKB020880.laz&quot;</span>
+
+<span class="c1"># Ensure HAG is present for PAD/PAI calculations</span>
+<span class="n">arrays</span> <span class="o">=</span> <span class="n">read_lidar</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;EPSG:32605&quot;</span><span class="p">,</span> <span class="n">hag</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">arrays</span> <span class="o">=</span> <span class="n">filter_hag</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span>
+<span class="n">points</span> <span class="o">=</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">voxel_resolution</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># dx, dy, dz in meters</span>
+<span class="n">voxels</span><span class="p">,</span> <span class="n">extent</span> <span class="o">=</span> <span class="n">assign_voxels</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">)</span>
+
+<span class="n">pad</span> <span class="o">=</span> <span class="n">calculate_pad</span><span class="p">(</span><span class="n">voxels</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># GEDI-like canopy cover at z=2 m</span>
+<span class="n">cover</span> <span class="o">=</span> <span class="n">calculate_canopy_cover</span><span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">voxel_height</span><span class="o">=</span><span class="n">voxel_resolution</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">min_height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="n">plot_metric</span><span class="p">(</span><span class="s1">&#39;Canopy Cover (z=2 m)&#39;</span><span class="p">,</span> <span class="n">cover</span><span class="p">,</span> <span class="n">extent</span><span class="p">,</span> <span class="n">metric_name</span><span class="o">=</span><span class="s1">&#39;Cover&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>As z increases, canopy cover decreases because less foliage lies above higher thresholds.</li>
+<li><code>calculate_canopy_cover</code> returns NaN where PAD is entirely missing in the integration range.</li>
+<li>When tiling large EPT datasets, use <code>process_with_tiles(..., metric="cover", voxel_height=..., cover_min_height=2.0, cover_k=0.5)</code> to write GeoTIFF tiles.</li>
+</ul>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    2025-10-09
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -982,10 +1125,10 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "/", "features": ["navigation.instant", "search.highlight"], "search": "/assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "search.highlight"], "search": "../../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.f55a23d4.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.f55a23d4.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
       
