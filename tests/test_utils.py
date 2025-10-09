@@ -25,11 +25,16 @@ def test_get_srs_from_usgs_hawaii_ept():
 def test_get_bounds_from_usgs_hawaii_ept():
     """
     Tests retrieving the EPT bounds from a real EPT JSON.
+    get_bounds_from_ept returns (min_x, max_x, min_y, max_y, min_z, max_z).
     """
     ept_url = "https://s3-us-west-2.amazonaws.com/usgs-lidar-public/HI_Hawaii_Island_2017/ept.json"
     bounds = get_bounds_from_ept(ept_url)
-    assert len(bounds) == 6, "Bounds should be [minX, maxX, minY, maxY, minZ, maxZ]."
-    assert bounds == [-17405012, 2136822, -5677, -17229390, 2312444, 169945]
+    assert len(bounds) == 6, "Bounds should be (minX, maxX, minY, maxY, minZ, maxZ)."
+    expected = (-17405012, -17229390, 2136822, 2312444, -5677, 169945)
+    assert tuple(bounds) == expected
+
+    min_x, max_x, min_y, max_y, min_z, max_z = bounds
+    assert min_x < max_x and min_y < max_y and min_z < max_z
 
 
 def test_tile_las_in_memory():

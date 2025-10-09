@@ -48,24 +48,40 @@ def get_srs_from_ept(ept_file) -> str or None:
 
 def get_bounds_from_ept(ept_file) -> tuple[float, float, float, float, float, float]:
     """
-    Extract the spatial bounds of a point cloud from an EPT (Entwine Point Tile) file using PDAL.
+    Extract dataset bounds from an EPT (Entwine Point Tile) source.
 
     Args:
-        ept_file (str): Path to the EPT file containing the point cloud data.
+        ept_file (str): Path or URL to the EPT JSON.
 
     Returns:
-        tuple: A tuple of bounds in the format (min_x, max_x, min_y, max_y, min_z, max_z).
+        tuple: (min_x, max_x, min_y, max_y, min_z, max_z)
 
     Raises:
         KeyError: If bounds information is not available in the EPT metadata.
+        ValueError: If the EPT bounds are malformed.
     """
     ept_json = _read_ept_json(ept_file)
 
-    try:
-        bounds = ept_json["bounds"]
-        return bounds
-    except KeyError:
+    # Prefer "bounds"; some datasets may also include "boundsConforming".
+    raw_bounds = ept_json.get("bounds")
+    if raw_bounds is None:
+        raw_bounds = ept_json.get("boundsConforming")
+    if raw_bounds is None:
         raise KeyError("Bounds information is not available in the ept metadata.")
+
+    # Handle common representations: list/tuple of 6 numbers or a dict with keys.
+    if isinstance(raw_bounds, (list, tuple)) and len(raw_bounds) == 6:
+        min_x, min_y, min_z, max_x, max_y, max_z = raw_bounds
+    elif isinstance(raw_bounds, dict):
+        try:
+            min_x = raw_bounds["minx"]; min_y = raw_bounds["miny"]; min_z = raw_bounds["minz"]
+            max_x = raw_bounds["maxx"]; max_y = raw_bounds["maxy"]; max_z = raw_bounds["maxz"]
+        except Exception as e:
+            raise ValueError(f"Malformed EPT bounds dictionary: {e}") from None
+    else:
+        raise ValueError(f"Unexpected EPT bounds format: {type(raw_bounds)}")
+
+    return (min_x, max_x, min_y, max_y, min_z, max_z)
 
 
 def tile_las_in_memory(
