@@ -5,7 +5,7 @@ import os
 
 from tqdm import tqdm
 
-from pyforestscan.calculate import calculate_fhd, calculate_pad, calculate_pai, assign_voxels, calculate_chm
+from pyforestscan.calculate import calculate_fhd, calculate_pad, calculate_pai, assign_voxels, calculate_chm, calculate_canopy_cover
 from pyforestscan.filters import remove_outliers_and_clean
 from pyforestscan.handlers import create_geotiff
 from pyforestscan.pipeline import _hag_raster, _hag_delaunay
@@ -50,7 +50,8 @@ def _crop_dtm(dtm_path, tile_min_x, tile_min_y, tile_max_x, tile_max_y):
 
 def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        voxel_height=1, buffer_size=0.1, srs=None, hag=False,
-                       hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False) -> None:
+                       hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False,
+                       cover_min_height: float = 2.0, cover_k: float = 0.5) -> None:
     """
     Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,
     and write the results to the specified output directory.
@@ -59,7 +60,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         ept_file (str): Path to the EPT file containing the point cloud data.
         tile_size (tuple): Size of each tile as (tile_width, tile_height).
         output_path (str): Directory where the output files will be saved.
-        metric (str): Metric to compute for each tile ("chm", "fhd", or "pai").
+        metric (str): Metric to compute for each tile ("chm", "fhd", "pai", or "cover").
         voxel_size (tuple): Voxel resolution as (x_resolution, y_resolution, z_resolution).
         voxel_height (float, optional): Height of each voxel in meters. Required if metric is "pai".
         buffer_size (float, optional): Fractional buffer size relative to tile size (e.g., 0.1 for 10% buffer). Defaults to 0.1.
@@ -72,6 +73,8 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
             If None, tiling is done over the entire dataset.
         interpolation (str or None, optional): Interpolation method for CHM calculation ("linear", "cubic", "nearest", or None).
         remove_outliers (bool, optional): Whether to remove statistical outliers before calculating metrics. Defaults to False.
+        cover_min_height (float, optional): Height threshold (in meters) for canopy cover (used when metric == "cover"). Defaults to 2.0.
+        cover_k (float, optional): Beer–Lambert extinction coefficient for canopy cover. Defaults to 0.5.
 
     Returns:
         None
@@ -80,7 +83,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         ValueError: If an unsupported metric is requested, if buffer or voxel sizes are invalid, or required arguments are missing.
         FileNotFoundError: If the EPT or DTM file does not exist, or a required file for processing is missing.
     """
-    if metric not in ["chm", "fhd", "pai"]:
+    if metric not in ["chm", "fhd", "pai", "cover"]:
         raise ValueError(f"Unsupported metric: {metric}")
 
     (min_z, max_z) = (None, None)
@@ -188,7 +191,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
 
                     result_file = os.path.join(output_path, f"tile_{i}_{j}_chm.tif")
                     create_geotiff(chm, result_file, srs, core_extent)
-                elif metric in ["fhd", "pai"]:
+                elif metric in ["fhd", "pai", "cover"]:
                     voxels, spatial_extent = assign_voxels(tile_points, voxel_size)
 
                     if metric == "fhd":
@@ -203,6 +206,22 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                             result = np.zeros((pad.shape[0], pad.shape[1]))
                         else:
                             result = calculate_pai(pad, voxel_height)
+                        result = np.where(np.isfinite(result), result, 0)
+                    elif metric == "cover":
+                        if not voxel_height:
+                            raise ValueError(f"voxel_height is required for metric {metric}")
+
+                        pad = calculate_pad(voxels, voxel_size[-1])
+                        if np.all(pad == 0):
+                            result = np.zeros((pad.shape[0], pad.shape[1]))
+                        else:
+                            result = calculate_canopy_cover(
+                                pad,
+                                voxel_height=voxel_height,
+                                min_height=cover_min_height,
+                                max_height=None,
+                                k=cover_k,
+                            )
                         result = np.where(np.isfinite(result), result, 0)
 
                     if current_buffer_size > 0:
