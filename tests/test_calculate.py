@@ -408,8 +408,13 @@ def test_calculate_fhd_high_diversity():
 
 
 def test_calculate_fhd_partial_zero_distribution():
-    voxel_returns = np.random.randint(0, 5, size=(5, 5, 5))
+    # Construct deterministic columns to avoid flaky equality due to randomness.
+    voxel_returns = np.zeros((5, 5, 5), dtype=int)
+    # Column with all mass in a single bin -> entropy 0
     voxel_returns[0, 0, :] = [1, 0, 0, 0, 0]
+    # Column with uniform distribution across bins -> maximal entropy
+    voxel_returns[1, 1, :] = [1, 1, 1, 1, 1]
+
     fhd = calculate_fhd(voxel_returns)
     assert isinstance(fhd, np.ndarray)
     assert fhd.shape == (5, 5)
