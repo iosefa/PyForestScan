@@ -192,7 +192,9 @@ def calculate_canopy_cover(pad: np.ndarray,
 
     Returns:
         np.ndarray: 2D array (X, Y) of canopy cover values in [0, 1], with NaN where
-            PAD is entirely missing for the integration range.
+            PAD is entirely missing for the integration range. If the requested
+            integration range is empty (e.g., min_height >= available max height),
+            returns a zeros array (no canopy above the threshold).
 
     Raises:
         ValueError: If parameters are invalid (e.g., non-positive voxel_height, k < 0,
@@ -203,16 +205,18 @@ def calculate_canopy_cover(pad: np.ndarray,
     if k < 0:
         raise ValueError(f"k must be >= 0 (got {k})")
 
-    # Compute PAI integrated from min_height up to max_height/top
+    # Determine effective max height and handle empty integration range
+    effective_max_height = max_height if max_height is not None else pad.shape[2] * voxel_height
+    if min_height >= effective_max_height:
+        # No foliage above threshold: cover is zero everywhere
+        return np.zeros((pad.shape[0], pad.shape[1]), dtype=float)
+
+    # Compute PAI integrated from min_height up to effective_max_height/top
     pai_above = calculate_pai(pad, voxel_height, min_height=min_height, max_height=max_height)
 
     # Identify columns that are entirely NaN within the integration range
-    if max_height is None:
-        max_height = pad.shape[2] * voxel_height
-    if min_height >= max_height:
-        raise ValueError("Minimum height index must be less than maximum height index.")
     start_idx = int(np.ceil(min_height / voxel_height))
-    end_idx = int(np.floor(max_height / voxel_height))
+    end_idx = int(np.floor(effective_max_height / voxel_height))
     range_slice = pad[:, :, start_idx:end_idx]
     all_nan_mask = np.all(np.isnan(range_slice), axis=2)
 

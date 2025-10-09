@@ -646,3 +646,19 @@ def test_calculate_canopy_cover_monotonic_with_height():
     cov5 = calculate_canopy_cover(pad, voxel_height=1.0, min_height=5.0, k=0.5)
     assert np.all(cov0 >= cov2)
     assert np.all(cov2 >= cov5)
+
+
+def test_calculate_canopy_cover_empty_range_above_top_returns_zero():
+    # Z extent is 0..1 m (2 layers with dz=1); threshold at 2 m leaves no range
+    pad = np.random.rand(4, 4, 2)
+    cov = calculate_canopy_cover(pad, voxel_height=1.0, min_height=2.0, k=0.5)
+    assert cov.shape == (4, 4)
+    assert np.allclose(cov, 0.0)
+
+
+def test_calculate_canopy_cover_min_ge_max_returns_zero():
+    pad = np.random.rand(3, 3, 5)
+    # Explicitly set max_height below min_height so integration is empty
+    cov = calculate_canopy_cover(pad, voxel_height=1.0, min_height=3.0, max_height=2.0, k=0.5)
+    assert cov.shape == (3, 3)
+    assert np.allclose(cov, 0.0)
