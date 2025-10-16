@@ -153,20 +153,33 @@ def calculate_pai(pad,
     Returns:
         np.ndarray: 2D numpy array of shape (X, Y) with PAI values for each (x, y) voxel column.
 
-    Raises:
-        ValueError: If min_height is greater than or equal to max_height.
+    Notes:
+        - If the requested integration range is empty (e.g., min_height >= available
+          maximum height), returns a zeros array (no canopy above the threshold),
+          mirroring the behavior used by canopy cover.
     """
-    if max_height is None:
-        max_height = pad.shape[2] * voxel_height
+    if voxel_height <= 0:
+        raise ValueError(f"voxel_height must be > 0 metres (got {voxel_height})")
 
-    if min_height >= max_height:
-        raise ValueError("Minimum height index must be less than maximum height index.")
+    effective_max_height = max_height if max_height is not None else pad.shape[2] * voxel_height
+
+    # Empty integration range: return zeros (no canopy above threshold)
+    if min_height >= effective_max_height:
+        return np.zeros((pad.shape[0], pad.shape[1]), dtype=float)
 
     start_idx = int(np.ceil(min_height / voxel_height))
-    end_idx   = int(np.floor(max_height / voxel_height))
+    end_idx   = int(np.floor(effective_max_height / voxel_height))
+
+    # If rounding collapses the slice, also treat as empty range
+    if start_idx >= end_idx:
+        return np.zeros((pad.shape[0], pad.shape[1]), dtype=float)
 
     core = pad[:, :, start_idx:end_idx]
     pai  = np.nansum(core, axis=2) * voxel_height
+
+    # If an entire column within the integration range is NaN, propagate NaN
+    all_nan_mask = np.all(np.isnan(core), axis=2)
+    pai[all_nan_mask] = np.nan
     return pai
 
 
