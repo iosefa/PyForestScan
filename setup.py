@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyforestscan",
-    version="0.3.4",
+    version="0.3.5",
     author="Joseph Emile Honour Percival",
     author_email="ipercival@gmail.com",
     description="Analyzing forest structure using aerial LiDAR data",
