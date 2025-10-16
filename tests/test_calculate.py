@@ -268,14 +268,20 @@ def test_calculate_pai_max_height_none():
 
 def test_calculate_pai_min_height_greater_than_max():
     pad = np.random.rand(10, 10, 5)
-    with pytest.raises(ValueError):
-        calculate_pai(pad, 5, min_height=6, max_height=4)
+    # Empty integration range -> zeros (no canopy above threshold)
+    pai = calculate_pai(pad, 5, min_height=6, max_height=4)
+    assert isinstance(pai, np.ndarray)
+    assert pai.shape == (10, 10)
+    assert np.all(pai == 0)
 
 
 def test_calculate_pai_min_height_equals_max():
     pad = np.random.rand(10, 10, 5)
-    with pytest.raises(ValueError):
-        calculate_pai(pad, 5, min_height=3, max_height=3)
+    # Empty integration range -> zeros
+    pai = calculate_pai(pad, 5, min_height=3, max_height=3)
+    assert isinstance(pai, np.ndarray)
+    assert pai.shape == (10, 10)
+    assert np.all(pai == 0)
 
 
 def test_calculate_pai_all_heights():
