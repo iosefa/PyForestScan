@@ -6,7 +6,7 @@ import os
 from tqdm import tqdm
 
 from pyforestscan.calculate import calculate_fhd, calculate_pad, calculate_pai, assign_voxels, calculate_chm, calculate_canopy_cover
-from pyforestscan.filters import remove_outliers_and_clean
+from pyforestscan.filters import remove_outliers_and_clean, downsample_poisson
 from pyforestscan.handlers import create_geotiff
 from pyforestscan.pipeline import _hag_raster, _hag_delaunay
 from pyforestscan.utils import get_bounds_from_ept, get_srs_from_ept
@@ -52,7 +52,8 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        voxel_height=1, buffer_size=0.1, srs=None, hag=False,
                        hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False,
                        cover_min_height: float = 2.0, cover_k: float = 0.5,
-                       skip_existing: bool = False, verbose: bool = False) -> None:
+                       skip_existing: bool = False, verbose: bool = False,
+                       thin_radius: float | None = None) -> None:
     """
     Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,
     and write the results to the specified output directory.
@@ -78,6 +79,8 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         cover_k (float, optional): Beer–Lambert extinction coefficient for canopy cover. Defaults to 0.5.
         skip_existing (bool, optional): If True, skip tiles whose output file already exists. Defaults to False.
         verbose (bool, optional): If True, print warnings for empty/invalid tiles and buffer adjustments. Defaults to False.
+        thin_radius (float or None, optional): If provided (> 0), apply Poisson radius-based thinning per tile before metrics.
+            Units are in the same CRS as the data (e.g., meters). Defaults to None.
 
     Returns:
         None
@@ -111,7 +114,8 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
     with tqdm(total=total_tiles, desc="Processing tiles") as pbar:
         for i in range(num_tiles_x):
             for j in range(num_tiles_y):
-                if metric == "chm":
+                # Apply buffer+crop for CHM and for PAI/COVER to avoid seam artifacts.
+                if metric in ["chm", "pai", "cover"]:
                     current_buffer_size = buffer_size
                 else:
                     current_buffer_size = 0.0
@@ -171,16 +175,30 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
 
                 tile_pipeline = pdal.Pipeline(json.dumps(tile_pipeline_json))
                 tile_pipeline.execute()
-                if remove_outliers:
-                    tile_points = remove_outliers_and_clean(tile_pipeline.arrays)[0]
-                else:
-                    tile_points = tile_pipeline.arrays[0]
 
-                if tile_points.size == 0:
+                # Extract points from pipeline output safely
+                arrays = tile_pipeline.arrays if hasattr(tile_pipeline, "arrays") else []
+                if not arrays or arrays[0].size == 0:
                     if verbose:
                         print(f"Warning: No data in tile ({i}, {j}). Skipping.")
                     pbar.update(1)
                     continue
+
+                if remove_outliers:
+                    tile_points = remove_outliers_and_clean(arrays)[0]
+                else:
+                    tile_points = arrays[0]
+
+                # Optional radius-based thinning before metrics
+                if thin_radius is not None and thin_radius > 0:
+                    thinned = downsample_poisson([tile_points], thin_radius=thin_radius)
+                    tile_points = thinned[0] if thinned else tile_points
+
+                    if tile_points.size == 0:
+                        if verbose:
+                            print(f"Warning: Tile ({i}, {j}) empty after thinning. Skipping.")
+                        pbar.update(1)
+                        continue
 
                 buffer_pixels_x = int(np.ceil(buffer_x / voxel_size[0]))
                 buffer_pixels_y = int(np.ceil(buffer_y / voxel_size[1]))
@@ -235,8 +253,13 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                         if np.all(pad == 0):
                             result = np.zeros((pad.shape[0], pad.shape[1]))
                         else:
-                            result = calculate_pai(pad, voxel_height)
-                        result = np.where(np.isfinite(result), result, 0)
+                            # Guard against empty integration range when top height < default min_height
+                            effective_max_height = pad.shape[2] * voxel_size[-1]
+                            default_min_height = 1.0
+                            if default_min_height >= effective_max_height:
+                                result = np.zeros((pad.shape[0], pad.shape[1]))
+                            else:
+                                result = calculate_pai(pad, voxel_height)
                     elif metric == "cover":
                         if not voxel_height:
                             raise ValueError(f"voxel_height is required for metric {metric}")
@@ -252,18 +275,25 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                                 max_height=None,
                                 k=cover_k,
                             )
-                        result = np.where(np.isfinite(result), result, 0)
 
                     if current_buffer_size > 0:
                         if buffer_pixels_x * 2 >= result.shape[1] or buffer_pixels_y * 2 >= result.shape[0]:
-                            print(
-                                f"Warning: Buffer size exceeds {metric.upper()} dimensions for tile ({i}, {j}). "
-                                f"Adjusting buffer size."
-                            )
+                            if verbose:
+                                print(
+                                    f"Warning: Buffer size exceeds {metric.upper()} dimensions for tile ({i}, {j}). "
+                                    f"Adjusting buffer size."
+                                )
                             buffer_pixels_x = max(0, result.shape[1] // 2 - 1)
                             buffer_pixels_y = max(0, result.shape[0] // 2 - 1)
 
-                        result = result[buffer_pixels_y:-buffer_pixels_y, buffer_pixels_x:-buffer_pixels_x]
+                        # Safe crop (avoid -0 slicing)
+                        start_x = buffer_pixels_x
+                        end_x = result.shape[1] - buffer_pixels_x if buffer_pixels_x > 0 else result.shape[1]
+                        start_y = buffer_pixels_y
+                        end_y = result.shape[0] - buffer_pixels_y if buffer_pixels_y > 0 else result.shape[0]
+
+                        if end_x > start_x and end_y > start_y:
+                            result = result[start_y:end_y, start_x:end_x]
 
                     core_extent = (
                         tile_min_x + buffer_x,
