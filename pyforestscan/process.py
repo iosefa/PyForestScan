@@ -231,11 +231,14 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
 
                     chm = core
 
+                    # Derive core extent from CHM grid extent and actual pixel crop to avoid stretching
+                    dx, dy = voxel_size[0], voxel_size[1]
+                    grid_extent = extent  # [x_min, x_max, y_min, y_max] as returned by calculate_chm
                     core_extent = (
-                        tile_min_x + buffer_x,
-                        tile_max_x - buffer_x,
-                        tile_min_y + buffer_y,
-                        tile_max_y - buffer_y,
+                        grid_extent[0] + buffer_pixels_x * dx,
+                        grid_extent[1] - buffer_pixels_x * dx,
+                        grid_extent[2] + buffer_pixels_y * dy,
+                        grid_extent[3] - buffer_pixels_y * dy,
                     )
 
                     create_geotiff(chm, result_file, srs, core_extent)
@@ -295,11 +298,13 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                         if end_x > start_x and end_y > start_y:
                             result = result[start_y:end_y, start_x:end_x]
 
+                    # Derive core extent from voxel grid extent and applied pixel crop to avoid stretching
+                    dx, dy = voxel_size[0], voxel_size[1]
                     core_extent = (
-                        tile_min_x + buffer_x,
-                        tile_max_x - buffer_x,
-                        tile_min_y + buffer_y,
-                        tile_max_y - buffer_y,
+                        spatial_extent[0] + buffer_pixels_x * dx,
+                        spatial_extent[1] - buffer_pixels_x * dx,
+                        spatial_extent[2] + buffer_pixels_y * dy,
+                        spatial_extent[3] - buffer_pixels_y * dy,
                     )
 
                     if core_extent[1] <= core_extent[0] or core_extent[3] <= core_extent[2]:
