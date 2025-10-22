@@ -76,19 +76,53 @@ def _filter_hag(lower_limit=0, upper_limit=None):
 
 def _filter_radius(radius):
     """
-    todo: update: this should be described as random down sample. Uses Poisson sampling.
-    Generates a filter configuration with a specified radius.
+    Build a PDAL Poisson-disk sampler configuration.
+
+    Creates a PDAL filter config that performs fixed-radius thinning in the
+    XY plane: within any circle of radius ``radius``, at most one point is
+    retained. This enforces a minimum spacing of ``radius`` between kept
+    points and helps homogenize point density prior to downstream processing.
 
     :param radius:
-        The radius to be used in the filter configuration.
-    :type radius: int
+        Sampling radius in the same units as the point coordinates
+        (typically meters). Must be > 0 for thinning to take effect.
+    :type radius: float
     :return:
-        A dictionary containing the filter type and radius.
+        A PDAL JSON fragment for ``filters.sample``.
     :rtype: dict
     """
     return {
         "type": "filters.sample",
         "radius": radius
+    }
+
+
+def _filter_voxeldownsize(cell, mode):
+    """
+    Build a PDAL voxel-grid downsampling configuration.
+
+    Partitions space into cubic voxels of edge length ``cell`` and reduces
+    each occupied voxel to a single representative point. The selection
+    strategy is controlled by ``mode`` and is passed through to PDAL.
+
+    :param cell:
+        Edge length of the cubic voxel (same units as coordinates,
+        typically meters). Must be > 0 for downsampling to take effect.
+    :type cell: float
+    :param mode:
+        Strategy PDAL uses to choose the representative point per voxel.
+        Accepted values depend on your PDAL version; this string is forwarded
+        unchanged (e.g., selecting the first point encountered or a summary
+        statistic like a centroid/mean, if supported).
+    :type mode: str
+    :return:
+        A PDAL JSON fragment for ``filters.voxeldownsize``.
+    :rtype: dict
+    """
+    return {
+        "type": "filters.voxeldownsize",
+        "cell": cell,
+        "mode": mode
     }
 
 

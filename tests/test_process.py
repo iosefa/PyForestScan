@@ -158,6 +158,102 @@ def test_process_with_tiles_thin_radius_applied(mock_pipeline_cls, mock_downsamp
     assert len(created_tifs) >= 1, "Expected at least one output tile for PAI."
 
 
+@patch("pyforestscan.process.downsample_voxel")
+@patch("pyforestscan.process.pdal.Pipeline")
+def test_process_with_tiles_voxelgrid_applied(mock_pipeline_cls, mock_downsample_voxel, tmp_path):
+    """
+    When voxelgrid_cell is provided, ensure downsample_voxel is called and output is produced.
+    """
+    dtype = [("X", "f8"), ("Y", "f8"), ("HeightAboveGround", "f8")]
+    pts = np.zeros(80, dtype=dtype)
+    pts["X"] = np.random.uniform(0, 10, size=80)
+    pts["Y"] = np.random.uniform(0, 10, size=80)
+    pts["HeightAboveGround"] = np.random.uniform(0, 5, size=80)
+
+    mock_pipeline = MagicMock()
+    mock_pipeline.execute.return_value = True
+    mock_pipeline.arrays = [pts]
+    mock_pipeline_cls.return_value = mock_pipeline
+
+    def _fake_voxel(arrays, cell, mode):
+        arr = arrays[0]
+        # Keep every 3rd point to mimic downsampling
+        return [arr[::3]]
+
+    mock_downsample_voxel.side_effect = _fake_voxel
+
+    out_dir = tmp_path / "test_pai_voxelgrid"
+    out_dir.mkdir()
+
+    process_with_tiles(
+        ept_file="fake_ept_path",
+        tile_size=(20, 20),
+        output_path=str(out_dir),
+        metric="pai",
+        voxel_size=(2, 2, 1),
+        voxel_height=1.0,
+        buffer_size=0.0,
+        srs="EPSG:32610",
+        hag=False,
+        hag_dtm=False,
+        dtm=None,
+        bounds=([0, 20], [0, 20], [0, 10]),
+        voxelgrid_cell=1.5,
+        voxelgrid_mode="first",
+    )
+
+    assert mock_downsample_voxel.called, "downsample_voxel should be called when voxelgrid_cell is set"
+    created_tifs = list(out_dir.glob("tile_*_pai.tif"))
+    assert len(created_tifs) >= 1, "Expected at least one output tile for PAI with voxel-grid downsampling."
+
+
+@patch("pyforestscan.process.downsample_voxel")
+@patch("pyforestscan.process.pdal.Pipeline")
+def test_process_with_tiles_voxelgrid_empty_skips(mock_pipeline_cls, mock_downsample_voxel, tmp_path):
+    """
+    If voxel-grid thinning removes all points, the tile should be skipped gracefully.
+    """
+    dtype = [("X", "f8"), ("Y", "f8"), ("HeightAboveGround", "f8")]
+    pts = np.zeros(30, dtype=dtype)
+    pts["X"] = np.random.uniform(0, 10, size=30)
+    pts["Y"] = np.random.uniform(0, 10, size=30)
+    pts["HeightAboveGround"] = np.random.uniform(0, 1, size=30)
+
+    mock_pipeline = MagicMock()
+    mock_pipeline.execute.return_value = True
+    mock_pipeline.arrays = [pts]
+    mock_pipeline_cls.return_value = mock_pipeline
+
+    def _empty_voxel(arrays, cell, mode):
+        # Simulate all points removed by voxel downsampling
+        empty = np.array([], dtype=dtype)
+        return [empty]
+
+    mock_downsample_voxel.side_effect = _empty_voxel
+
+    out_dir = tmp_path / "test_voxelgrid_empty"
+    out_dir.mkdir()
+
+    process_with_tiles(
+        ept_file="fake_ept_path",
+        tile_size=(20, 20),
+        output_path=str(out_dir),
+        metric="fhd",
+        voxel_size=(2, 2, 1),
+        buffer_size=0.0,
+        srs="EPSG:32610",
+        hag=False,
+        hag_dtm=False,
+        dtm=None,
+        bounds=([0, 20], [0, 20], [0, 10]),
+        voxelgrid_cell=1.0,
+        voxelgrid_mode="first",
+        verbose=True,
+    )
+
+    created_tifs = list(out_dir.glob("*.tif"))
+    assert len(created_tifs) == 0, "No output should be produced when voxel-grid thinning empties the tile."
+
 @patch("pyforestscan.process.pdal.Pipeline")
 def test_process_with_tiles_pai_handles_low_top_height(mock_pipeline_cls, tmp_path):
     """
