@@ -6,7 +6,7 @@ import os
 from tqdm import tqdm
 
 from pyforestscan.calculate import calculate_fhd, calculate_pad, calculate_pai, assign_voxels, calculate_chm, calculate_canopy_cover
-from pyforestscan.filters import remove_outliers_and_clean, downsample_poisson
+from pyforestscan.filters import remove_outliers_and_clean, downsample_poisson, downsample_voxel
 from pyforestscan.handlers import create_geotiff
 from pyforestscan.pipeline import _hag_raster, _hag_delaunay
 from pyforestscan.utils import get_bounds_from_ept, get_srs_from_ept
@@ -53,7 +53,9 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False,
                        cover_min_height: float = 2.0, cover_k: float = 0.5,
                        skip_existing: bool = False, verbose: bool = False,
-                       thin_radius: float | None = None) -> None:
+                       thin_radius: float | None = None,
+                       voxelgrid_cell: float | None = None,
+                       voxelgrid_mode: str = "first") -> None:
     """
     Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,
     and write the results to the specified output directory.
@@ -81,6 +83,10 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         verbose (bool, optional): If True, print warnings for empty/invalid tiles and buffer adjustments. Defaults to False.
         thin_radius (float or None, optional): If provided (> 0), apply Poisson radius-based thinning per tile before metrics.
             Units are in the same CRS as the data (e.g., meters). Defaults to None.
+        voxelgrid_cell (float or None, optional): If provided (> 0), apply PDAL voxel-grid downsampling per tile before metrics
+            using cell edge length of ``voxelgrid_cell``. Defaults to None.
+        voxelgrid_mode (str, optional): Representative selection for voxel-grid downsampling. Common values are
+            "first" (keep first point unchanged) or "center" (snap kept point to voxel center). Defaults to "first".
 
     Returns:
         None
@@ -189,7 +195,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                 else:
                     tile_points = arrays[0]
 
-                # Optional radius-based thinning before metrics
+                # Optional thinning before metrics
                 if thin_radius is not None and thin_radius > 0:
                     thinned = downsample_poisson([tile_points], thin_radius=thin_radius)
                     tile_points = thinned[0] if thinned else tile_points
@@ -197,6 +203,22 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                     if tile_points.size == 0:
                         if verbose:
                             print(f"Warning: Tile ({i}, {j}) empty after thinning. Skipping.")
+                        pbar.update(1)
+                        continue
+
+                if voxelgrid_cell is not None and voxelgrid_cell > 0:
+                    try:
+                        vthinned = downsample_voxel([tile_points], cell=float(voxelgrid_cell), mode=voxelgrid_mode)
+                    except Exception as e:
+                        # Fail soft per tile to keep processing going
+                        if verbose:
+                            print(f"Warning: Voxel-grid downsampling failed for tile ({i}, {j}): {e}. Proceeding without.")
+                        vthinned = None
+                    if vthinned:
+                        tile_points = vthinned[0]
+                    if tile_points.size == 0:
+                        if verbose:
+                            print(f"Warning: Tile ({i}, {j}) empty after voxel-grid thinning. Skipping.")
                         pbar.update(1)
                         continue
 

@@ -1,8 +1,9 @@
 from typing import List
+import math
 
 from pyforestscan.handlers import _build_pdal_pipeline
 from pyforestscan.pipeline import _filter_hag, _filter_ground, _filter_statistical_outlier, _filter_smrf, \
-    _filter_radius, _select_ground
+    _filter_radius, _select_ground, _filter_voxeldownsize
 
 
 def filter_hag(arrays, lower_limit=0, upper_limit=None) -> List:
@@ -184,3 +185,49 @@ def downsample_poisson(arrays, thin_radius) -> List:
     """
     pipeline = _build_pdal_pipeline(arrays, [_filter_radius(thin_radius)])
     return pipeline.arrays
+
+
+def downsample_voxel(arrays, cell, mode) -> List:
+    """
+    Downsample point cloud arrays using PDAL's voxel-based thinning.
+
+    Uses PDAL ``filters.voxeldownsize`` to partition space into cubic voxels of
+    edge length ``cell`` and keep one representative point per occupied voxel.
+    The representative is chosen by ``mode``:
+
+      - "center": keeps the first point encountered in each voxel and overwrites
+        its X/Y/Z with the voxel center coordinates (shifts positions).
+      - "first": keeps the first point encountered in each voxel unchanged.
+
+    Args:
+        arrays (list): Point cloud arrays to be downsampled (as expected by your
+            pipeline builder).
+        cell (float): Voxel edge length in the same units as the coordinates.
+            Must be a positive, finite number (> 0).
+        mode (str): One of {"center", "first"} (case-insensitive).
+
+    Returns:
+        list: Downsampled point cloud arrays from the executed pipeline.
+
+    Raises:
+        ValueError: If ``cell`` is not positive/finite or if ``mode`` is invalid.
+        TypeError: If ``mode`` is not a string.
+
+    Notes:
+        - "center" modifies point coordinates to voxel centers; use "first" if
+          you must preserve original XY/Z.
+    """
+    if not isinstance(cell, (int, float)) or not math.isfinite(cell) or cell <= 0:
+        raise ValueError(f"'cell' must be a positive, finite number (got {cell!r}).")
+
+    if not isinstance(mode, str):
+        raise TypeError("'mode' must be a string: 'center' or 'first'.")
+
+    mode_lc = mode.lower()
+    allowed_modes = {"center", "first"}
+    if mode_lc not in allowed_modes:
+        raise ValueError(f"'mode' must be one of {sorted(allowed_modes)} (got {mode!r}).")
+
+    pipeline = _build_pdal_pipeline(arrays, [_filter_voxeldownsize(float(cell), mode_lc)])
+    return pipeline.arrays
+
