@@ -892,6 +892,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pyforestscan.filters.downsample_voxel" class="md-nav__link">
+    <span class="md-ellipsis">
+      downsample_voxel
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pyforestscan.filters.filter_ground" class="md-nav__link">
     <span class="md-ellipsis">
       filter_ground
@@ -1098,6 +1107,15 @@
   <a href="#pyforestscan.filters.downsample_poisson" class="md-nav__link">
     <span class="md-ellipsis">
       downsample_poisson
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pyforestscan.filters.downsample_voxel" class="md-nav__link">
+    <span class="md-ellipsis">
+      downsample_voxel
     </span>
   </a>
   
@@ -1437,8 +1455,7 @@ e.g., "Classification[7:7]". Defaults to "Classification[7:7]".</p>
 
             <details class="quote">
               <summary>Source code in <code>pyforestscan/filters.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">110</span>
-<span class="normal">111</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">111</span>
 <span class="normal">112</span>
 <span class="normal">113</span>
 <span class="normal">114</span>
@@ -1495,7 +1512,8 @@ e.g., "Classification[7:7]". Defaults to "Classification[7:7]".</p>
 <span class="normal">165</span>
 <span class="normal">166</span>
 <span class="normal">167</span>
-<span class="normal">168</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">classify_ground_points</span><span class="p">(</span>
+<span class="normal">168</span>
+<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">classify_ground_points</span><span class="p">(</span>
         <span class="n">arrays</span><span class="p">,</span>
         <span class="n">ignore_class</span><span class="o">=</span><span class="s2">&quot;Classification[7:7]&quot;</span><span class="p">,</span>
         <span class="n">cell</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
@@ -1648,8 +1666,7 @@ reducing the point density so that no two points are closer than the specified r
 
             <details class="quote">
               <summary>Source code in <code>pyforestscan/filters.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">171</span>
-<span class="normal">172</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">172</span>
 <span class="normal">173</span>
 <span class="normal">174</span>
 <span class="normal">175</span>
@@ -1663,7 +1680,8 @@ reducing the point density so that no two points are closer than the specified r
 <span class="normal">183</span>
 <span class="normal">184</span>
 <span class="normal">185</span>
-<span class="normal">186</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">downsample_poisson</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">thin_radius</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<span class="normal">186</span>
+<span class="normal">187</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">downsample_poisson</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">thin_radius</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downsample point cloud arrays using Poisson (radius-based) thinning.</span>
 
@@ -1678,6 +1696,250 @@ reducing the point density so that no two points are closer than the specified r
 <span class="sd">        list: List of downsampled point cloud arrays.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">pipeline</span> <span class="o">=</span> <span class="n">_build_pdal_pipeline</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="p">[</span><span class="n">_filter_radius</span><span class="p">(</span><span class="n">thin_radius</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">arrays</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="pyforestscan.filters.downsample_voxel" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">downsample_voxel</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span></code>
+
+<a href="#pyforestscan.filters.downsample_voxel" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Downsample point cloud arrays using PDAL's voxel-based thinning.</p>
+<p>Uses PDAL <code>filters.voxeldownsize</code> to partition space into cubic voxels of
+edge length <code>cell</code> and keep one representative point per occupied voxel.
+The representative is chosen by <code>mode</code>:</p>
+<ul>
+<li>"center": keeps the first point encountered in each voxel and overwrites
+    its X/Y/Z with the voxel center coordinates (shifts positions).</li>
+<li>"first": keeps the first point encountered in each voxel unchanged.</li>
+</ul>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>arrays</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Point cloud arrays to be downsampled (as expected by your
+pipeline builder).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>cell</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Voxel edge length in the same units as the coordinates.
+Must be a positive, finite number (&gt; 0).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>mode</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>One of {"center", "first"} (case-insensitive).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>list</code></td>            <td>
+                  <code><span title="typing.List">List</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Downsampled point cloud arrays from the executed pipeline.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>cell</code> is not positive/finite or if <code>mode</code> is invalid.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="TypeError">TypeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>mode</code> is not a string.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="notes" open>
+  <summary>Notes</summary>
+  <ul>
+<li>"center" modifies point coordinates to voxel centers; use "first" if
+  you must preserve original XY/Z.</li>
+</ul>
+</details>
+
+            <details class="quote">
+              <summary>Source code in <code>pyforestscan/filters.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">downsample_voxel</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Downsample point cloud arrays using PDAL&#39;s voxel-based thinning.</span>
+
+<span class="sd">    Uses PDAL ``filters.voxeldownsize`` to partition space into cubic voxels of</span>
+<span class="sd">    edge length ``cell`` and keep one representative point per occupied voxel.</span>
+<span class="sd">    The representative is chosen by ``mode``:</span>
+
+<span class="sd">      - &quot;center&quot;: keeps the first point encountered in each voxel and overwrites</span>
+<span class="sd">        its X/Y/Z with the voxel center coordinates (shifts positions).</span>
+<span class="sd">      - &quot;first&quot;: keeps the first point encountered in each voxel unchanged.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        arrays (list): Point cloud arrays to be downsampled (as expected by your</span>
+<span class="sd">            pipeline builder).</span>
+<span class="sd">        cell (float): Voxel edge length in the same units as the coordinates.</span>
+<span class="sd">            Must be a positive, finite number (&gt; 0).</span>
+<span class="sd">        mode (str): One of {&quot;center&quot;, &quot;first&quot;} (case-insensitive).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: Downsampled point cloud arrays from the executed pipeline.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If ``cell`` is not positive/finite or if ``mode`` is invalid.</span>
+<span class="sd">        TypeError: If ``mode`` is not a string.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        - &quot;center&quot; modifies point coordinates to voxel centers; use &quot;first&quot; if</span>
+<span class="sd">          you must preserve original XY/Z.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span> <span class="ow">or</span> <span class="n">cell</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;cell&#39; must be a positive, finite number (got </span><span class="si">{</span><span class="n">cell</span><span class="si">!r}</span><span class="s2">).&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;mode&#39; must be a string: &#39;center&#39; or &#39;first&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="n">mode_lc</span> <span class="o">=</span> <span class="n">mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">allowed_modes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="s2">&quot;first&quot;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">mode_lc</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_modes</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;mode&#39; must be one of </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">allowed_modes</span><span class="p">)</span><span class="si">}</span><span class="s2"> (got </span><span class="si">{</span><span class="n">mode</span><span class="si">!r}</span><span class="s2">).&quot;</span><span class="p">)</span>
+
+    <span class="n">pipeline</span> <span class="o">=</span> <span class="n">_build_pdal_pipeline</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="p">[</span><span class="n">_filter_voxeldownsize</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">cell</span><span class="p">),</span> <span class="n">mode_lc</span><span class="p">)])</span>
     <span class="k">return</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">arrays</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -1755,8 +2017,7 @@ reducing the point density so that no two points are closer than the specified r
 
             <details class="quote">
               <summary>Source code in <code>pyforestscan/filters.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">32</span>
-<span class="normal">33</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">33</span>
 <span class="normal">34</span>
 <span class="normal">35</span>
 <span class="normal">36</span>
@@ -1766,7 +2027,8 @@ reducing the point density so that no two points are closer than the specified r
 <span class="normal">40</span>
 <span class="normal">41</span>
 <span class="normal">42</span>
-<span class="normal">43</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">filter_ground</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<span class="normal">43</span>
+<span class="normal">44</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">filter_ground</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Remove ground points (classification 2) from a list of point cloud arrays.</span>
 
@@ -1913,8 +2175,7 @@ If None, no upper limit is applied. Defaults to None.</p>
 
             <details class="quote">
               <summary>Source code in <code>pyforestscan/filters.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 8</span>
-<span class="normal"> 9</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
 <span class="normal">12</span>
@@ -1934,7 +2195,8 @@ If None, no upper limit is applied. Defaults to None.</p>
 <span class="normal">26</span>
 <span class="normal">27</span>
 <span class="normal">28</span>
-<span class="normal">29</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">filter_hag</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">lower_limit</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<span class="normal">29</span>
+<span class="normal">30</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">filter_hag</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">lower_limit</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Apply a Height Above Ground (HAG) filter to a list of point cloud arrays.</span>
 
@@ -2032,8 +2294,7 @@ If None, no upper limit is applied. Defaults to None.</p>
 
             <details class="quote">
               <summary>Source code in <code>pyforestscan/filters.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">46</span>
-<span class="normal">47</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">47</span>
 <span class="normal">48</span>
 <span class="normal">49</span>
 <span class="normal">50</span>
@@ -2043,7 +2304,8 @@ If None, no upper limit is applied. Defaults to None.</p>
 <span class="normal">54</span>
 <span class="normal">55</span>
 <span class="normal">56</span>
-<span class="normal">57</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">filter_select_ground</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<span class="normal">57</span>
+<span class="normal">58</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">filter_select_ground</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Select only ground points (classification 2) from a list of point cloud arrays.</span>
 
@@ -2219,8 +2481,7 @@ after labeling. If False, only label outliers. Defaults to False.</p>
 
             <details class="quote">
               <summary>Source code in <code>pyforestscan/filters.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 60</span>
-<span class="normal"> 61</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 61</span>
 <span class="normal"> 62</span>
 <span class="normal"> 63</span>
 <span class="normal"> 64</span>
@@ -2266,7 +2527,8 @@ after labeling. If False, only label outliers. Defaults to False.</p>
 <span class="normal">104</span>
 <span class="normal">105</span>
 <span class="normal">106</span>
-<span class="normal">107</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">remove_outliers_and_clean</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">mean_k</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">multiplier</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<span class="normal">107</span>
+<span class="normal">108</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">remove_outliers_and_clean</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">mean_k</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">multiplier</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Processes input arrays by removing statistical outliers and optionally cleans</span>
 <span class="sd">    the data, filtering out specific classifications.</span>
@@ -2347,7 +2609,7 @@ after labeling. If False, only label outliers. Defaults to False.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    2025-10-20
+    2025-10-23
   </span>
 
     
