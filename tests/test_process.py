@@ -292,3 +292,91 @@ def test_process_with_tiles_pai_handles_low_top_height(mock_pipeline_cls, tmp_pa
 
     created_tifs = list(out_dir.glob("tile_*_pai.tif"))
     assert len(created_tifs) >= 1, "Expected a PAI output tile even when top height < 1 m."
+
+
+@patch("pyforestscan.process.downsample_poisson")
+@patch("pyforestscan.process.pdal.Pipeline")
+def test_process_with_tiles_by_flightline_sampling_applied(mock_pipeline_cls, mock_downsample, tmp_path):
+    """
+    With by_flightline=True, Poisson sampling should be applied per PointSourceId group.
+    """
+    dtype = [("X", "f8"), ("Y", "f8"), ("HeightAboveGround", "f8"), ("PointSourceId", "i4")]
+    pts = np.zeros(120, dtype=dtype)
+    pts["X"] = np.random.uniform(0, 20, size=120)
+    pts["Y"] = np.random.uniform(0, 20, size=120)
+    pts["HeightAboveGround"] = np.random.uniform(0, 5, size=120)
+    # Two flightlines
+    pts["PointSourceId"][:60] = 10
+    pts["PointSourceId"][60:] = 11
+
+    mock_pipeline = MagicMock()
+    mock_pipeline.execute.return_value = True
+    mock_pipeline.arrays = [pts]
+    mock_pipeline_cls.return_value = mock_pipeline
+
+    call_counts = {10: 0, 11: 0}
+
+    def _per_group(arrays, thin_radius):
+        arr = arrays[0]
+        # Track which group is being thinned
+        psid = int(arr["PointSourceId"][0])
+        call_counts[psid] += 1
+        return [arr[::2]]
+
+    mock_downsample.side_effect = _per_group
+
+    out_dir = tmp_path / "test_by_flightline"
+    out_dir.mkdir()
+
+    process_with_tiles(
+        ept_file="fake_ept_path",
+        tile_size=(20, 20),
+        output_path=str(out_dir),
+        metric="fhd",
+        voxel_size=(2, 2, 1),
+        buffer_size=0.0,
+        srs="EPSG:32610",
+        bounds=([0, 20], [0, 20], [0, 10]),
+        by_flightline=True,
+        thin_radius=0.5,
+    )
+
+    # One downsample call per PSID
+    assert call_counts[10] == 1 and call_counts[11] == 1
+    created_tifs = list(out_dir.glob("tile_*_fhd_psid*.tif"))
+    assert len(created_tifs) >= 1, "Expected an FHD output tile when processing by flightline."
+
+
+@patch("pyforestscan.process.pdal.Pipeline")
+def test_process_with_tiles_by_flightline_missing_dim(mock_pipeline_cls, tmp_path):
+    """
+    If PointSourceId is missing and by_flightline=True, raise a clear error.
+    """
+    dtype = [("X", "f8"), ("Y", "f8"), ("HeightAboveGround", "f8")]
+    pts = np.zeros(40, dtype=dtype)
+    pts["X"] = np.random.uniform(0, 10, size=40)
+    pts["Y"] = np.random.uniform(0, 10, size=40)
+    pts["HeightAboveGround"] = np.random.uniform(0, 3, size=40)
+
+    mock_pipeline = MagicMock()
+    mock_pipeline.execute.return_value = True
+    mock_pipeline.arrays = [pts]
+    mock_pipeline_cls.return_value = mock_pipeline
+
+    out_dir = tmp_path / "test_by_flightline_err"
+    out_dir.mkdir()
+
+    with pytest.raises(ValueError):
+        process_with_tiles(
+            ept_file="fake_ept_path",
+            tile_size=(20, 20),
+            output_path=str(out_dir),
+            metric="pai",
+            voxel_size=(2, 2, 1),
+            voxel_height=1.0,
+            buffer_size=0.0,
+            srs="EPSG:32610",
+            bounds=([0, 20], [0, 20], [0, 10]),
+            by_flightline=True,
+            thin_radius=0.3,
+        )
