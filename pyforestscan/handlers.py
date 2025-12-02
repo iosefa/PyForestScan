@@ -12,7 +12,7 @@ from shapely.geometry import MultiPolygon
 from typing import List, Tuple
 from urllib.parse import urlparse
 
-from pyforestscan.pipeline import _crop_polygon, _filter_radius, _hag_delaunay, _hag_raster
+from pyforestscan.pipeline import _crop_polygon, _filter_radius, _hag_delaunay, _hag_raster, _reproject
 from pyproj.exceptions import CRSError
 
 
@@ -187,7 +187,7 @@ def validate_crs(crs_list) -> bool:
 
 def read_lidar(input_file, srs, bounds=None, thin_radius=None,
                hag=False, hag_dtm=False, dtm=None, crop_poly=False,
-               poly=None) -> np.ndarray or None:
+               poly=None, reproject=False) -> np.ndarray or None:
     """
     Read and process a LiDAR point cloud file using PDAL with various options.
 
@@ -204,6 +204,8 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None,
         dtm (str, optional): Path to the DTM (.tif) file, required if hag_dtm is True.
         crop_poly (bool, optional): If True, crop the point cloud using a polygon. Defaults to False.
         poly (str, optional): Path to a polygon file or the WKT string of the polygon geometry.
+        reproject (bool, optional): If True, reproject the point cloud to the CRS defined by ``srs``.
+            Defaults to False.
 
     Returns:
         np.ndarray or None: Processed point cloud data as a NumPy array, or None if no data is retrieved.
@@ -255,6 +257,9 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None,
             raise ValueError("Thinning radius must be a positive number.")
         pipeline_stages.append(_filter_radius(thin_radius))
 
+    if reproject:
+        pipeline_stages.append(_reproject(srs))
+
     if hag:
         pipeline_stages.append(_hag_delaunay())
 
@@ -271,9 +276,10 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None,
 
     base_pipeline = {
         "type": reader,
-        "spatialreference": srs,
         "filename": input_file
     }
+    if not reproject:
+        base_pipeline["spatialreference"] = srs
     if bounds and reader == 'readers.ept':
         base_pipeline["bounds"] = f"{bounds}"
     main_pipeline_json = {

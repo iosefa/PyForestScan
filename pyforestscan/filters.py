@@ -3,7 +3,7 @@ import math
 
 from pyforestscan.handlers import _build_pdal_pipeline
 from pyforestscan.pipeline import _filter_hag, _filter_ground, _filter_statistical_outlier, _filter_smrf, \
-    _filter_radius, _select_ground, _filter_voxeldownsize
+    _filter_radius, _select_ground, _filter_voxeldownsize, _filter_pointsourceid
 
 
 def filter_hag(arrays, lower_limit=0, upper_limit=None) -> List:
@@ -55,6 +55,21 @@ def filter_select_ground(arrays) -> List:
         list: List of point cloud arrays containing only points classified as ground (classification 2).
     """
     pipeline = _build_pdal_pipeline(arrays, [_select_ground()])
+    return pipeline.arrays
+
+
+def filter_pointsourceid(arrays, pointsource_ids) -> List:
+    """
+    Filter point cloud arrays to include only the requested PointSourceId values.
+
+    Args:
+        arrays (list): Point cloud arrays to be processed.
+        pointsource_ids (int or iterable of int): PointSourceId identifiers to keep.
+
+    Returns:
+        list: Point cloud arrays containing only points with the specified PointSourceId values.
+    """
+    pipeline = _build_pdal_pipeline(arrays, [_filter_pointsourceid(pointsource_ids)])
     return pipeline.arrays
 
 
@@ -230,4 +245,3 @@ def downsample_voxel(arrays, cell, mode) -> List:
 
     pipeline = _build_pdal_pipeline(arrays, [_filter_voxeldownsize(float(cell), mode_lc)])
     return pipeline.arrays
-
