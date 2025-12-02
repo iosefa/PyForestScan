@@ -30,6 +30,19 @@ def _hag_delaunay():
     }
 
 
+def _reproject(out_srs):
+    """
+    Build a PDAL reprojection stage targeting the requested CRS.
+
+    :param out_srs: str, CRS identifier (e.g., EPSG code) used as the reprojection target.
+    :return: dict representing the reprojection filter configuration.
+    """
+    return {
+        "type": "filters.reprojection",
+        "out_srs": out_srs
+    }
+
+
 def _hag_raster(raster):
     """
     Generate a PDAL Height Above Ground (HAG) raster filter configuration.
@@ -68,6 +81,31 @@ def _filter_hag(lower_limit=0, upper_limit=None):
     else:
         limits = f"HeightAboveGround[{lower_limit}:{upper_limit}]"
 
+    return {
+        "type": "filters.range",
+        "limits": limits
+    }
+
+
+def _filter_pointsourceid(pointsource_ids):
+    """
+    Restrict points to specific PointSourceId values (e.g., flight lines).
+
+    :param pointsource_ids: int or iterable of ints representing PointSourceId values to retain.
+    :return: dict configuring a PDAL range filter.
+    :raises ValueError: If no IDs are provided.
+    """
+    if pointsource_ids is None:
+        raise ValueError("At least one PointSourceId must be provided.")
+
+    if isinstance(pointsource_ids, int):
+        ids = [pointsource_ids]
+    else:
+        ids = sorted({int(pid) for pid in pointsource_ids})
+        if not ids:
+            raise ValueError("At least one PointSourceId must be provided.")
+
+    limits = ",".join(f"PointSourceId[{pid}:{pid}]" for pid in ids)
     return {
         "type": "filters.range",
         "limits": limits

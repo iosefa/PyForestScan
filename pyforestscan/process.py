@@ -52,6 +52,8 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        voxel_height=1, buffer_size=0.1, srs=None, hag=False,
                        hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False,
                        cover_min_height: float = 2.0, cover_k: float = 0.5,
+                       pai_min_height: float = 1.0,
+                       fhd_min_height: float = 0.0,
                        skip_existing: bool = False, verbose: bool = False,
                        thin_radius: float | None = None,
                        voxelgrid_cell: float | None = None,
@@ -66,7 +68,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         output_path (str): Directory where the output files will be saved.
         metric (str): Metric to compute for each tile ("chm", "fhd", "pai", or "cover").
         voxel_size (tuple): Voxel resolution as (x_resolution, y_resolution, z_resolution).
-        voxel_height (float, optional): Height of each voxel in meters. Required if metric is "pai".
+        voxel_height (float, optional): Height of each voxel in meters. Required if metric is "fhd", "pai", or "cover".
         buffer_size (float, optional): Fractional buffer size relative to tile size (e.g., 0.1 for 10% buffer). Defaults to 0.1.
         srs (str, optional): Spatial Reference System for the output. If None, uses SRS from the EPT file.
         hag (bool, optional): If True, compute Height Above Ground using Delaunay triangulation. Defaults to False.
@@ -79,6 +81,8 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         remove_outliers (bool, optional): Whether to remove statistical outliers before calculating metrics. Defaults to False.
         cover_min_height (float, optional): Height threshold (in meters) for canopy cover (used when metric == "cover"). Defaults to 2.0.
         cover_k (float, optional): Beer–Lambert extinction coefficient for canopy cover. Defaults to 0.5.
+        pai_min_height (float, optional): Minimum height (m) to integrate PAI. Defaults to 1.0.
+        fhd_min_height (float, optional): Minimum height (m) to include in FHD entropy. Defaults to 0.0.
         skip_existing (bool, optional): If True, skip tiles whose output file already exists. Defaults to False.
         verbose (bool, optional): If True, print warnings for empty/invalid tiles and buffer adjustments. Defaults to False.
         thin_radius (float or None, optional): If provided (> 0), apply Poisson radius-based thinning per tile before metrics.
@@ -268,7 +272,13 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                     voxels, spatial_extent = assign_voxels(tile_points, voxel_size)
 
                     if metric == "fhd":
-                        result = calculate_fhd(voxels)
+                        if voxel_size[-1] <= 0:
+                            raise ValueError("voxel_size z-resolution must be > 0 for FHD computation.")
+                        result = calculate_fhd(
+                            voxels,
+                            voxel_height=voxel_size[-1],
+                            min_height=fhd_min_height,
+                        )
                     elif metric == "pai":
                         if not voxel_height:
                             raise ValueError(f"voxel_height is required for metric {metric}")
@@ -280,11 +290,11 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                         else:
                             # Guard against empty integration range when top height < default min_height
                             effective_max_height = pad.shape[2] * voxel_size[-1]
-                            default_min_height = 1.0
+                            default_min_height = pai_min_height
                             if default_min_height >= effective_max_height:
                                 result = np.zeros((pad.shape[0], pad.shape[1]))
                             else:
-                                result = calculate_pai(pad, voxel_height)
+                                result = calculate_pai(pad, voxel_height, min_height=pai_min_height)
                     elif metric == "cover":
                         if not voxel_height:
                             raise ValueError(f"voxel_height is required for metric {metric}")

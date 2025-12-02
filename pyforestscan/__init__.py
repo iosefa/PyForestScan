@@ -4,6 +4,8 @@ from .calculate import (
     calculate_pai,
     calculate_fhd,
     calculate_chm,
+    calculate_point_density,
+    calculate_voxel_stat,
     generate_dtm,
     calculate_canopy_cover,
 )
@@ -14,6 +16,8 @@ __all__ = [
     "calculate_pai",
     "calculate_fhd",
     "calculate_chm",
+    "calculate_point_density",
+    "calculate_voxel_stat",
     "generate_dtm",
     "calculate_canopy_cover",
 ]
