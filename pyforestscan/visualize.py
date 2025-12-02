@@ -84,7 +84,8 @@ def plot_2d(points, x_dim='X',
 
 
 def plot_metric(title, metric, extent, metric_name=None, cmap='viridis', fig_size=None,
-                save_fname=None) -> None:
+                vmin=None, vmax=None, zero_as_nan=False, flip_y=None,
+                nodata_value=None, save_fname=None) -> None:
     """
     Plot a 2D metric array as an image with geospatial extent, colorbar, and customizable settings.
 
@@ -96,6 +97,9 @@ def plot_metric(title, metric, extent, metric_name=None, cmap='viridis', fig_siz
         cmap (str, optional): Matplotlib colormap name for the plot. Defaults to 'viridis'.
         fig_size (tuple, optional): Figure size as (width, height) in inches. If None, computed from aspect ratio and extent.
         save_fname (str, optional): If provided, will be forwarded to `plt.savefig` to save the figure.
+        flip_y (bool or None, optional): Force flipping the Y axis (second array dimension) before plotting.
+            If None, no flip is applied; set True to flip, False to keep as-is.
+        nodata_value (float or int, optional): If provided, values equal to this will be rendered as NaN.
 
     Returns:
         None
@@ -115,7 +119,16 @@ def plot_metric(title, metric, extent, metric_name=None, cmap='viridis', fig_siz
 
     plt.figure(figsize=fig_size)
 
-    plt.imshow(metric.T, extent=extent, cmap=cmap)
+    arr = metric.copy()
+    if nodata_value is not None:
+        arr = np.where(arr == nodata_value, np.nan, arr)
+    if flip_y is True:
+        arr = np.flip(arr, axis=1)
+    if zero_as_nan:
+        arr = np.where(arr == 0, np.nan, arr)
+
+    # Use equal aspect so X/Y pixels stay square in map units; origin upper to match standard raster convention
+    plt.imshow(arr, extent=extent, cmap=cmap, vmin=vmin, vmax=vmax, origin='upper', aspect='equal')
     plt.colorbar(label=metric_name)
     plt.title(title)
     plt.xlabel('X')
