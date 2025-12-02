@@ -52,11 +52,12 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        voxel_height=1, buffer_size=0.1, srs=None, hag=False,
                        hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False,
                        cover_min_height: float = 2.0, cover_k: float = 0.5,
+                       pai_min_height: float = 1.0,
+                       fhd_min_height: float = 0.0,
                        skip_existing: bool = False, verbose: bool = False,
                        thin_radius: float | None = None,
                        voxelgrid_cell: float | None = None,
-                       voxelgrid_mode: str = "first",
-                       by_flightline: bool = False) -> None:
+                       voxelgrid_mode: str = "first") -> None:
     """
     Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,
     and write the results to the specified output directory.
@@ -67,7 +68,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         output_path (str): Directory where the output files will be saved.
         metric (str): Metric to compute for each tile ("chm", "fhd", "pai", or "cover").
         voxel_size (tuple): Voxel resolution as (x_resolution, y_resolution, z_resolution).
-        voxel_height (float, optional): Height of each voxel in meters. Required if metric is "pai".
+        voxel_height (float, optional): Height of each voxel in meters. Required if metric is "fhd", "pai", or "cover".
         buffer_size (float, optional): Fractional buffer size relative to tile size (e.g., 0.1 for 10% buffer). Defaults to 0.1.
         srs (str, optional): Spatial Reference System for the output. If None, uses SRS from the EPT file.
         hag (bool, optional): If True, compute Height Above Ground using Delaunay triangulation. Defaults to False.
@@ -80,17 +81,16 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         remove_outliers (bool, optional): Whether to remove statistical outliers before calculating metrics. Defaults to False.
         cover_min_height (float, optional): Height threshold (in meters) for canopy cover (used when metric == "cover"). Defaults to 2.0.
         cover_k (float, optional): Beer–Lambert extinction coefficient for canopy cover. Defaults to 0.5.
+        pai_min_height (float, optional): Minimum height (m) to integrate PAI. Defaults to 1.0.
+        fhd_min_height (float, optional): Minimum height (m) to include in FHD entropy. Defaults to 0.0.
         skip_existing (bool, optional): If True, skip tiles whose output file already exists. Defaults to False.
         verbose (bool, optional): If True, print warnings for empty/invalid tiles and buffer adjustments. Defaults to False.
-        thin_radius (float or None, optional): If provided (> 0), apply Poisson radius-based thinning before metrics.
-            When `by_flightline` is True, sampling is applied per PointSourceId (flight line). Units are in the same CRS
-            as the data (e.g., meters). Defaults to None.
+        thin_radius (float or None, optional): If provided (> 0), apply Poisson radius-based thinning per tile before metrics.
+            Units are in the same CRS as the data (e.g., meters). Defaults to None.
         voxelgrid_cell (float or None, optional): If provided (> 0), apply PDAL voxel-grid downsampling per tile before metrics
             using cell edge length of ``voxelgrid_cell``. Defaults to None.
         voxelgrid_mode (str, optional): Representative selection for voxel-grid downsampling. Common values are
             "first" (keep first point unchanged) or "center" (snap kept point to voxel center). Defaults to "first".
-        by_flightline (bool, optional): If True, group points by PointSourceId and apply any Poisson sampling per group,
-            then merge groups and proceed to metric calculation. Defaults to False.
 
     Returns:
         None
@@ -199,120 +199,11 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                 else:
                     tile_points = arrays[0]
 
-                # If processing per flight line, compute metrics per group and continue to next tile
-                if by_flightline:
-                    if 'PointSourceId' not in tile_points.dtype.names:
-                        raise ValueError("by_flightline=True but 'PointSourceId' is not present in tile points.")
-
-                    psids = np.unique(tile_points['PointSourceId'])
-                    for psid in psids:
-                        grp = tile_points[tile_points['PointSourceId'] == psid]
-                        # Per-line Poisson thinning
-                        if thin_radius is not None and thin_radius > 0:
-                            gth = downsample_poisson([grp], thin_radius=thin_radius)
-                            grp = gth[0] if gth else grp
-                            if grp.size == 0:
-                                continue
-                        # Optional voxel-grid thinning on the per-line group
-                        if voxelgrid_cell is not None and voxelgrid_cell > 0:
-                            try:
-                                vgrp = downsample_voxel([grp], cell=float(voxelgrid_cell), mode=voxelgrid_mode)
-                                grp = vgrp[0] if vgrp else grp
-                            except Exception as e:
-                                if verbose:
-                                    print(f"Warning: Voxel-grid downsampling failed for tile ({i}, {j}) psid {psid}: {e}. Proceeding without.")
-                            if grp.size == 0:
-                                continue
-
-                        buffer_pixels_x = int(np.ceil(buffer_x / voxel_size[0]))
-                        buffer_pixels_y = int(np.ceil(buffer_y / voxel_size[1]))
-
-                        # Compute metric per group
-                        if metric == "chm":
-                            chm, chm_extent = calculate_chm(grp, voxel_size, interpolation=interpolation)
-                            if buffer_pixels_x * 2 >= chm.shape[1] or buffer_pixels_y * 2 >= chm.shape[0]:
-                                buffer_pixels_x = max(0, chm.shape[1] // 2 - 1)
-                                buffer_pixels_y = max(0, chm.shape[0] // 2 - 1)
-                            start_x = buffer_pixels_x
-                            end_x = chm.shape[1] - buffer_pixels_x if buffer_pixels_x > 0 else chm.shape[1]
-                            start_y = buffer_pixels_y
-                            end_y = chm.shape[0] - buffer_pixels_y if buffer_pixels_y > 0 else chm.shape[0]
-                            core = chm if end_x <= start_x or end_y <= start_y else chm[start_y:end_y, start_x:end_x]
-                            dx, dy = voxel_size[0], voxel_size[1]
-                            core_extent = (
-                                chm_extent[0] + buffer_pixels_x * dx,
-                                chm_extent[1] - buffer_pixels_x * dx,
-                                chm_extent[2] + buffer_pixels_y * dy,
-                                chm_extent[3] - buffer_pixels_y * dy,
-                            )
-                            out_file = os.path.join(output_path, f"tile_{i}_{j}_chm_psid{int(psid)}.tif")
-                            create_geotiff(core, out_file, srs, core_extent)
-                        else:
-                            voxels, spatial_extent = assign_voxels(grp, voxel_size)
-                            if metric == "fhd":
-                                result = calculate_fhd(voxels)
-                            elif metric == "pai":
-                                if not voxel_height:
-                                    raise ValueError(f"voxel_height is required for metric {metric}")
-                                pad = calculate_pad(voxels, voxel_size[-1])
-                                if np.all(pad == 0):
-                                    result = np.zeros((pad.shape[0], pad.shape[1]))
-                                else:
-                                    effective_max_height = pad.shape[2] * voxel_size[-1]
-                                    default_min_height = 1.0
-                                    if default_min_height >= effective_max_height:
-                                        result = np.zeros((pad.shape[0], pad.shape[1]))
-                                    else:
-                                        result = calculate_pai(pad, voxel_height)
-                            elif metric == "cover":
-                                if not voxel_height:
-                                    raise ValueError(f"voxel_height is required for metric {metric}")
-                                pad = calculate_pad(voxels, voxel_size[-1])
-                                if np.all(pad == 0):
-                                    result = np.zeros((pad.shape[0], pad.shape[1]))
-                                else:
-                                    result = calculate_canopy_cover(
-                                        pad,
-                                        voxel_height=voxel_height,
-                                        min_height=cover_min_height,
-                                        max_height=None,
-                                        k=cover_k,
-                                    )
-
-                            if current_buffer_size > 0:
-                                if buffer_pixels_x * 2 >= result.shape[1] or buffer_pixels_y * 2 >= result.shape[0]:
-                                    buffer_pixels_x = max(0, result.shape[1] // 2 - 1)
-                                    buffer_pixels_y = max(0, result.shape[0] // 2 - 1)
-                                start_x = buffer_pixels_x
-                                end_x = result.shape[1] - buffer_pixels_x if buffer_pixels_x > 0 else result.shape[1]
-                                start_y = buffer_pixels_y
-                                end_y = result.shape[0] - buffer_pixels_y if buffer_pixels_y > 0 else result.shape[0]
-                                if end_x > start_x and end_y > start_y:
-                                    result = result[start_y:end_y, start_x:end_x]
-
-                            dx, dy = voxel_size[0], voxel_size[1]
-                            core_extent = (
-                                spatial_extent[0] + buffer_pixels_x * dx,
-                                spatial_extent[1] - buffer_pixels_x * dx,
-                                spatial_extent[2] + buffer_pixels_y * dy,
-                                spatial_extent[3] - buffer_pixels_y * dy,
-                            )
-
-                            if core_extent[1] <= core_extent[0] or core_extent[3] <= core_extent[2]:
-                                if verbose:
-                                    print(f"Warning: Invalid core extent for tile ({i}, {j}) psid {psid}: {core_extent}. Skipping.")
-                                continue
-
-                            suffix = f"{metric}" if metric in ["fhd", "pai", "cover"] else metric
-                            out_file = os.path.join(output_path, f"tile_{i}_{j}_{suffix}_psid{int(psid)}.tif")
-                            create_geotiff(result, out_file, srs, core_extent)
-
-                    pbar.update(1)
-                    continue
-
+                # Optional thinning before metrics
                 if thin_radius is not None and thin_radius > 0:
                     thinned = downsample_poisson([tile_points], thin_radius=thin_radius)
                     tile_points = thinned[0] if thinned else tile_points
+
                     if tile_points.size == 0:
                         if verbose:
                             print(f"Warning: Tile ({i}, {j}) empty after thinning. Skipping.")
@@ -381,7 +272,13 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                     voxels, spatial_extent = assign_voxels(tile_points, voxel_size)
 
                     if metric == "fhd":
-                        result = calculate_fhd(voxels)
+                        if voxel_size[-1] <= 0:
+                            raise ValueError("voxel_size z-resolution must be > 0 for FHD computation.")
+                        result = calculate_fhd(
+                            voxels,
+                            voxel_height=voxel_size[-1],
+                            min_height=fhd_min_height,
+                        )
                     elif metric == "pai":
                         if not voxel_height:
                             raise ValueError(f"voxel_height is required for metric {metric}")
@@ -393,11 +290,11 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                         else:
                             # Guard against empty integration range when top height < default min_height
                             effective_max_height = pad.shape[2] * voxel_size[-1]
-                            default_min_height = 1.0
+                            default_min_height = pai_min_height
                             if default_min_height >= effective_max_height:
                                 result = np.zeros((pad.shape[0], pad.shape[1]))
                             else:
-                                result = calculate_pai(pad, voxel_height)
+                                result = calculate_pai(pad, voxel_height, min_height=pai_min_height)
                     elif metric == "cover":
                         if not voxel_height:
                             raise ValueError(f"voxel_height is required for metric {metric}")

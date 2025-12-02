@@ -343,8 +343,8 @@ def test_process_with_tiles_by_flightline_sampling_applied(mock_pipeline_cls, mo
 
     # One downsample call per PSID
     assert call_counts[10] == 1 and call_counts[11] == 1
-    created_tifs = list(out_dir.glob("tile_*_fhd_psid*.tif"))
-    assert len(created_tifs) >= 1, "Expected an FHD output tile when processing by flightline."
+    created_tifs = list(out_dir.glob("tile_*_fhd.tif"))
+    assert len(created_tifs) >= 1, "Expected a single FHD output tile when processing by flightline."
 
 
 @patch("pyforestscan.process.pdal.Pipeline")
