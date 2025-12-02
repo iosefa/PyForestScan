@@ -2,90 +2,90 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://pyforestscan.sefa.ai/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/benchmarks/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/code_of_conduct/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/contributing/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/installation/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/api/calculate/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/api/filters/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/api/handlers/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/api/pipeline/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/api/process/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/api/visualize/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/examples/calculate-forest-metrics/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/examples/getting-started-importing-preprocessing-dtm-chm/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/examples/working-with-large-point-clouds/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/usage/digital-terrain-models/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/usage/getting-started-import-and-preprocess/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/usage/forest-structure/canopy_cover/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/usage/forest-structure/chm/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/usage/forest-structure/fhd/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/usage/forest-structure/intro/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/usage/forest-structure/pad/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
     <url>
          <loc>https://pyforestscan.sefa.ai/usage/forest-structure/pai/</loc>
-         <lastmod>2025-10-23</lastmod>
+         <lastmod>2025-12-02</lastmod>
     </url>
 </urlset>
