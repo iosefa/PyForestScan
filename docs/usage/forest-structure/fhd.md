@@ -31,9 +31,18 @@ points = arrays[0]
 voxel_resolution = (5, 5, 1) 
 voxels, extent = assign_voxels(points, voxel_resolution)
 
-fhd = calculate_fhd(voxels)
+fhd = calculate_fhd(
+    voxels,
+    voxel_height=voxel_resolution[-1],
+    # Optional: ignore returns below 2 m to drop ground/understory if desired.
+    min_height=2.0,
+)
 plot_metric('Foliage Height Diversity', fhd, extent, metric_name='FHD', cmap='viridis', fig_size=None)
 ```
+
+**Notes**
+- `min_height` defaults to 0 (all returns). Raise it (e.g., 2 m) to exclude near-ground returns from the entropy calculation.
+- `max_height` can limit the top of the integration range if needed.
 
 ![fhd.png](../../images/fhd.png)
 

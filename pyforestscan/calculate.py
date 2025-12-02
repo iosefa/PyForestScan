@@ -3,7 +3,7 @@ import numpy as np
 from scipy.interpolate import griddata
 from scipy.stats import entropy
 from scipy import ndimage
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
 def generate_dtm(ground_points, resolution=2.0) -> Tuple[np.ndarray, List]:
@@ -243,7 +243,10 @@ def calculate_canopy_cover(pad: np.ndarray,
     return cover
 
 
-def calculate_fhd(voxel_returns) -> np.ndarray:
+def calculate_fhd(voxel_returns,
+                  voxel_height: float = 1.0,
+                  min_height: float = 0.0,
+                  max_height: float | None = None) -> np.ndarray:
     """
     Calculate the Foliage Height Diversity (FHD) for a given set of voxel returns.
 
@@ -253,24 +256,233 @@ def calculate_fhd(voxel_returns) -> np.ndarray:
     Args:
         voxel_returns (np.ndarray): 3D numpy array of shape (X, Y, Z) representing voxel returns,
             where X and Y are spatial dimensions and Z represents height bins (vertical layers).
+        voxel_height (float, optional): Height of each voxel in meters (> 0). Defaults to 1.0.
+        min_height (float, optional): Minimum height (in meters) to include in the entropy calculation.
+            Defaults to 0.0 (use all heights by default).
+        max_height (float or None, optional): Maximum height (in meters) to include. If None, uses the full
+            height of the voxel grid. Defaults to None.
 
     Returns:
         np.ndarray: 2D numpy array of shape (X, Y) with FHD values for each (X, Y) location.
-            Areas with no voxel returns will have NaN values.
+            Areas with no voxel returns in the requested height range will have NaN values.
     """
-    sum_counts = np.sum(voxel_returns, axis=2)
+    if voxel_height <= 0:
+        raise ValueError(f"voxel_height must be > 0 metres (got {voxel_height})")
+
+    effective_max_height = max_height if max_height is not None else voxel_returns.shape[2] * voxel_height
+    if min_height >= effective_max_height:
+        return np.full(voxel_returns.shape[:2], np.nan, dtype=float)
+
+    start_idx = int(np.ceil(min_height / voxel_height))
+    end_idx = int(np.floor(effective_max_height / voxel_height))
+    if start_idx >= end_idx:
+        return np.full(voxel_returns.shape[:2], np.nan, dtype=float)
+
+    core_returns = voxel_returns[:, :, start_idx:end_idx]
+    sum_counts = np.sum(core_returns, axis=2)
 
     with np.errstate(divide='ignore', invalid='ignore'):
         proportions = np.divide(
-            voxel_returns,
+            core_returns,
             sum_counts[..., None],
-            out=np.zeros_like(voxel_returns, dtype=float),
+            out=np.zeros_like(core_returns, dtype=float),
             where=sum_counts[..., None] != 0
         )
 
     fhd = entropy(proportions, axis=2)
     fhd[sum_counts == 0] = np.nan
     return fhd
+
+
+def calculate_point_density(voxel_returns: np.ndarray,
+                            per_area: bool = False,
+                            cell_area: float | None = None) -> np.ndarray:
+    """
+    Calculate point density (or count) per (X, Y) voxel column by summing returns across Z.
+
+    Args:
+        voxel_returns (np.ndarray): 3D numpy array of shape (X, Y, Z) representing voxel returns (counts).
+        per_area (bool, optional): If True, divide counts by ``cell_area`` to yield points per unit area. Defaults to False.
+        cell_area (float or None, optional): Area of a single (X, Y) cell in the same units as the coordinates (e.g., m^2).
+            Required when ``per_area=True``.
+
+    Returns:
+        np.ndarray: 2D array (X, Y) of point counts (or density if per_area=True).
+
+    Notes:
+        - For columns with no returns, the count is 0. This differs from metrics like FHD where no-data is NaN.
+        - If you want density per m^2, set ``per_area=True`` and pass ``cell_area = dx * dy``.
+    """
+    counts = np.sum(voxel_returns, axis=2, dtype=float)
+    if per_area:
+        if cell_area is None or cell_area <= 0:
+            raise ValueError("cell_area must be > 0 when per_area=True")
+        return counts / float(cell_area)
+    return counts
+
+
+def calculate_voxel_stat(
+    arr,
+    voxel_resolution: Tuple[float, float, float],
+    dimension: str,
+    stat: str,
+    z_index_range: Optional[Tuple[int, Optional[int]]] = None,
+):
+    """
+    Compute a column-wise statistic for a given dimension over a 3-D voxel grid.
+
+    The function bins points into voxels with the same XY/Z sizing used by ``assign_voxels``.
+    For each (X, Y) column it filters points to the requested Z-index range, then evaluates a
+    simple statistic (mean, min, max, etc.) on the provided dimension.
+
+    Args:
+        arr (np.ndarray): Structured array containing at least 'X', 'Y', and 'HeightAboveGround'
+            fields, plus the provided ``dimension``.
+        voxel_resolution (tuple[float, float, float]): (dx, dy, dz) sizes in the same units
+            as the coordinates and height-above-ground values. All components must be > 0.
+        dimension (str): Dimension/field name to evaluate (e.g. 'Z', 'Intensity',
+            'HeightAboveGround'). The field must exist on ``arr``.
+        stat (str): Statistic to compute. Supported values (case-insensitive) are:
+            {'mean', 'sum', 'count', 'min', 'max', 'median', 'std'}.
+        z_index_range (Tuple[int, Optional[int]] | None): Inclusive-exclusive Z index bounds
+            expressed in voxel indices `(start, stop)`. Defaults to the full column when None.
+            ``stop`` may be None to include the topmost voxels. For example, `(0, 3)` covers
+            the first three voxels (indices 0, 1, 2).
+
+    Returns:
+        tuple[np.ndarray, list]: (stat_array, extent)
+            - stat_array: 2-D array shaped (nx, ny) with the requested statistic per column.
+              Cells without points are NaN (except for 'count', which yields 0).
+            - extent: [x_min, x_max, y_min, y_max] covering the raster footprint.
+    """
+    if dimension not in arr.dtype.names:
+        raise KeyError(f"Dimension '{dimension}' not found in array fields")
+    if 'HeightAboveGround' not in arr.dtype.names:
+        raise KeyError("Input array must include a 'HeightAboveGround' field")
+
+    dx, dy, dz = voxel_resolution
+    if dx <= 0 or dy <= 0 or dz <= 0:
+        raise ValueError("voxel_resolution components must be > 0")
+
+    supported_stats = {'mean', 'sum', 'count', 'min', 'max', 'median', 'std'}
+    key = stat.lower()
+    if key not in supported_stats:
+        raise ValueError(f"Unsupported statistic '{stat}'. "
+                         f"Choose from {sorted(supported_stats)}")
+
+    pts = arr[arr['HeightAboveGround'] >= 0]
+    if pts.size == 0:
+        raise ValueError("No points available (all HeightAboveGround < 0)")
+
+    x_vals = pts['X']
+    y_vals = pts['Y']
+    hag_vals = pts['HeightAboveGround']
+
+    x0 = np.floor(x_vals.min() / dx) * dx
+    y0 = np.ceil(y_vals.max() / dy) * dy
+
+    x_bins = np.arange(x0, x_vals.max() + dx, dx)
+    if x_bins.size < 2:
+        x_bins = np.array([x0, x0 + dx])
+
+    y_bins_desc = np.arange(y0, y_vals.min() - dy, -dy)
+    if y_bins_desc.size < 2:
+        y_bins_desc = np.array([y0, y0 - dy])
+    y_bins = y_bins_desc[::-1]
+
+    z_max = hag_vals.max()
+    z_bins = np.arange(0.0, z_max + dz, dz)
+    if z_bins.size < 2:
+        z_bins = np.array([0.0, dz])
+
+    nx = len(x_bins) - 1
+    ny = len(y_bins) - 1
+    nz = len(z_bins) - 1
+
+    x_idx = np.digitize(x_vals, x_bins) - 1
+    y_idx = np.digitize(y_vals, y_bins) - 1
+    z_idx = np.digitize(hag_vals, z_bins) - 1
+
+    np.clip(x_idx, 0, nx - 1, out=x_idx)
+    np.clip(y_idx, 0, ny - 1, out=y_idx)
+    np.clip(z_idx, 0, nz - 1, out=z_idx)
+
+    if z_index_range is None:
+        z_start, z_stop = 0, nz
+    else:
+        if len(z_index_range) != 2:
+            raise ValueError("z_index_range must be a (start, stop) tuple")
+        z_start = max(0, int(z_index_range[0]))
+        z_stop = z_index_range[1]
+        z_stop = nz if z_stop is None else min(int(z_stop), nz)
+        if z_start >= z_stop:
+            raise ValueError("z_index_range start must be < stop")
+
+    mask = (z_idx >= z_start) & (z_idx < z_stop)
+    if not np.any(mask):
+        result = np.full((nx, ny), np.nan, dtype=float)
+        if key == 'count':
+            result.fill(0.0)
+        extent = [x_bins[0], x_bins[-1], y_bins_desc[-1], y_bins_desc[0]]
+        return result, extent
+
+    x_idx = x_idx[mask]
+    y_idx = y_idx[mask]
+    values = np.asarray(pts[dimension][mask], dtype=float)
+
+    # Flip Y axis to match assign_voxels orientation
+    y_idx = (ny - 1) - y_idx
+
+    flat_idx = x_idx * ny + y_idx
+    flat_size = nx * ny
+
+    counts = np.bincount(flat_idx, minlength=flat_size).astype(float)
+
+    if key == 'count':
+        data = counts
+    elif key == 'sum':
+        data = np.bincount(flat_idx, weights=values, minlength=flat_size)
+    elif key == 'mean':
+        sums = np.bincount(flat_idx, weights=values, minlength=flat_size)
+        with np.errstate(invalid='ignore', divide='ignore'):
+            data = sums / counts
+        data[counts == 0] = np.nan
+    elif key == 'std':
+        sums = np.bincount(flat_idx, weights=values, minlength=flat_size)
+        sumsq = np.bincount(flat_idx, weights=values * values, minlength=flat_size)
+        with np.errstate(invalid='ignore', divide='ignore'):
+            mean = sums / counts
+            var = (sumsq / counts) - (mean ** 2)
+        var[counts <= 0] = np.nan
+        var[var < 0] = 0.0  # numerical safety
+        data = np.sqrt(var)
+    elif key == 'min':
+        data = np.full(flat_size, np.inf, dtype=float)
+        np.minimum.at(data, flat_idx, values)
+        data[data == np.inf] = np.nan
+    elif key == 'max':
+        data = np.full(flat_size, -np.inf, dtype=float)
+        np.maximum.at(data, flat_idx, values)
+        data[data == -np.inf] = np.nan
+    elif key == 'median':
+        data = np.full(flat_size, np.nan, dtype=float)
+        order = np.argsort(flat_idx, kind='mergesort')
+        sorted_idx = flat_idx[order]
+        sorted_vals = values[order]
+        unique, first = np.unique(sorted_idx, return_index=True)
+        counts_unique = np.diff(np.append(first, sorted_vals.size))
+        for u, start, count in zip(unique, first, counts_unique):
+            chunk = sorted_vals[start:start + count]
+            data[u] = np.median(chunk)
+    else:
+        raise AssertionError("Unhandled statistic path")
+
+    grid = data.reshape(nx, ny)
+    if key not in ('count', 'sum'):
+        grid[counts.reshape(nx, ny) == 0] = np.nan
+
+    extent = [x_bins[0], x_bins[-1], y_bins_desc[-1], y_bins_desc[0]]
+    return grid, extent
 
 
 def calculate_chm(arr, voxel_resolution, interpolation="linear",
@@ -314,13 +526,19 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear",
     x_min, x_max = x.min(), x.max()
     y_min, y_max = y.min(), y.max()
 
-    x_bins = np.arange(x_min, x_max + x_resolution, x_resolution)
-    y_bins = np.arange(y_min, y_max + y_resolution, y_resolution)
+    nx = int(np.ceil((x_max - x_min) / x_resolution))
+    ny = int(np.ceil((y_max - y_min) / y_resolution))
 
-    x_indices = np.digitize(x, x_bins) - 1
-    y_indices = np.digitize(y, y_bins) - 1
+    chm = np.full((nx, ny), np.nan)
 
-    chm = np.full((len(x_bins) - 1, len(y_bins) - 1), np.nan)
+    x_bins = x_min + np.arange(nx + 1) * x_resolution
+    y_bins = y_min + np.arange(ny + 1) * y_resolution
+
+    x_indices = np.floor((x - x_min) / x_resolution).astype(int)
+    y_indices = np.floor((y - y_min) / y_resolution).astype(int)
+
+    np.minimum(x_indices, nx - 1, out=x_indices)
+    np.minimum(y_indices, ny - 1, out=y_indices)
 
     for xi, yi, zi in zip(x_indices, y_indices, z):
         if 0 <= xi < chm.shape[0] and 0 <= yi < chm.shape[1]:
@@ -361,7 +579,7 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear",
                 chm = _clean_edges(chm)
 
     chm = np.flip(chm, axis=1)
-    extent = [x_min, x_max, y_min, y_max]
+    extent = [x_min, x_min + nx * x_resolution, y_min, y_min + ny * y_resolution]
 
     return chm, extent
 

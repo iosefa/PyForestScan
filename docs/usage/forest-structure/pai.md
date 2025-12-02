@@ -33,8 +33,17 @@ voxel_resolution = (5, 5, 1)
 voxels, extent = assign_voxels(points, voxel_resolution)
 
 pad = calculate_pad(voxels, voxel_resolution[-1])
-pai = calculate_pai(pad)
+pai = calculate_pai(
+    pad,
+    voxel_height=voxel_resolution[-1],
+    # Defaults to min_height=1.0; raise if you want to exclude very low vegetation.
+    min_height=1.0,
+)
 plot_metric('Plant Area Index', pai, extent, metric_name='PAI', cmap='viridis', fig_size=None)
 ```
 
 ![pai.png](../../images/pai.png)
+
+**Notes**
+- `min_height` defaults to 1 m to mirror common PAI conventions. Increase it to ignore very near-ground returns or set lower (>=0) if you need the full profile.
+- `max_height` optionally caps the integration height.

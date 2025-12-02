@@ -323,7 +323,7 @@ def test_calculate_pai_all_zero_pad():
 
 def test_calculate_fhd_success():
     voxel_returns = np.random.randint(0, 10, size=(5, 5, 5))
-    fhd = calculate_fhd(voxel_returns)
+    fhd = calculate_fhd(voxel_returns, voxel_height=1, min_height=0)
     assert isinstance(fhd, np.ndarray)
     assert fhd.shape == (5, 5)
     # Entropy should be non-negative
@@ -332,7 +332,7 @@ def test_calculate_fhd_success():
 
 def test_calculate_fhd_zero_shots():
     voxel_returns = np.zeros((5, 5, 5))
-    fhd = calculate_fhd(voxel_returns)
+    fhd = calculate_fhd(voxel_returns, voxel_height=1, min_height=0)
     assert isinstance(fhd, np.ndarray)
     assert fhd.shape == (5, 5)
     # FHD should be NaN where shots_in == 0
@@ -342,7 +342,7 @@ def test_calculate_fhd_zero_shots():
 def test_calculate_fhd_single_class():
     voxel_returns = np.zeros((5, 5, 5))
     voxel_returns[:, :, 2] = 10  # All returns in z=2
-    fhd = calculate_fhd(voxel_returns)
+    fhd = calculate_fhd(voxel_returns, voxel_height=1, min_height=0)
     assert isinstance(fhd, np.ndarray)
     assert fhd.shape == (5, 5)
     # Entropy should be 0 since only one class
@@ -351,7 +351,7 @@ def test_calculate_fhd_single_class():
 
 def test_calculate_fhd_uniform_distribution():
     voxel_returns = np.ones((3, 3, 3))
-    fhd = calculate_fhd(voxel_returns)
+    fhd = calculate_fhd(voxel_returns, voxel_height=1, min_height=0)
     expected_entropy = entropy([1 / 3, 1 / 3, 1 / 3])
     assert np.allclose(fhd, expected_entropy)
 
@@ -362,7 +362,7 @@ def test_calculate_fhd_non_uniform():
         [[2, 2, 2], [3, 0, 0]],
         [[0, 0, 0], [4, 4, 4]]
     ])
-    fhd = calculate_fhd(voxel_returns)
+    fhd = calculate_fhd(voxel_returns, voxel_height=1, min_height=0)
 
     # Define the expected entropy for each voxel column
     # [5, 0, 0] => entropy([1, 0, 0]) = 0
@@ -401,7 +401,7 @@ def test_calculate_fhd_high_diversity():
         [[4, 5, 6, 7, 8], [8, 7, 6, 5, 4]],
         [[5, 6, 7, 8, 9], [9, 8, 7, 6, 5]]
     ])
-    fhd = calculate_fhd(voxel_returns)
+    fhd = calculate_fhd(voxel_returns, voxel_height=1, min_height=0)
     assert isinstance(fhd, np.ndarray)
     assert fhd.shape == (5, 2)
     # Entropy should be consistent with distribution
@@ -421,7 +421,7 @@ def test_calculate_fhd_partial_zero_distribution():
     # Column with uniform distribution across bins -> maximal entropy
     voxel_returns[1, 1, :] = [1, 1, 1, 1, 1]
 
-    fhd = calculate_fhd(voxel_returns)
+    fhd = calculate_fhd(voxel_returns, voxel_height=1, min_height=0)
     assert isinstance(fhd, np.ndarray)
     assert fhd.shape == (5, 5)
     assert fhd[0, 0] < fhd[1, 1]
@@ -429,10 +429,23 @@ def test_calculate_fhd_partial_zero_distribution():
 
 def test_calculate_fhd_all_zero_returns():
     voxel_returns = np.zeros((5, 5, 5))
-    fhd = calculate_fhd(voxel_returns)
+    fhd = calculate_fhd(voxel_returns, voxel_height=1, min_height=0)
     assert isinstance(fhd, np.ndarray)
     assert fhd.shape == (5, 5)
     assert np.all(np.isnan(fhd))
+
+
+def test_calculate_fhd_respects_min_height():
+    voxel_returns = np.array([[[4, 1, 1]]], dtype=float)
+    full_range = calculate_fhd(voxel_returns, voxel_height=1, min_height=0)
+    above_1m = calculate_fhd(voxel_returns, voxel_height=1, min_height=1)
+
+    assert full_range.shape == (1, 1)
+    assert above_1m.shape == (1, 1)
+
+    expected_above_1m = entropy([0.5, 0.5])
+    assert not np.isclose(full_range[0, 0], above_1m[0, 0])
+    assert np.isclose(above_1m[0, 0], expected_above_1m)
 
 
 # ----------------------------
