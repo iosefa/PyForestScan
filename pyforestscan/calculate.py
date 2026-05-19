@@ -584,6 +584,76 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear",
     return chm, extent
 
 
+def calculate_rumple(chm: np.ndarray,
+                     cell_resolution: Tuple[float, float],
+                     min_height: float | None = None) -> float:
+    """
+    Calculate the canopy rumple index from a Canopy Height Model (CHM).
+
+    Rumple is defined here as the ratio of canopy surface area to planar
+    ground area. The CHM is treated as a triangulated surface over the raster
+    grid, and the surface area is summed over valid 2x2 CHM patches.
+
+    Args:
+        chm (np.ndarray): 2D array of canopy heights.
+        cell_resolution (tuple[float, float]): CHM cell size as (dx, dy).
+        min_height (float | None, optional): If provided, CHM cells below this
+            height threshold are masked before computing the rumple index.
+            Defaults to None.
+
+    Returns:
+        float: Rumple index (>= 1 for valid surfaces) or NaN if no valid 2x2
+            surface patches remain after masking.
+
+    Raises:
+        ValueError: If the CHM is not 2D, if cell_resolution is invalid, or if
+            dx/dy are not positive.
+    """
+    chm = np.asarray(chm, dtype=float)
+    if chm.ndim != 2:
+        raise ValueError(f"chm must be a 2D array (got shape {chm.shape})")
+
+    if len(cell_resolution) != 2:
+        raise ValueError("cell_resolution must be a (dx, dy) tuple")
+
+    dx, dy = map(float, cell_resolution)
+    if dx <= 0 or dy <= 0:
+        raise ValueError("cell_resolution components must be > 0")
+
+    if min_height is not None:
+        chm = np.where(chm >= float(min_height), chm, np.nan)
+
+    z00 = chm[:-1, :-1]
+    z10 = chm[1:, :-1]
+    z01 = chm[:-1, 1:]
+    z11 = chm[1:, 1:]
+
+    valid = (
+        np.isfinite(z00) &
+        np.isfinite(z10) &
+        np.isfinite(z01) &
+        np.isfinite(z11)
+    )
+    if not np.any(valid):
+        return np.nan
+
+    # Approximate the CHM as a triangular mesh over each 2x2 raster patch.
+    tri1 = 0.5 * np.sqrt(
+        (dy * (z10 - z00)) ** 2 +
+        (dx * (z01 - z00)) ** 2 +
+        (dx * dy) ** 2
+    )
+    tri2 = 0.5 * np.sqrt(
+        (dy * (z01 - z11)) ** 2 +
+        (dx * (z11 - z10)) ** 2 +
+        (dx * dy) ** 2
+    )
+
+    surface_area = np.sum((tri1 + tri2)[valid], dtype=float)
+    planar_area = float(np.count_nonzero(valid)) * dx * dy
+    return surface_area / planar_area
+
+
 def _calc_valid_region_mask(arr):
     """Create valid region mask using morphological operations."""
     kernel = ndimage.generate_binary_structure(2, 1)

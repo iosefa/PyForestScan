@@ -8,7 +8,7 @@ from tqdm import tqdm
 from pyforestscan.calculate import calculate_fhd, calculate_pad, calculate_pai, assign_voxels, calculate_chm, calculate_canopy_cover
 from pyforestscan.filters import remove_outliers_and_clean, downsample_poisson, downsample_voxel
 from pyforestscan.handlers import create_geotiff
-from pyforestscan.pipeline import _hag_raster, _hag_delaunay
+from pyforestscan.pipeline import _filter_expression, _filter_statistical_outlier, _hag_raster, _hag_delaunay
 from pyforestscan.utils import get_bounds_from_ept, get_srs_from_ept
 
 
@@ -51,13 +51,16 @@ def _crop_dtm(dtm_path, tile_min_x, tile_min_y, tile_max_x, tile_max_y):
 def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        voxel_height=1, buffer_size=0.1, srs=None, hag=False,
                        hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False,
+                       outlier_mean_k: int = 8, outlier_multiplier: float = 3.0,
                        cover_min_height: float = 2.0, cover_k: float = 0.5,
                        pai_min_height: float = 1.0,
                        fhd_min_height: float = 0.0,
                        skip_existing: bool = False, verbose: bool = False,
                        thin_radius: float | None = None,
                        voxelgrid_cell: float | None = None,
-                       voxelgrid_mode: str = "first") -> None:
+                       voxelgrid_mode: str = "first",
+                       tile_indices: set[tuple[int, int]] | None = None,
+                       outliers_before_hag: bool = False) -> None:
     """
     Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,
     and write the results to the specified output directory.
@@ -79,6 +82,10 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
             If None, tiling is done over the entire dataset.
         interpolation (str or None, optional): Interpolation method for CHM calculation ("linear", "cubic", "nearest", or None).
         remove_outliers (bool, optional): Whether to remove statistical outliers before calculating metrics. Defaults to False.
+        outlier_mean_k (int, optional): Number of nearest neighbors used by the statistical outlier filter.
+            Used only when remove_outliers is True. Defaults to 8.
+        outlier_multiplier (float, optional): Standard deviation multiplier used by the statistical outlier filter.
+            Used only when remove_outliers is True. Defaults to 3.0.
         cover_min_height (float, optional): Height threshold (in meters) for canopy cover (used when metric == "cover"). Defaults to 2.0.
         cover_k (float, optional): Beer–Lambert extinction coefficient for canopy cover. Defaults to 0.5.
         pai_min_height (float, optional): Minimum height (m) to integrate PAI. Defaults to 1.0.
@@ -91,6 +98,11 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
             using cell edge length of ``voxelgrid_cell``. Defaults to None.
         voxelgrid_mode (str, optional): Representative selection for voxel-grid downsampling. Common values are
             "first" (keep first point unchanged) or "center" (snap kept point to voxel center). Defaults to "first".
+        tile_indices (set[tuple[int, int]] or None, optional): If provided, process only these
+            zero-based tile indices while preserving the full tiling grid and buffer behavior.
+        outliers_before_hag (bool, optional): If True with remove_outliers=True, apply PDAL's
+            statistical outlier filter and remove classification 7 points before HAG. This can
+            avoid Delaunay failures caused by bad points. Defaults to False.
 
     Returns:
         None
@@ -124,6 +136,10 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
     with tqdm(total=total_tiles, desc="Processing tiles") as pbar:
         for i in range(num_tiles_x):
             for j in range(num_tiles_y):
+                if tile_indices is not None and (i, j) not in tile_indices:
+                    pbar.update(1)
+                    continue
+
                 # Apply buffer+crop for CHM and for PAI/COVER to avoid seam artifacts.
                 if metric in ["chm", "pai", "cover"]:
                     current_buffer_size = buffer_size
@@ -163,6 +179,15 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                     tile_bounds = ([tile_min_x, tile_max_x], [tile_min_y, tile_max_y])
                 tile_pipeline_stages = []
 
+                if remove_outliers and outliers_before_hag:
+                    tile_pipeline_stages.extend([
+                        _filter_statistical_outlier(
+                            mean_k=outlier_mean_k,
+                            multiplier=outlier_multiplier,
+                        ),
+                        _filter_expression("!(Classification == 7)"),
+                    ])
+
                 if hag:
                     tile_pipeline_stages.append(_hag_delaunay())
                 elif hag_dtm:
@@ -194,8 +219,19 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                     pbar.update(1)
                     continue
 
-                if remove_outliers:
-                    tile_points = remove_outliers_and_clean(arrays)[0]
+                if remove_outliers and not outliers_before_hag:
+                    cleaned_arrays = remove_outliers_and_clean(
+                        arrays,
+                        mean_k=outlier_mean_k,
+                        multiplier=outlier_multiplier,
+                        remove=True,
+                    )
+                    tile_points = cleaned_arrays[0]
+                    if tile_points.size == 0:
+                        if verbose:
+                            print(f"Warning: Tile ({i}, {j}) empty after outlier removal. Skipping.")
+                        pbar.update(1)
+                        continue
                 else:
                     tile_points = arrays[0]
 
