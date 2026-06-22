@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -474,6 +474,34 @@
     
   
     Canopy Height Models (CHM)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/forest-structure/rumple/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rumple Index
   
 
     
@@ -1063,6 +1091,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pyforestscan.calculate.calculate_rumple" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        calculate_rumple
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pyforestscan.calculate.calculate_voxel_stat" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1355,6 +1394,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pyforestscan.calculate.calculate_rumple" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        calculate_rumple
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pyforestscan.calculate.calculate_voxel_stat" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1415,7 +1465,7 @@
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -3087,6 +3137,279 @@ Required when <code>per_area=True</code>.</p>
 <div class="doc doc-object doc-function">
 
 
+<h2 id="pyforestscan.calculate.calculate_rumple" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">calculate_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">min_height</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#pyforestscan.calculate.calculate_rumple" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Calculate the canopy rumple index from a Canopy Height Model (CHM).</p>
+<p>Rumple is defined here as the ratio of canopy surface area to planar
+ground area. The CHM is treated as a triangulated surface over the raster
+grid, and the surface area is summed over valid 2x2 CHM patches.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>chm</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>2D array of canopy heights.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>cell_resolution</code>
+            </td>
+            <td>
+                  <code><span title="tuple">tuple</span>[<span title="float">float</span>, <span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>CHM cell size as (dx, dy).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>min_height</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If provided, CHM cells below this
+height threshold are masked before computing the rumple index.
+Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>float</code></td>            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Rumple index (&gt;= 1 for valid surfaces) or NaN if no valid 2x2
+surface patches remain after masking.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the CHM is not 2D, if cell_resolution is invalid, or if
+dx/dy are not positive.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>pyforestscan/calculate.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">587</span>
+<span class="normal">588</span>
+<span class="normal">589</span>
+<span class="normal">590</span>
+<span class="normal">591</span>
+<span class="normal">592</span>
+<span class="normal">593</span>
+<span class="normal">594</span>
+<span class="normal">595</span>
+<span class="normal">596</span>
+<span class="normal">597</span>
+<span class="normal">598</span>
+<span class="normal">599</span>
+<span class="normal">600</span>
+<span class="normal">601</span>
+<span class="normal">602</span>
+<span class="normal">603</span>
+<span class="normal">604</span>
+<span class="normal">605</span>
+<span class="normal">606</span>
+<span class="normal">607</span>
+<span class="normal">608</span>
+<span class="normal">609</span>
+<span class="normal">610</span>
+<span class="normal">611</span>
+<span class="normal">612</span>
+<span class="normal">613</span>
+<span class="normal">614</span>
+<span class="normal">615</span>
+<span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span>
+<span class="normal">619</span>
+<span class="normal">620</span>
+<span class="normal">621</span>
+<span class="normal">622</span>
+<span class="normal">623</span>
+<span class="normal">624</span>
+<span class="normal">625</span>
+<span class="normal">626</span>
+<span class="normal">627</span>
+<span class="normal">628</span>
+<span class="normal">629</span>
+<span class="normal">630</span>
+<span class="normal">631</span>
+<span class="normal">632</span>
+<span class="normal">633</span>
+<span class="normal">634</span>
+<span class="normal">635</span>
+<span class="normal">636</span>
+<span class="normal">637</span>
+<span class="normal">638</span>
+<span class="normal">639</span>
+<span class="normal">640</span>
+<span class="normal">641</span>
+<span class="normal">642</span>
+<span class="normal">643</span>
+<span class="normal">644</span>
+<span class="normal">645</span>
+<span class="normal">646</span>
+<span class="normal">647</span>
+<span class="normal">648</span>
+<span class="normal">649</span>
+<span class="normal">650</span>
+<span class="normal">651</span>
+<span class="normal">652</span>
+<span class="normal">653</span>
+<span class="normal">654</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                     <span class="n">cell_resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                     <span class="n">min_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the canopy rumple index from a Canopy Height Model (CHM).</span>
+
+<span class="sd">    Rumple is defined here as the ratio of canopy surface area to planar</span>
+<span class="sd">    ground area. The CHM is treated as a triangulated surface over the raster</span>
+<span class="sd">    grid, and the surface area is summed over valid 2x2 CHM patches.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        chm (np.ndarray): 2D array of canopy heights.</span>
+<span class="sd">        cell_resolution (tuple[float, float]): CHM cell size as (dx, dy).</span>
+<span class="sd">        min_height (float | None, optional): If provided, CHM cells below this</span>
+<span class="sd">            height threshold are masked before computing the rumple index.</span>
+<span class="sd">            Defaults to None.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: Rumple index (&gt;= 1 for valid surfaces) or NaN if no valid 2x2</span>
+<span class="sd">            surface patches remain after masking.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the CHM is not 2D, if cell_resolution is invalid, or if</span>
+<span class="sd">            dx/dy are not positive.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">chm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">chm</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;chm must be a 2D array (got shape </span><span class="si">{</span><span class="n">chm</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cell_resolution</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cell_resolution must be a (dx, dy) tuple&quot;</span><span class="p">)</span>
+
+    <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dx</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">dy</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cell_resolution components must be &gt; 0&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">min_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">chm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">chm</span> <span class="o">&gt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_height</span><span class="p">),</span> <span class="n">chm</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="n">z00</span> <span class="o">=</span> <span class="n">chm</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">z10</span> <span class="o">=</span> <span class="n">chm</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">z01</span> <span class="o">=</span> <span class="n">chm</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="n">z11</span> <span class="o">=</span> <span class="n">chm</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span>
+
+    <span class="n">valid</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">z00</span><span class="p">)</span> <span class="o">&amp;</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">z10</span><span class="p">)</span> <span class="o">&amp;</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">z01</span><span class="p">)</span> <span class="o">&amp;</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">z11</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">valid</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="c1"># Approximate the CHM as a triangular mesh over each 2x2 raster patch.</span>
+    <span class="n">tri1</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">dy</span> <span class="o">*</span> <span class="p">(</span><span class="n">z10</span> <span class="o">-</span> <span class="n">z00</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+        <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="p">(</span><span class="n">z01</span> <span class="o">-</span> <span class="n">z00</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+        <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="p">)</span>
+    <span class="n">tri2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">dy</span> <span class="o">*</span> <span class="p">(</span><span class="n">z01</span> <span class="o">-</span> <span class="n">z11</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+        <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="p">(</span><span class="n">z11</span> <span class="o">-</span> <span class="n">z10</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+        <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="p">)</span>
+
+    <span class="n">surface_area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">tri1</span> <span class="o">+</span> <span class="n">tri2</span><span class="p">)[</span><span class="n">valid</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">planar_area</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">valid</span><span class="p">))</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span>
+    <span class="k">return</span> <span class="n">surface_area</span> <span class="o">/</span> <span class="n">planar_area</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h2 id="pyforestscan.calculate.calculate_voxel_stat" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">calculate_voxel_stat</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">,</span> <span class="n">dimension</span><span class="p">,</span> <span class="n">stat</span><span class="p">,</span> <span class="n">z_index_range</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
@@ -3798,7 +4121,7 @@ the first three voxels (indices 0, 1, 2).</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    2025-12-01
+    2026-06-22
   </span>
 
     
@@ -3848,10 +4171,10 @@ the first three voxels (indices 0, 1, 2).</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "search.highlight"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
       

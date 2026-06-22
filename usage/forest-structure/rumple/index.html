@@ -8,31 +8,31 @@
       
       
       
-        <link rel="canonical" href="https://pyforestscan.sefa.ai/usage/digital-terrain-models/">
+        <link rel="canonical" href="https://pyforestscan.sefa.ai/usage/forest-structure/rumple/">
       
       
-        <link rel="prev" href="../getting-started-import-and-preprocess/">
+        <link rel="prev" href="../chm/">
       
       
-        <link rel="next" href="../forest-structure/intro/">
+        <link rel="next" href="../pad/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Digital Terrain Models - PyForestScan</title>
+        <title>Rumple Index - PyForestScan</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,11 +51,11 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../overrides/custom.css">
+      <link rel="stylesheet" href="../../../overrides/custom.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#digital-terrain-models" class="md-skip">
+        <a href="#rumple-index" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="PyForestScan" class="md-header__button md-logo" aria-label="PyForestScan" data-md-component="logo">
+    <a href="../../.." title="PyForestScan" class="md-header__button md-logo" aria-label="PyForestScan" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Digital Terrain Models
+              Rumple Index
             
           </span>
         </div>
@@ -204,7 +204,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="PyForestScan" class="md-nav__button md-logo" aria-label="PyForestScan" data-md-component="logo">
+    <a href="../../.." title="PyForestScan" class="md-nav__button md-logo" aria-label="PyForestScan" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -234,7 +234,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -261,7 +261,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../installation/" class="md-nav__link">
+      <a href="../../../installation/" class="md-nav__link">
         
   
   
@@ -337,7 +337,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started-import-and-preprocess/" class="md-nav__link">
+      <a href="../../getting-started-import-and-preprocess/" class="md-nav__link">
         
   
   
@@ -345,6 +345,139 @@
     
   
     Importing, Preprocessing, and Writing Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../digital-terrain-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Digital Terrain Models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Forest Structure
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Forest Structure
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canopy Height Models (CHM)
   
 
     
@@ -374,54 +507,14 @@
         
       
       
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Digital Terrain Models
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
-        
+        <label class="md-nav__link md-nav__link--active" for="__toc">
           
-          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
-            
   
   
   <span class="md-ellipsis">
     
   
-    Forest Structure
+    Rumple Index
   
 
     
@@ -429,84 +522,10 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Forest Structure
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../forest-structure/intro/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Introduction
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../forest-structure/chm/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Canopy Height Models (CHM)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../forest-structure/rumple/" class="md-nav__link">
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -522,6 +541,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#theory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calculating-rumple" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calculating Rumple
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -534,7 +617,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../forest-structure/pad/" class="md-nav__link">
+      <a href="../pad/" class="md-nav__link">
         
   
   
@@ -562,7 +645,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../forest-structure/pai/" class="md-nav__link">
+      <a href="../pai/" class="md-nav__link">
         
   
   
@@ -590,7 +673,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../forest-structure/fhd/" class="md-nav__link">
+      <a href="../fhd/" class="md-nav__link">
         
   
   
@@ -633,7 +716,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../benchmarks/" class="md-nav__link">
+      <a href="../../../benchmarks/" class="md-nav__link">
         
   
   
@@ -660,7 +743,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../contributing/" class="md-nav__link">
+      <a href="../../../contributing/" class="md-nav__link">
         
   
   
@@ -687,7 +770,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../code_of_conduct/" class="md-nav__link">
+      <a href="../../../code_of_conduct/" class="md-nav__link">
         
   
   
@@ -815,7 +898,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/getting-started-importing-preprocessing-dtm-chm/" class="md-nav__link">
+      <a href="../../../examples/getting-started-importing-preprocessing-dtm-chm/" class="md-nav__link">
         
   
   
@@ -843,7 +926,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/calculate-forest-metrics/" class="md-nav__link">
+      <a href="../../../examples/calculate-forest-metrics/" class="md-nav__link">
         
   
   
@@ -871,7 +954,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/working-with-large-point-clouds/" class="md-nav__link">
+      <a href="../../../examples/working-with-large-point-clouds/" class="md-nav__link">
         
   
   
@@ -953,7 +1036,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/calculate/" class="md-nav__link">
+      <a href="../../../api/calculate/" class="md-nav__link">
         
   
   
@@ -981,7 +1064,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/filters/" class="md-nav__link">
+      <a href="../../../api/filters/" class="md-nav__link">
         
   
   
@@ -1009,7 +1092,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/handlers/" class="md-nav__link">
+      <a href="../../../api/handlers/" class="md-nav__link">
         
   
   
@@ -1037,7 +1120,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/pipeline/" class="md-nav__link">
+      <a href="../../../api/pipeline/" class="md-nav__link">
         
   
   
@@ -1065,7 +1148,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/process/" class="md-nav__link">
+      <a href="../../../api/process/" class="md-nav__link">
         
   
   
@@ -1093,7 +1176,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/visualize/" class="md-nav__link">
+      <a href="../../../api/visualize/" class="md-nav__link">
         
   
   
@@ -1141,6 +1224,58 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#theory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calculating-rumple" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calculating Rumple
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1159,8 +1294,25 @@
   
 
 
-<h1 id="digital-terrain-models">Digital Terrain Models<a class="headerlink" href="#digital-terrain-models" title="Permanent link">&para;</a></h1>
-<p>Given a classified point cloud, pyforestscan can create, save, and visualize digital terrain models (DTMs) as geotiffs:</p>
+<h1 id="rumple-index">Rumple Index<a class="headerlink" href="#rumple-index" title="Permanent link">&para;</a></h1>
+<h2 id="theory">Theory<a class="headerlink" href="#theory" title="Permanent link">&para;</a></h2>
+<p>Rumple is a measure of canopy surface complexity. It is defined as the ratio
+of canopy surface area to projected ground area:</p>
+<div class="arithmatex">\[
+\text{Rumple} = \frac{A_{\text{surface}}}{A_{\text{planar}}}
+\]</div>
+<p>Where:</p>
+<ul>
+<li><span class="arithmatex">\( A_{\text{surface}} \)</span> is the area of the canopy surface.</li>
+<li><span class="arithmatex">\( A_{\text{planar}} \)</span> is the projected ground area beneath that surface.</li>
+</ul>
+<p>A flat canopy has a rumple value of 1.0. More structurally complex or
+corrugated canopies have values greater than 1.0.</p>
+<p>PyForestScan computes rumple from a Canopy Height Model (CHM) by treating the
+CHM as a triangulated surface over the raster grid and summing surface area
+over valid 2x2 CHM patches.</p>
+<h2 id="calculating-rumple">Calculating Rumple<a class="headerlink" href="#calculating-rumple" title="Permanent link">&para;</a></h2>
+<p>To calculate rumple:</p>
 <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
 <span class="normal"> 2</span>
 <span class="normal"> 3</span>
@@ -1172,20 +1324,37 @@
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.calculate</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_dtm</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">filter_select_ground</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.handlers</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_geotiff</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.visualize</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_metric</span>
+<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.handlers</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_lidar</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.calculate</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_chm</span><span class="p">,</span> <span class="n">calculate_rumple</span>
 
-<span class="n">ground_points</span> <span class="o">=</span> <span class="n">filter_select_ground</span><span class="p">(</span><span class="n">classified_arrays</span><span class="p">)</span>
+<span class="n">file_path</span> <span class="o">=</span> <span class="s2">&quot;../example_data/20191210_5QKB020880.laz&quot;</span>
+<span class="n">arrays</span> <span class="o">=</span> <span class="n">read_lidar</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;EPSG:32605&quot;</span><span class="p">,</span> <span class="n">hag</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">points</span> <span class="o">=</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-<span class="n">dtm</span><span class="p">,</span> <span class="n">extent</span> <span class="o">=</span> <span class="n">generate_dtm</span><span class="p">(</span><span class="n">ground_points</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="n">cell_resolution</span> <span class="o">=</span> <span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>
+<span class="n">chm</span><span class="p">,</span> <span class="n">extent</span> <span class="o">=</span> <span class="n">calculate_chm</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+<span class="n">rumple</span> <span class="o">=</span> <span class="n">calculate_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">min_height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
 
-<span class="n">create_geotiff</span><span class="p">(</span><span class="n">dtm</span><span class="p">,</span> <span class="s2">&quot;../example_data/20191210_5QKB020880_DS05_dtm.tif&quot;</span><span class="p">,</span> <span class="s2">&quot;EPSG:32605&quot;</span><span class="p">,</span> <span class="n">extent</span><span class="p">)</span>
-
-<span class="n">plot_metric</span><span class="p">(</span><span class="s1">&#39;Digital Terrain Model&#39;</span><span class="p">,</span> <span class="n">dtm</span><span class="p">,</span> <span class="n">extent</span><span class="p">,</span> <span class="n">metric_name</span><span class="o">=</span><span class="s1">&#39;Elevation (m)&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">fig_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rumple: </span><span class="si">{</span><span class="n">rumple</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-<p><img alt="puu_2d.png" src="../../images/dtm.png" /></p>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>calculate_rumple</code> returns a single scalar value, not a raster.</li>
+<li><code>min_height</code> can be used to exclude low vegetation before calculating
+  canopy surface complexity.</li>
+<li>Interpolating the CHM before calculating rumple may fill gaps, but it can
+  also smooth the canopy surface and reduce rumple slightly.</li>
+</ul>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p>McElhinny, Chris, Phillip Gibbons, Cris Brack, and Juergen Bauhus. 2005.
+"Forest and woodland stand structural complexity: Its definition and
+measurement." Forest Ecology and Management 218 (1-3): 1-24.
+<a href="https://doi.org/10.1016/j.foreco.2005.08.034">https://doi.org/10.1016/j.foreco.2005.08.034</a>.</p>
+<p>Kane, Van R., Jonathan D. Bakker, Robert J. McGaughey, James A. Lutz,
+Rolf F. Gersonde, and Jerry F. Franklin. 2010. "Examining conifer canopy
+structural complexity across forest ages and elevations with LiDAR data."
+Canadian Journal of Forest Research 40 (4): 774-787.
+<a href="https://doi.org/10.1139/X10-064">https://doi.org/10.1139/X10-064</a>.</p>
 
 
 
@@ -1256,10 +1425,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
       

@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -474,6 +474,34 @@
     
   
     Canopy Height Models (CHM)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/forest-structure/rumple/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rumple Index
   
 
     
@@ -1239,7 +1267,7 @@
 
 
 
-  <div class="doc doc-children">
+<div class="doc doc-children">
 
 
 
@@ -1254,7 +1282,7 @@
 
 
 <h2 id="pyforestscan.process.process_with_tiles" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">process_with_tiles</span><span class="p">(</span><span class="n">ept_file</span><span class="p">,</span> <span class="n">tile_size</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">voxel_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">srs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hag</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">hag_dtm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">remove_outliers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cover_min_height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">cover_k</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">pai_min_height</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">fhd_min_height</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">skip_existing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">thin_radius</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">voxelgrid_cell</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">voxelgrid_mode</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">process_with_tiles</span><span class="p">(</span><span class="n">ept_file</span><span class="p">,</span> <span class="n">tile_size</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span> <span class="n">voxel_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">srs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hag</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">hag_dtm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">remove_outliers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outlier_mean_k</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">outlier_multiplier</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">cover_min_height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">cover_k</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">pai_min_height</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">fhd_min_height</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">skip_existing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">thin_radius</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">voxelgrid_cell</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">voxelgrid_mode</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">,</span> <span class="n">tile_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outliers_before_hag</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#pyforestscan.process.process_with_tiles" class="headerlink" title="Permanent link">&para;</a></h2>
 
@@ -1504,6 +1532,40 @@ If None, tiling is done over the entire dataset.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
+                <code>outlier_mean_k</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of nearest neighbors used by the statistical outlier filter.
+Used only when remove_outliers is True. Defaults to 8.</p>
+              </div>
+            </td>
+            <td>
+                  <code>8</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>outlier_multiplier</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Standard deviation multiplier used by the statistical outlier filter.
+Used only when remove_outliers is True. Defaults to 3.0.</p>
+              </div>
+            </td>
+            <td>
+                  <code>3.0</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
                 <code>cover_min_height</code>
             </td>
             <td>
@@ -1647,6 +1709,41 @@ using cell edge length of <code>voxelgrid_cell</code>. Defaults to None.</p>
             </td>
             <td>
                   <code>&#39;first&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>tile_indices</code>
+            </td>
+            <td>
+                  <code><span title="set">set</span>[<span title="tuple">tuple</span>[<span title="int">int</span>, <span title="int">int</span>]] or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If provided, process only these
+zero-based tile indices while preserving the full tiling grid and buffer behavior.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>outliers_before_hag</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If True with remove_outliers=True, apply PDAL's
+statistical outlier filter and remove classification 7 points before HAG. This can
+avoid Delaunay failures caused by bad points. Defaults to False.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
             </td>
           </tr>
       </tbody>
@@ -2012,16 +2109,55 @@ using cell edge length of <code>voxelgrid_cell</code>. Defaults to None.</p>
 <span class="normal">349</span>
 <span class="normal">350</span>
 <span class="normal">351</span>
-<span class="normal">352</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">process_with_tiles</span><span class="p">(</span><span class="n">ept_file</span><span class="p">,</span> <span class="n">tile_size</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">process_with_tiles</span><span class="p">(</span><span class="n">ept_file</span><span class="p">,</span> <span class="n">tile_size</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">voxel_size</span><span class="p">,</span>
                        <span class="n">voxel_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">srs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hag</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                        <span class="n">hag_dtm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">remove_outliers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">outlier_mean_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">outlier_multiplier</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
                        <span class="n">cover_min_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">cover_k</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
                        <span class="n">pai_min_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
                        <span class="n">fhd_min_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
                        <span class="n">skip_existing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                        <span class="n">thin_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                        <span class="n">voxelgrid_cell</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                       <span class="n">voxelgrid_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;first&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                       <span class="n">voxelgrid_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;first&quot;</span><span class="p">,</span>
+                       <span class="n">tile_indices</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                       <span class="n">outliers_before_hag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,</span>
 <span class="sd">    and write the results to the specified output directory.</span>
@@ -2043,6 +2179,10 @@ using cell edge length of <code>voxelgrid_cell</code>. Defaults to None.</p>
 <span class="sd">            If None, tiling is done over the entire dataset.</span>
 <span class="sd">        interpolation (str or None, optional): Interpolation method for CHM calculation (&quot;linear&quot;, &quot;cubic&quot;, &quot;nearest&quot;, or None).</span>
 <span class="sd">        remove_outliers (bool, optional): Whether to remove statistical outliers before calculating metrics. Defaults to False.</span>
+<span class="sd">        outlier_mean_k (int, optional): Number of nearest neighbors used by the statistical outlier filter.</span>
+<span class="sd">            Used only when remove_outliers is True. Defaults to 8.</span>
+<span class="sd">        outlier_multiplier (float, optional): Standard deviation multiplier used by the statistical outlier filter.</span>
+<span class="sd">            Used only when remove_outliers is True. Defaults to 3.0.</span>
 <span class="sd">        cover_min_height (float, optional): Height threshold (in meters) for canopy cover (used when metric == &quot;cover&quot;). Defaults to 2.0.</span>
 <span class="sd">        cover_k (float, optional): Beer–Lambert extinction coefficient for canopy cover. Defaults to 0.5.</span>
 <span class="sd">        pai_min_height (float, optional): Minimum height (m) to integrate PAI. Defaults to 1.0.</span>
@@ -2055,6 +2195,11 @@ using cell edge length of <code>voxelgrid_cell</code>. Defaults to None.</p>
 <span class="sd">            using cell edge length of ``voxelgrid_cell``. Defaults to None.</span>
 <span class="sd">        voxelgrid_mode (str, optional): Representative selection for voxel-grid downsampling. Common values are</span>
 <span class="sd">            &quot;first&quot; (keep first point unchanged) or &quot;center&quot; (snap kept point to voxel center). Defaults to &quot;first&quot;.</span>
+<span class="sd">        tile_indices (set[tuple[int, int]] or None, optional): If provided, process only these</span>
+<span class="sd">            zero-based tile indices while preserving the full tiling grid and buffer behavior.</span>
+<span class="sd">        outliers_before_hag (bool, optional): If True with remove_outliers=True, apply PDAL&#39;s</span>
+<span class="sd">            statistical outlier filter and remove classification 7 points before HAG. This can</span>
+<span class="sd">            avoid Delaunay failures caused by bad points. Defaults to False.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
@@ -2088,6 +2233,10 @@ using cell edge length of <code>voxelgrid_cell</code>. Defaults to None.</p>
     <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">total_tiles</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Processing tiles&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_tiles_x</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_tiles_y</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">tile_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tile_indices</span><span class="p">:</span>
+                    <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
                 <span class="c1"># Apply buffer+crop for CHM and for PAI/COVER to avoid seam artifacts.</span>
                 <span class="k">if</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;chm&quot;</span><span class="p">,</span> <span class="s2">&quot;pai&quot;</span><span class="p">,</span> <span class="s2">&quot;cover&quot;</span><span class="p">]:</span>
                     <span class="n">current_buffer_size</span> <span class="o">=</span> <span class="n">buffer_size</span>
@@ -2127,6 +2276,15 @@ using cell edge length of <code>voxelgrid_cell</code>. Defaults to None.</p>
                     <span class="n">tile_bounds</span> <span class="o">=</span> <span class="p">([</span><span class="n">tile_min_x</span><span class="p">,</span> <span class="n">tile_max_x</span><span class="p">],</span> <span class="p">[</span><span class="n">tile_min_y</span><span class="p">,</span> <span class="n">tile_max_y</span><span class="p">])</span>
                 <span class="n">tile_pipeline_stages</span> <span class="o">=</span> <span class="p">[]</span>
 
+                <span class="k">if</span> <span class="n">remove_outliers</span> <span class="ow">and</span> <span class="n">outliers_before_hag</span><span class="p">:</span>
+                    <span class="n">tile_pipeline_stages</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                        <span class="n">_filter_statistical_outlier</span><span class="p">(</span>
+                            <span class="n">mean_k</span><span class="o">=</span><span class="n">outlier_mean_k</span><span class="p">,</span>
+                            <span class="n">multiplier</span><span class="o">=</span><span class="n">outlier_multiplier</span><span class="p">,</span>
+                        <span class="p">),</span>
+                        <span class="n">_filter_expression</span><span class="p">(</span><span class="s2">&quot;!(Classification == 7)&quot;</span><span class="p">),</span>
+                    <span class="p">])</span>
+
                 <span class="k">if</span> <span class="n">hag</span><span class="p">:</span>
                     <span class="n">tile_pipeline_stages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_hag_delaunay</span><span class="p">())</span>
                 <span class="k">elif</span> <span class="n">hag_dtm</span><span class="p">:</span>
@@ -2158,8 +2316,19 @@ using cell edge length of <code>voxelgrid_cell</code>. Defaults to None.</p>
                     <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
                     <span class="k">continue</span>
 
-                <span class="k">if</span> <span class="n">remove_outliers</span><span class="p">:</span>
-                    <span class="n">tile_points</span> <span class="o">=</span> <span class="n">remove_outliers_and_clean</span><span class="p">(</span><span class="n">arrays</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">remove_outliers</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">outliers_before_hag</span><span class="p">:</span>
+                    <span class="n">cleaned_arrays</span> <span class="o">=</span> <span class="n">remove_outliers_and_clean</span><span class="p">(</span>
+                        <span class="n">arrays</span><span class="p">,</span>
+                        <span class="n">mean_k</span><span class="o">=</span><span class="n">outlier_mean_k</span><span class="p">,</span>
+                        <span class="n">multiplier</span><span class="o">=</span><span class="n">outlier_multiplier</span><span class="p">,</span>
+                        <span class="n">remove</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">tile_points</span> <span class="o">=</span> <span class="n">cleaned_arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">tile_points</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Tile (</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">) empty after outlier removal. Skipping.&quot;</span><span class="p">)</span>
+                        <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="k">continue</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">tile_points</span> <span class="o">=</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -2347,7 +2516,7 @@ using cell edge length of <code>voxelgrid_cell</code>. Defaults to None.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    2025-12-01
+    2026-06-22
   </span>
 
     
@@ -2397,10 +2566,10 @@ using cell edge length of <code>voxelgrid_cell</code>. Defaults to None.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "search.highlight"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
       
