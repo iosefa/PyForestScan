@@ -14,11 +14,11 @@
 
 ## Overview
 
-PyForestScan is a Python library designed for analyzing and visualizing forest structure using airborne 3D point cloud data. The library helps derive important forest metrics such as Canopy Height, Plant Area Index (PAI), Canopy Cover, Plant Area Density (PAD), and Foliage Height Diversity (FHD).
+PyForestScan is a Python library designed for analyzing and visualizing forest structure using airborne 3D point cloud data. The library helps derive important forest metrics such as Canopy Height, Plant Area Index (PAI), Canopy Cover, Plant Area Density (PAD), Foliage Height Diversity (FHD), and Rumple Index.
 
 ## Features
 
-- **Forest Metrics**: Calculate and visualize key metrics like Canopy Height, PAI, PAD, and FHD.
+- **Forest Metrics**: Calculate and visualize key metrics like Canopy Height, PAI, PAD, FHD, Canopy Cover, and Rumple Index.
 - **Large Point Cloud Support**: Utilizes efficient data formats such as EPT for large point cloud processing.
 - **Visualization**: Create 2D and 3D visualizations of forest structure and structural metrics
 - **Extensibility**: Easily add custom filters and visualization techniques to suit your needs.
