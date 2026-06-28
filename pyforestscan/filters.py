@@ -1,9 +1,136 @@
 from typing import List
 import math
+import os
+import numpy as np
 
 from pyforestscan.handlers import _build_pdal_pipeline
-from pyforestscan.pipeline import _filter_hag, _filter_ground, _filter_statistical_outlier, _filter_smrf, \
-    _filter_radius, _select_ground, _filter_voxeldownsize, _filter_pointsourceid
+from pyforestscan.pipeline import (
+    _filter_hag,
+    _filter_ground,
+    _filter_pointsourceid,
+    _filter_radius,
+    _filter_smrf,
+    _filter_statistical_outlier,
+    _filter_voxeldownsize,
+    _hag_delaunay,
+    _hag_raster,
+    _select_ground,
+)
+
+
+def add_height_above_ground(existing_points, method=None, dtm=None) -> List:
+    """
+    Add HeightAboveGround values to in-memory point cloud arrays.
+
+    This applies a PDAL Height Above Ground filter directly to existing
+    NumPy structured arrays. By default, the Delaunay method uses points
+    classified as ground (Classification == 2) as the terrain surface. When
+    ``dtm`` is provided, the DTM raster method is used unless ``method`` is
+    explicitly set.
+
+    Args:
+        existing_points (np.ndarray or list): A single structured point cloud
+            array, or a list/tuple of arrays, containing at least 'X', 'Y', 'Z',
+            and, for the Delaunay method, 'Classification' fields.
+        method (str, optional): Height Above Ground method. Supported values
+            are 'delaunay' and 'dtm' (also accepts 'raster'). If None, this
+            defaults to 'dtm' when a ``dtm`` path is provided, otherwise
+            'delaunay'.
+        dtm (str or path-like, optional): Path to a DTM GeoTIFF for the DTM
+            method.
+
+    Returns:
+        list: Point cloud arrays with a 'HeightAboveGround' dimension.
+
+    Raises:
+        TypeError: If the input is not a structured NumPy array or iterable of
+            structured NumPy arrays.
+        ValueError: If required dimensions are missing, no points are supplied,
+            an unsupported method is requested, or no ground points
+            (Classification == 2) are present for the Delaunay method.
+        FileNotFoundError: If the requested DTM file does not exist.
+        RuntimeError: If the PDAL HAG pipeline fails.
+    """
+    if method is None:
+        method = "dtm" if dtm is not None else "delaunay"
+    elif not isinstance(method, str):
+        raise TypeError("method must be 'delaunay', 'dtm', or 'raster'.")
+
+    method_lc = method.lower()
+    if method_lc == "raster":
+        method_lc = "dtm"
+    if method_lc not in {"delaunay", "dtm"}:
+        raise ValueError("method must be one of: 'delaunay', 'dtm', or 'raster'.")
+
+    if method_lc == "dtm":
+        if dtm is None:
+            raise ValueError("dtm must be provided when method is 'dtm' or 'raster'.")
+        dtm_path = os.fspath(dtm)
+        if not os.path.isfile(dtm_path):
+            raise FileNotFoundError(f"No such DTM file: '{dtm_path}'")
+        if not dtm_path.lower().endswith((".tif", ".tiff")):
+            raise ValueError("The DTM file must be a .tif or .tiff file.")
+    else:
+        dtm_path = None
+
+    if isinstance(existing_points, np.ndarray):
+        arrays = [existing_points]
+    else:
+        try:
+            arrays = list(existing_points)
+        except TypeError as exc:
+            raise TypeError(
+                "existing_points must be a structured NumPy array or an iterable "
+                "of structured NumPy arrays."
+            ) from exc
+
+    if not arrays:
+        raise ValueError("At least one point cloud array is required.")
+
+    required_fields = {"X", "Y", "Z"}
+    if method_lc == "delaunay":
+        required_fields.add("Classification")
+
+    total_points = 0
+    ground_points = 0
+
+    for idx, arr in enumerate(arrays):
+        dtype_names = getattr(getattr(arr, "dtype", None), "names", None)
+        if dtype_names is None:
+            raise TypeError(
+                f"Point cloud array at index {idx} must be a structured NumPy array."
+            )
+
+        missing_fields = sorted(required_fields.difference(dtype_names))
+        if missing_fields:
+            raise ValueError(
+                f"Point cloud array at index {idx} is missing required fields: "
+                f"{', '.join(missing_fields)}."
+            )
+
+        total_points += len(arr)
+        if len(arr) and method_lc == "delaunay":
+            ground_points += int(np.count_nonzero(arr["Classification"] == 2))
+
+    if total_points == 0:
+        raise ValueError("At least one point is required to calculate HeightAboveGround.")
+    if method_lc == "delaunay" and ground_points == 0:
+        raise ValueError(
+            "At least one ground point with Classification == 2 is required "
+            "to calculate HeightAboveGround."
+        )
+
+    pipeline_stages = [_hag_raster(dtm_path)] if method_lc == "dtm" else [_hag_delaunay()]
+
+    try:
+        pipeline = _build_pdal_pipeline(arrays, pipeline_stages)
+    except RuntimeError as e:
+        raise RuntimeError(f"Height Above Ground Pipeline Failed: {e}")
+
+    if not pipeline.arrays:
+        raise ValueError("No data returned after HeightAboveGround calculation.")
+
+    return pipeline.arrays
 
 
 def filter_hag(arrays, lower_limit=0, upper_limit=None) -> List:
