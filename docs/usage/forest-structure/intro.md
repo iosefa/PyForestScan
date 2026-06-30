@@ -10,6 +10,7 @@ Most calculations for the metrics follows the method outlined in Kamoske et al. 
 ## Metrics
 
 * [Canopy Height Models (CHM)](chm.md)
+* [Rumple Index](rumple.md)
 * [Plant Area Density (PAD)](pad.md)
 * [Plant Area Index (PAI)](pai.md)
 * [Foliage Height Diversity (FHD)](fhd.md)

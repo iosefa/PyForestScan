@@ -8,7 +8,8 @@ from pyforestscan.calculate import (
     calculate_pai,
     calculate_fhd,
     calculate_chm,
-    calculate_canopy_cover
+    calculate_canopy_cover,
+    calculate_rumple
 )
 import math
 
@@ -626,6 +627,72 @@ def test_calculate_chm_large_heights():
     assert isinstance(chm, np.ndarray)
     assert chm.ndim == 2
     assert np.all(chm >= 1000)
+
+
+# ----------------------------
+# Tests for calculate_rumple
+# ----------------------------
+
+def test_calculate_rumple_flat_surface():
+    chm = np.full((4, 4), 12.0)
+    rumple = calculate_rumple(chm, (2.0, 3.0))
+    assert np.isclose(rumple, 1.0)
+
+
+def test_calculate_rumple_planar_slope_matches_analytical_ratio():
+    dx, dy = 2.0, 3.0
+    a, b = 0.5, 0.25
+    x = np.arange(5) * dx
+    y = np.arange(4) * dy
+    chm = a * x[:, None] + b * y[None, :]
+
+    rumple = calculate_rumple(chm, (dx, dy))
+    expected = math.sqrt(1.0 + a ** 2 + b ** 2)
+    assert np.isclose(rumple, expected)
+
+
+def test_calculate_rumple_rough_surface_exceeds_flat_surface():
+    flat = np.full((3, 3), 10.0)
+    rough = np.array([
+        [10.0, 10.0, 10.0],
+        [10.0, 15.0, 10.0],
+        [10.0, 10.0, 10.0],
+    ])
+
+    flat_rumple = calculate_rumple(flat, (1.0, 1.0))
+    rough_rumple = calculate_rumple(rough, (1.0, 1.0))
+    assert np.isclose(flat_rumple, 1.0)
+    assert rough_rumple > flat_rumple
+
+
+def test_calculate_rumple_min_height_can_remove_all_valid_patches():
+    chm = np.array([
+        [3.0, 3.0, 3.0],
+        [3.0, 1.0, 3.0],
+        [3.0, 3.0, 3.0],
+    ])
+    rumple = calculate_rumple(chm, (1.0, 1.0), min_height=2.0)
+    assert np.isnan(rumple)
+
+
+def test_calculate_rumple_returns_nan_when_no_valid_surface_exists():
+    chm = np.array([
+        [np.nan, np.nan],
+        [np.nan, np.nan],
+    ])
+    rumple = calculate_rumple(chm, (1.0, 1.0))
+    assert np.isnan(rumple)
+
+
+def test_calculate_rumple_invalid_inputs():
+    with pytest.raises(ValueError):
+        calculate_rumple(np.ones((2, 2, 2)), (1.0, 1.0))
+
+    with pytest.raises(ValueError):
+        calculate_rumple(np.ones((2, 2)), (0.0, 1.0))
+
+    with pytest.raises(ValueError):
+        calculate_rumple(np.ones((2, 2)), (1.0,))
 
 
 # ----------------------------
