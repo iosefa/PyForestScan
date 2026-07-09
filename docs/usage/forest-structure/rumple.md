@@ -17,9 +17,10 @@ Where:
 A flat canopy has a rumple value of 1.0. More structurally complex or
 corrugated canopies have values greater than 1.0.
 
-PyForestScan computes rumple from a Canopy Height Model (CHM) by treating the
-CHM as a triangulated surface over the raster grid and summing surface area
-over valid 2x2 CHM patches.
+PyForestScan computes rumple as a gridded point-cloud metric. For each output
+cell, points inside the cell are treated as a local triangulated canopy surface.
+Rumple is then calculated as the 3D surface area of those triangles divided by
+their projected planar ground area.
 
 ## Calculating Rumple
 
@@ -27,26 +28,35 @@ To calculate rumple:
 
 ```python
 from pyforestscan.handlers import read_lidar
-from pyforestscan.calculate import calculate_chm, calculate_rumple
+from pyforestscan.calculate import calculate_rumple
+from pyforestscan.visualize import plot_metric
 
 file_path = "../example_data/20191210_5QKB020880.laz"
 arrays = read_lidar(file_path, "EPSG:32605", hag=True)
 points = arrays[0]
 
-cell_resolution = (5.0, 5.0)
-chm, extent = calculate_chm(points, cell_resolution, interpolation="linear")
-rumple = calculate_rumple(chm, cell_resolution, min_height=2.0)
+voxel_resolution = (10.0, 10.0)
+rumple, extent = calculate_rumple(points, voxel_resolution, min_height=2.0)
 
-print(f"Rumple: {rumple:.3f}")
+plot_metric(
+    "Rumple Index",
+    rumple,
+    extent,
+    metric_name="Rumple",
+    cmap="viridis",
+)
 ```
 
 ## Notes
 
-- `calculate_rumple` returns a single scalar value, not a raster.
+- `calculate_rumple` returns a 2D raster and extent, matching the pattern used
+  by gridded metrics such as CHM.
 - `min_height` can be used to exclude low vegetation before calculating
   canopy surface complexity.
-- Interpolating the CHM before calculating rumple may fill gaps, but it can
-  also smooth the canopy surface and reduce rumple slightly.
+- Cells with fewer than three unique point locations cannot form a triangulated
+  surface and are returned as `NaN`.
+- The projected ground area is the planar area covered by valid triangles
+  inside each output cell, not the full rectangular cell footprint.
 
 ## References
 

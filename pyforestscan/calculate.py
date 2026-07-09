@@ -3,6 +3,7 @@ import numpy as np
 from scipy.interpolate import griddata
 from scipy.stats import entropy
 from scipy import ndimage
+from scipy.spatial import Delaunay, QhullError
 from typing import List, Tuple, Optional
 
 
@@ -584,74 +585,161 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear",
     return chm, extent
 
 
-def calculate_rumple(chm: np.ndarray,
-                     cell_resolution: Tuple[float, float],
-                     min_height: float | None = None) -> float:
+def calculate_rumple(arr,
+                     voxel_resolution,
+                     min_height: float | None = None) -> Tuple[np.ndarray, List]:
     """
-    Calculate the canopy rumple index from a Canopy Height Model (CHM).
+    Calculate gridded canopy rumple index from point-cloud data.
 
-    Rumple is defined here as the ratio of canopy surface area to planar
-    ground area. The CHM is treated as a triangulated surface over the raster
-    grid, and the surface area is summed over valid 2x2 CHM patches.
+    Rumple is calculated independently for each (X, Y) grid cell as the ratio
+    of canopy surface area to projected ground area. Within each cell, the
+    points are treated as a local triangulated surface using their ``X``,
+    ``Y``, and ``HeightAboveGround`` values.
 
     Args:
-        chm (np.ndarray): 2D array of canopy heights.
-        cell_resolution (tuple[float, float]): CHM cell size as (dx, dy).
-        min_height (float | None, optional): If provided, CHM cells below this
-            height threshold are masked before computing the rumple index.
-            Defaults to None.
+        arr (np.ndarray): Input structured numpy array containing point cloud
+            data with fields ``X``, ``Y``, and ``HeightAboveGround``.
+        voxel_resolution (tuple of float): The output grid resolution for the
+            X and Y dimensions, specified as ``(x_resolution, y_resolution)``.
+            A three-component voxel resolution is also accepted; the Z
+            component is ignored.
+        min_height (float | None, optional): If provided, points below this
+            height-above-ground threshold are excluded before calculating
+            rumple. Defaults to None.
 
     Returns:
-        float: Rumple index (>= 1 for valid surfaces) or NaN if no valid 2x2
-            surface patches remain after masking.
+        tuple of (np.ndarray, list): A 2D array of rumple values and the
+            spatial extent as ``[x_min, x_max, y_min, y_max]``. Cells with too
+            few valid points to form a surface are set to ``np.nan``.
 
     Raises:
-        ValueError: If the CHM is not 2D, if cell_resolution is invalid, or if
-            dx/dy are not positive.
+        ValueError: If required fields are missing, if the input is empty, or
+            if voxel_resolution is invalid.
     """
-    chm = np.asarray(chm, dtype=float)
-    if chm.ndim != 2:
-        raise ValueError(f"chm must be a 2D array (got shape {chm.shape})")
+    dtype_names = getattr(getattr(arr, "dtype", None), "names", None)
+    required_fields = {"X", "Y", "HeightAboveGround"}
+    if dtype_names is None:
+        raise ValueError("Input array must be a structured NumPy array.")
 
-    if len(cell_resolution) != 2:
-        raise ValueError("cell_resolution must be a (dx, dy) tuple")
+    missing_fields = sorted(required_fields.difference(dtype_names))
+    if missing_fields:
+        raise ValueError(
+            "Input array is missing required fields: "
+            f"{', '.join(missing_fields)}."
+        )
 
-    dx, dy = map(float, cell_resolution)
-    if dx <= 0 or dy <= 0:
-        raise ValueError("cell_resolution components must be > 0")
+    if len(voxel_resolution) < 2:
+        raise ValueError("voxel_resolution must contain at least X and Y resolutions")
 
+    x_resolution, y_resolution = map(float, voxel_resolution[:2])
+    if x_resolution <= 0 or y_resolution <= 0:
+        raise ValueError("voxel_resolution X and Y components must be > 0")
+
+    if len(arr) == 0:
+        raise ValueError("Input array must contain at least one point.")
+
+    x = np.asarray(arr["X"], dtype=float)
+    y = np.asarray(arr["Y"], dtype=float)
+    z = np.asarray(arr["HeightAboveGround"], dtype=float)
+
+    valid_points = np.isfinite(x) & np.isfinite(y) & np.isfinite(z)
     if min_height is not None:
-        chm = np.where(chm >= float(min_height), chm, np.nan)
+        valid_points &= z >= float(min_height)
 
-    z00 = chm[:-1, :-1]
-    z10 = chm[1:, :-1]
-    z01 = chm[:-1, 1:]
-    z11 = chm[1:, 1:]
+    x = x[valid_points]
+    y = y[valid_points]
+    z = z[valid_points]
+    if x.size == 0:
+        raise ValueError("No valid points available to calculate rumple.")
 
-    valid = (
-        np.isfinite(z00) &
-        np.isfinite(z10) &
-        np.isfinite(z01) &
-        np.isfinite(z11)
-    )
-    if not np.any(valid):
+    x_min, x_max = x.min(), x.max()
+    y_min, y_max = y.min(), y.max()
+
+    nx = int(np.ceil((x_max - x_min) / x_resolution))
+    ny = int(np.ceil((y_max - y_min) / y_resolution))
+    nx = max(nx, 1)
+    ny = max(ny, 1)
+
+    rumple = np.full((nx, ny), np.nan, dtype=float)
+
+    x_indices = np.floor((x - x_min) / x_resolution).astype(int)
+    y_indices = np.floor((y - y_min) / y_resolution).astype(int)
+
+    np.minimum(x_indices, nx - 1, out=x_indices)
+    np.minimum(y_indices, ny - 1, out=y_indices)
+
+    flat_indices = x_indices * ny + y_indices
+    order = np.argsort(flat_indices, kind="mergesort")
+    sorted_flat = flat_indices[order]
+    unique, first = np.unique(sorted_flat, return_index=True)
+    counts = np.diff(np.append(first, sorted_flat.size))
+
+    for flat_idx, start, count in zip(unique, first, counts):
+        point_idx = order[start:start + count]
+        xi = flat_idx // ny
+        yi = flat_idx % ny
+        rumple[xi, yi] = _calculate_tin_rumple(
+            x[point_idx],
+            y[point_idx],
+            z[point_idx],
+        )
+
+    rumple = np.flip(rumple, axis=1)
+    extent = [x_min, x_min + nx * x_resolution, y_min, y_min + ny * y_resolution]
+    return rumple, extent
+
+
+def _calculate_tin_rumple(x, y, z) -> float:
+    """
+    Calculate rumple for one point set using a local triangulated surface.
+    """
+    if len(x) < 3:
         return np.nan
 
-    # Approximate the CHM as a triangular mesh over each 2x2 raster patch.
-    tri1 = 0.5 * np.sqrt(
-        (dy * (z10 - z00)) ** 2 +
-        (dx * (z01 - z00)) ** 2 +
-        (dx * dy) ** 2
+    xy = np.column_stack((x, y))
+    unique_xy, inverse = np.unique(xy, axis=0, return_inverse=True)
+    if unique_xy.shape[0] < 3:
+        return np.nan
+
+    unique_z = np.full(unique_xy.shape[0], -np.inf, dtype=float)
+    np.maximum.at(unique_z, inverse, z)
+    valid = np.isfinite(unique_z)
+    unique_xy = unique_xy[valid]
+    unique_z = unique_z[valid]
+    if unique_xy.shape[0] < 3:
+        return np.nan
+
+    try:
+        triangulation = Delaunay(unique_xy)
+    except QhullError:
+        return np.nan
+
+    triangles = triangulation.simplices
+    p0_xy = unique_xy[triangles[:, 0]]
+    p1_xy = unique_xy[triangles[:, 1]]
+    p2_xy = unique_xy[triangles[:, 2]]
+
+    planar_area = 0.5 * np.abs(
+        (p1_xy[:, 0] - p0_xy[:, 0]) * (p2_xy[:, 1] - p0_xy[:, 1]) -
+        (p2_xy[:, 0] - p0_xy[:, 0]) * (p1_xy[:, 1] - p0_xy[:, 1])
     )
-    tri2 = 0.5 * np.sqrt(
-        (dy * (z01 - z11)) ** 2 +
-        (dx * (z11 - z10)) ** 2 +
-        (dx * dy) ** 2
+    valid_triangles = planar_area > 0
+    if not np.any(valid_triangles):
+        return np.nan
+
+    p0 = np.column_stack((p0_xy, unique_z[triangles[:, 0]]))
+    p1 = np.column_stack((p1_xy, unique_z[triangles[:, 1]]))
+    p2 = np.column_stack((p2_xy, unique_z[triangles[:, 2]]))
+    surface_area = 0.5 * np.linalg.norm(
+        np.cross(p1 - p0, p2 - p0),
+        axis=1,
     )
 
-    surface_area = np.sum((tri1 + tri2)[valid], dtype=float)
-    planar_area = float(np.count_nonzero(valid)) * dx * dy
-    return surface_area / planar_area
+    total_planar_area = np.sum(planar_area[valid_triangles], dtype=float)
+    total_surface_area = np.sum(surface_area[valid_triangles], dtype=float)
+    if total_planar_area <= 0:
+        return np.nan
+    return total_surface_area / total_planar_area
 
 
 def _calc_valid_region_mask(arr):

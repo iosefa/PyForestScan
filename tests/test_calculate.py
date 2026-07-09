@@ -633,66 +633,101 @@ def test_calculate_chm_large_heights():
 # Tests for calculate_rumple
 # ----------------------------
 
-def test_calculate_rumple_flat_surface():
-    chm = np.full((4, 4), 12.0)
-    rumple = calculate_rumple(chm, (2.0, 3.0))
-    assert np.isclose(rumple, 1.0)
+def create_rumple_points(points):
+    dtype = [('X', 'f8'), ('Y', 'f8'), ('HeightAboveGround', 'f8')]
+    return np.array(points, dtype=dtype)
+
+
+def test_calculate_rumple_flat_surface_grid():
+    points = create_rumple_points([
+        (0.0, 0.0, 12.0),
+        (9.0, 0.0, 12.0),
+        (0.0, 9.0, 12.0),
+        (9.0, 9.0, 12.0),
+        (10.0, 0.0, 8.0),
+        (19.0, 0.0, 8.0),
+        (10.0, 9.0, 8.0),
+        (19.0, 9.0, 8.0),
+    ])
+
+    rumple, extent = calculate_rumple(points, (10.0, 10.0))
+
+    assert rumple.shape == (2, 1)
+    assert extent == [0.0, 20.0, 0.0, 10.0]
+    assert np.allclose(rumple, 1.0)
 
 
 def test_calculate_rumple_planar_slope_matches_analytical_ratio():
-    dx, dy = 2.0, 3.0
     a, b = 0.5, 0.25
-    x = np.arange(5) * dx
-    y = np.arange(4) * dy
-    chm = a * x[:, None] + b * y[None, :]
+    xy = [(0.0, 0.0), (9.0, 0.0), (0.0, 9.0), (9.0, 9.0)]
+    points = create_rumple_points([
+        (x, y, a * x + b * y)
+        for x, y in xy
+    ])
 
-    rumple = calculate_rumple(chm, (dx, dy))
+    rumple, _ = calculate_rumple(points, (10.0, 10.0))
     expected = math.sqrt(1.0 + a ** 2 + b ** 2)
-    assert np.isclose(rumple, expected)
+    assert np.isclose(rumple[0, 0], expected)
 
 
 def test_calculate_rumple_rough_surface_exceeds_flat_surface():
-    flat = np.full((3, 3), 10.0)
-    rough = np.array([
-        [10.0, 10.0, 10.0],
-        [10.0, 15.0, 10.0],
-        [10.0, 10.0, 10.0],
+    flat = create_rumple_points([
+        (0.0, 0.0, 10.0),
+        (9.0, 0.0, 10.0),
+        (0.0, 9.0, 10.0),
+        (9.0, 9.0, 10.0),
+    ])
+    rough = create_rumple_points([
+        (0.0, 0.0, 10.0),
+        (9.0, 0.0, 10.0),
+        (0.0, 9.0, 10.0),
+        (9.0, 9.0, 10.0),
+        (4.5, 4.5, 15.0),
     ])
 
-    flat_rumple = calculate_rumple(flat, (1.0, 1.0))
-    rough_rumple = calculate_rumple(rough, (1.0, 1.0))
-    assert np.isclose(flat_rumple, 1.0)
-    assert rough_rumple > flat_rumple
+    flat_rumple, _ = calculate_rumple(flat, (10.0, 10.0))
+    rough_rumple, _ = calculate_rumple(rough, (10.0, 10.0))
+    assert np.isclose(flat_rumple[0, 0], 1.0)
+    assert rough_rumple[0, 0] > flat_rumple[0, 0]
 
 
 def test_calculate_rumple_min_height_can_remove_all_valid_patches():
-    chm = np.array([
-        [3.0, 3.0, 3.0],
-        [3.0, 1.0, 3.0],
-        [3.0, 3.0, 3.0],
+    points = create_rumple_points([
+        (0.0, 0.0, 1.0),
+        (9.0, 0.0, 1.0),
+        (0.0, 9.0, 1.0),
+        (9.0, 9.0, 1.0),
     ])
-    rumple = calculate_rumple(chm, (1.0, 1.0), min_height=2.0)
-    assert np.isnan(rumple)
+
+    with pytest.raises(ValueError, match="No valid points"):
+        calculate_rumple(points, (10.0, 10.0), min_height=2.0)
 
 
-def test_calculate_rumple_returns_nan_when_no_valid_surface_exists():
-    chm = np.array([
-        [np.nan, np.nan],
-        [np.nan, np.nan],
+def test_calculate_rumple_returns_nan_when_cell_has_too_few_points():
+    points = create_rumple_points([
+        (0.0, 0.0, 10.0),
+        (9.0, 0.0, 10.0),
     ])
-    rumple = calculate_rumple(chm, (1.0, 1.0))
-    assert np.isnan(rumple)
+
+    rumple, _ = calculate_rumple(points, (10.0, 10.0))
+    assert np.isnan(rumple[0, 0])
 
 
 def test_calculate_rumple_invalid_inputs():
     with pytest.raises(ValueError):
-        calculate_rumple(np.ones((2, 2, 2)), (1.0, 1.0))
+        calculate_rumple(np.ones((2, 2)), (1.0, 1.0))
+
+    points = create_rumple_points([
+        (0.0, 0.0, 10.0),
+        (9.0, 0.0, 10.0),
+        (0.0, 9.0, 10.0),
+    ])
 
     with pytest.raises(ValueError):
-        calculate_rumple(np.ones((2, 2)), (0.0, 1.0))
+        calculate_rumple(points, (0.0, 1.0))
 
     with pytest.raises(ValueError):
-        calculate_rumple(np.ones((2, 2)), (1.0,))
+        calculate_rumple(points, (1.0,))
 
 
 # ----------------------------
