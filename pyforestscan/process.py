@@ -5,7 +5,15 @@ import os
 
 from tqdm import tqdm
 
-from pyforestscan.calculate import calculate_fhd, calculate_pad, calculate_pai, assign_voxels, calculate_chm, calculate_canopy_cover
+from pyforestscan.calculate import (
+    calculate_fhd,
+    calculate_pad,
+    calculate_pai,
+    assign_voxels,
+    calculate_chm,
+    calculate_canopy_cover,
+    calculate_rumple,
+)
 from pyforestscan.filters import remove_outliers_and_clean, downsample_poisson, downsample_voxel
 from pyforestscan.handlers import create_geotiff
 from pyforestscan.pipeline import _filter_expression, _filter_statistical_outlier, _hag_raster, _hag_delaunay
@@ -55,6 +63,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        cover_min_height: float = 2.0, cover_k: float = 0.5,
                        pai_min_height: float = 1.0,
                        fhd_min_height: float = 0.0,
+                       rumple_min_height: float | None = None,
                        skip_existing: bool = False, verbose: bool = False,
                        thin_radius: float | None = None,
                        voxelgrid_cell: float | None = None,
@@ -69,7 +78,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         ept_file (str): Path to the EPT file containing the point cloud data.
         tile_size (tuple): Size of each tile as (tile_width, tile_height).
         output_path (str): Directory where the output files will be saved.
-        metric (str): Metric to compute for each tile ("chm", "fhd", "pai", or "cover").
+        metric (str): Metric to compute for each tile ("chm", "fhd", "pai", "cover", or "rumple").
         voxel_size (tuple): Voxel resolution as (x_resolution, y_resolution, z_resolution).
         voxel_height (float, optional): Height of each voxel in meters. Required if metric is "fhd", "pai", or "cover".
         buffer_size (float, optional): Fractional buffer size relative to tile size (e.g., 0.1 for 10% buffer). Defaults to 0.1.
@@ -90,6 +99,8 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         cover_k (float, optional): Beer–Lambert extinction coefficient for canopy cover. Defaults to 0.5.
         pai_min_height (float, optional): Minimum height (m) to integrate PAI. Defaults to 1.0.
         fhd_min_height (float, optional): Minimum height (m) to include in FHD entropy. Defaults to 0.0.
+        rumple_min_height (float or None, optional): Minimum height (m) to include in rumple triangulation.
+            If None, all finite HeightAboveGround values are included. Defaults to None.
         skip_existing (bool, optional): If True, skip tiles whose output file already exists. Defaults to False.
         verbose (bool, optional): If True, print warnings for empty/invalid tiles and buffer adjustments. Defaults to False.
         thin_radius (float or None, optional): If provided (> 0), apply Poisson radius-based thinning per tile before metrics.
@@ -111,7 +122,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         ValueError: If an unsupported metric is requested, if buffer or voxel sizes are invalid, or required arguments are missing.
         FileNotFoundError: If the EPT or DTM file does not exist, or a required file for processing is missing.
     """
-    if metric not in ["chm", "fhd", "pai", "cover"]:
+    if metric not in ["chm", "fhd", "pai", "cover", "rumple"]:
         raise ValueError(f"Unsupported metric: {metric}")
 
     (min_z, max_z) = (None, None)
@@ -140,8 +151,8 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                     pbar.update(1)
                     continue
 
-                # Apply buffer+crop for CHM and for PAI/COVER to avoid seam artifacts.
-                if metric in ["chm", "pai", "cover"]:
+                # Apply buffer+crop for gridded metrics to avoid seam artifacts.
+                if metric in ["chm", "pai", "cover", "rumple"]:
                     current_buffer_size = buffer_size
                 else:
                     current_buffer_size = 0.0
@@ -304,8 +315,15 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                     )
 
                     create_geotiff(chm, result_file, srs, core_extent)
-                elif metric in ["fhd", "pai", "cover"]:
-                    voxels, spatial_extent = assign_voxels(tile_points, voxel_size)
+                elif metric in ["fhd", "pai", "cover", "rumple"]:
+                    if metric == "rumple":
+                        result, spatial_extent = calculate_rumple(
+                            tile_points,
+                            voxel_size,
+                            min_height=rumple_min_height,
+                        )
+                    else:
+                        voxels, spatial_extent = assign_voxels(tile_points, voxel_size)
 
                     if metric == "fhd":
                         if voxel_size[-1] <= 0:
