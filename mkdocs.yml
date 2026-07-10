@@ -39,6 +39,7 @@ nav:
     - Usage:
         - usage/getting-started-import-and-preprocess.md
         - usage/digital-terrain-models.md
+        - usage/voxel-stat-rasters.md
         - Forest Structure:
             - usage/forest-structure/intro.md
             - usage/forest-structure/chm.md
