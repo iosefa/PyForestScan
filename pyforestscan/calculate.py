@@ -584,74 +584,85 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear",
     return chm, extent
 
 
-def calculate_rumple(chm: np.ndarray,
-                     cell_resolution: Tuple[float, float],
-                     min_height: float | None = None) -> float:
+def calculate_rumple(arr: np.ndarray,
+                     voxel_resolution: Tuple[float, float, float],
+                     min_height: float | None = None) -> Tuple[np.ndarray, List]:
     """
-    Calculate the canopy rumple index from a Canopy Height Model (CHM).
+    Calculate a rumple raster on the same XY grid as ``assign_voxels``.
 
-    Rumple is defined here as the ratio of canopy surface area to planar
-    ground area. The CHM is treated as a triangulated surface over the raster
-    grid, and the surface area is summed over valid 2x2 CHM patches.
+    The highest HeightAboveGround value in each voxel column defines the
+    canopy surface. Following Jenness (2004), eight triangles connect each
+    cell center to its neighbors. The portions inside the central cell are
+    summed and divided by its planar area (dx * dy). Flat surfaces have a
+    rumple of 1; sloped or rough surfaces have values greater than 1.
 
     Args:
-        chm (np.ndarray): 2D array of canopy heights.
-        cell_resolution (tuple[float, float]): CHM cell size as (dx, dy).
-        min_height (float | None, optional): If provided, CHM cells below this
-            height threshold are masked before computing the rumple index.
-            Defaults to None.
+        arr (np.ndarray): Structured point array with X, Y, and
+            HeightAboveGround fields. Nonfinite points and points below
+            ground are ignored.
+        voxel_resolution (tuple[float, float, float]): Positive, finite
+            (dx, dy, dz) sizes in the same units as the point coordinates.
+            XY sets the raster resolution; dz does not quantize the canopy
+            heights or affect rumple.
+        min_height (float | None, optional): Mask canopy cells below this
+            height before calculating rumple. Defaults to None.
 
     Returns:
-        float: Rumple index (>= 1 for valid surfaces) or NaN if no valid 2x2
-            surface patches remain after masking.
+        tuple[np.ndarray, list]: Rumple array shaped (X, Y), with Y ordered
+            north to south, and extent [x_min, x_max, y_min, y_max]. A complete
+            3x3 canopy neighborhood is required: edges, missing cells, and
+            cells next to missing/masked canopy are NaN. No interpolation
+            is applied.
 
     Raises:
-        ValueError: If the CHM is not 2D, if cell_resolution is invalid, or if
-            dx/dy are not positive.
+        ValueError: If the resolution or height threshold is invalid, or
+            no finite points at or above ground remain.
+        KeyError: If a required point dimension is missing.
     """
-    chm = np.asarray(chm, dtype=float)
-    if chm.ndim != 2:
-        raise ValueError(f"chm must be a 2D array (got shape {chm.shape})")
+    resolution = np.asarray(voxel_resolution, dtype=float)
+    if resolution.shape != (3,) or not np.all(np.isfinite(resolution) & (resolution > 0)):
+        raise ValueError("voxel_resolution must contain three positive, finite sizes (dx, dy, dz)")
+    if min_height is not None and not np.isfinite(min_height):
+        raise ValueError("min_height must be finite or None")
 
-    if len(cell_resolution) != 2:
-        raise ValueError("cell_resolution must be a (dx, dy) tuple")
+    arr = np.asarray(arr)
+    required = ('X', 'Y', 'HeightAboveGround')
+    if arr.dtype.names is None or not all(name in arr.dtype.names for name in required):
+        raise KeyError("Input array must include X, Y, and HeightAboveGround fields")
+    if arr.ndim != 1:
+        raise ValueError("Input point array must be one-dimensional")
+    valid = np.isfinite(arr['X']) & np.isfinite(arr['Y']) & np.isfinite(arr['HeightAboveGround'])
+    points = arr[valid & (arr['HeightAboveGround'] >= 0)]
+    if points.size == 0:
+        raise ValueError("No finite points at or above ground are available")
 
-    dx, dy = map(float, cell_resolution)
-    if dx <= 0 or dy <= 0:
-        raise ValueError("cell_resolution components must be > 0")
+    chm, extent = calculate_voxel_stat(points, resolution, 'HeightAboveGround', 'max')
+    rumple = np.full(chm.shape, np.nan)
+    if min(chm.shape) < 3:
+        return rumple, extent
 
     if min_height is not None:
         chm = np.where(chm >= float(min_height), chm, np.nan)
 
-    z00 = chm[:-1, :-1]
-    z10 = chm[1:, :-1]
-    z01 = chm[:-1, 1:]
-    z11 = chm[1:, 1:]
+    dx, dy = resolution[:2]
+    center = chm[1:-1, 1:-1]
+    nx, ny = center.shape
+    offsets = [(1, 0), (1, 1), (0, 1), (-1, 1),
+               (-1, 0), (-1, -1), (0, -1), (1, -1)]
+    surface_ratio = np.zeros(center.shape)
+    for (ax, ay), (bx, by) in zip(offsets, offsets[1:] + offsets[:1]):
+        za = chm[1 + ax:1 + ax + nx, 1 + ay:1 + ay + ny] - center
+        zb = chm[1 + bx:1 + bx + nx, 1 + by:1 + by + ny] - center
 
-    valid = (
-        np.isfinite(z00) &
-        np.isfinite(z10) &
-        np.isfinite(z01) &
-        np.isfinite(z11)
-    )
-    if not np.any(valid):
-        return np.nan
+        # Cross-product area, normalized by dx*dy. Halving the two
+        # center-to-neighbor vectors clips each triangle to the cell:
+        # area = |cross| / 8. All eight projected areas sum to dx*dy.
+        slope_x = (ay * zb - by * za) / dx
+        slope_y = (bx * za - ax * zb) / dy
+        surface_ratio += np.hypot(np.hypot(slope_x, slope_y), 1.0) / 8.0
 
-    # Approximate the CHM as a triangular mesh over each 2x2 raster patch.
-    tri1 = 0.5 * np.sqrt(
-        (dy * (z10 - z00)) ** 2 +
-        (dx * (z01 - z00)) ** 2 +
-        (dx * dy) ** 2
-    )
-    tri2 = 0.5 * np.sqrt(
-        (dy * (z01 - z11)) ** 2 +
-        (dx * (z11 - z10)) ** 2 +
-        (dx * dy) ** 2
-    )
-
-    surface_area = np.sum((tri1 + tri2)[valid], dtype=float)
-    planar_area = float(np.count_nonzero(valid)) * dx * dy
-    return surface_area / planar_area
+    rumple[1:-1, 1:-1] = surface_ratio
+    return rumple, extent
 
 
 def _calc_valid_region_mask(arr):

@@ -1,9 +1,13 @@
 import pytest
 import numpy as np
+import ast
+import json
+import rasterio
 from unittest.mock import patch, MagicMock
 
 
 from pyforestscan.process import process_with_tiles
+from pyforestscan.calculate import calculate_rumple
 
 
 # todo: look into why this test takes so long...
@@ -292,3 +296,128 @@ def test_process_with_tiles_pai_handles_low_top_height(mock_pipeline_cls, tmp_pa
 
     created_tifs = list(out_dir.glob("tile_*_pai.tif"))
     assert len(created_tifs) >= 1, "Expected a PAI output tile even when top height < 1 m."
+
+
+@pytest.fixture
+def rumple_ept(monkeypatch):
+    """Simulate EPT bounds reads; calculate and write real rumple GeoTIFFs."""
+    x, y = np.meshgrid(np.arange(11) * 2.0 + 1.0,
+                       np.arange(9) * 3.0 + 1.5, indexing='ij')
+    points = np.zeros(x.size, dtype=[('X', 'f8'), ('Y', 'f8'), ('HeightAboveGround', 'f8')])
+    points['X'], points['Y'] = x.ravel(), y.ravel()
+    points['HeightAboveGround'] = 10.0 + 0.03 * points['X'] ** 2 + 0.01 * points['Y'] ** 2
+    # A gap and a peak exercise spatial variation, orientation, and NoData.
+    points['HeightAboveGround'][12] = np.nan
+    points['HeightAboveGround'][49] += 8.0
+    # Returns exactly on read boundaries must be assigned consistently.
+    edge_points = np.array([(10.0, 12.0, 25.0), (8.0, 15.0, 30.0)], dtype=points.dtype)
+    points = np.concatenate([points, edge_points])
+    reads = []
+
+    def pipeline(pipeline_json):
+        read = json.loads(pipeline_json)['pipeline'][0]
+        bounds = ast.literal_eval(read['bounds'])
+        reads.append(bounds)
+        (xmin, xmax), (ymin, ymax) = bounds[:2]
+        keep = ((points['X'] >= xmin) & (points['X'] <= xmax) &
+                (points['Y'] >= ymin) & (points['Y'] <= ymax))
+        result = MagicMock()
+        result.arrays = [points[keep]]
+        return result
+
+    monkeypatch.setattr('pyforestscan.process.pdal.Pipeline', pipeline)
+    return points, reads
+
+
+@pytest.mark.parametrize('buffer_size', [0.0, 0.4])
+def test_rumple_tiles_match_whole_grid_and_georeferencing(rumple_ept, tmp_path, buffer_size):
+    points, reads = rumple_ept
+    expected, extent = calculate_rumple(points, (2, 3, 1))
+    process_with_tiles(
+        'fake_ept', (8, 9), str(tmp_path), 'rumple', (2, 3, 1),
+        buffer_size=buffer_size, srs='EPSG:32605',
+        bounds=([0.2, 21.8], [0.3, 26.8], [0, 100]),
+    )
+
+    tiles = sorted(tmp_path.glob('tile_*_rumple.tif'))
+    assert len(tiles) == 9
+    assert len(reads) == 9
+    assert reads[0][2] == [0, 100]
+    mosaic = np.full(expected.shape, np.nan)
+    covered = np.zeros(expected.shape, dtype=int)
+    for path in tiles:
+        with rasterio.open(path) as src:
+            assert src.crs.to_epsg() == 32605
+            assert src.res == (2.0, 3.0)
+            assert src.nodata == -9999
+            assert src.count == 1
+            values = src.read(1, masked=True).filled(np.nan).T
+            x0 = int(round((src.bounds.left - extent[0]) / 2))
+            y0 = int(round((extent[3] - src.bounds.top) / 3))
+            xs = slice(x0, x0 + src.width)
+            ys = slice(y0, y0 + src.height)
+            np.testing.assert_allclose(values, expected[xs, ys], equal_nan=True)
+            mosaic[xs, ys] = values
+            covered[xs, ys] += 1
+    np.testing.assert_array_equal(covered, 1)
+    np.testing.assert_allclose(mosaic, expected, equal_nan=True)
+
+
+def test_rumple_tiles_height_mask_selection_and_skip_existing(rumple_ept, tmp_path):
+    points, reads = rumple_ept
+    expected, _ = calculate_rumple(points, (2, 3, 1), min_height=16.0)
+    kwargs = dict(
+        ept_file='fake_ept', tile_size=(8, 9), output_path=str(tmp_path),
+        metric='rumple', voxel_size=(2, 3, 1), srs='EPSG:32605',
+        bounds=([0, 22], [0, 27]), tile_indices={(1, 1)},
+        rumple_min_height=16.0, buffer_size=0.0,
+    )
+    process_with_tiles(**kwargs)
+    path = tmp_path / 'tile_1_1_rumple.tif'
+    assert list(tmp_path.glob('*.tif')) == [path]
+    with rasterio.open(path) as src:
+        np.testing.assert_allclose(src.read(1, masked=True).filled(np.nan).T,
+                                   expected[4:8, 3:6], equal_nan=True)
+    original = path.read_bytes()
+    process_with_tiles(**kwargs, skip_existing=True)
+    assert len(reads) == 1
+    assert path.read_bytes() == original
+
+
+def test_rumple_tiles_all_masked_write_nodata(rumple_ept, tmp_path):
+    process_with_tiles(
+        'fake_ept', (8, 9), str(tmp_path), 'rumple', (2, 3, 1),
+        srs='EPSG:32605', bounds=([0, 22], [0, 27]),
+        tile_indices={(1, 1)}, rumple_min_height=100.0,
+    )
+    with rasterio.open(tmp_path / 'tile_1_1_rumple.tif') as src:
+        assert src.read(1, masked=True).mask.all()
+
+
+@pytest.mark.parametrize('height', [None, -1.0, np.nan])
+@patch('pyforestscan.process.pdal.Pipeline')
+def test_rumple_tiles_empty_or_invalid_points_skip(mock_pipeline_cls, tmp_path, height):
+    points = np.zeros(0 if height is None else 2,
+                      dtype=[('X', 'f8'), ('Y', 'f8'), ('HeightAboveGround', 'f8')])
+    if height is not None:
+        points['HeightAboveGround'] = height
+    mock_pipeline_cls.return_value.arrays = [points]
+    process_with_tiles('fake_ept', (4, 4), str(tmp_path), 'rumple', (1, 1, 1),
+                       srs='EPSG:32605', bounds=([0, 4], [0, 4]))
+    assert not list(tmp_path.glob('*.tif'))
+
+
+@pytest.mark.parametrize('overrides, message', [
+    ({'voxel_size': (0, 1, 1)}, 'voxel_size'),
+    ({'voxel_size': (1, np.inf, 1)}, 'voxel_size'),
+    ({'tile_size': (8,)}, 'tile_size'),
+    ({'tile_size': (5, 9)}, 'tile_size'),
+    ({'buffer_size': -0.1}, 'buffer_size'),
+    ({'rumple_min_height': np.nan}, 'rumple_min_height'),
+])
+def test_rumple_tiles_validate_grid_before_reading(tmp_path, overrides, message):
+    kwargs = dict(ept_file='fake_ept', tile_size=(8, 9), output_path=str(tmp_path),
+                  metric='rumple', voxel_size=(2, 3, 1))
+    kwargs.update(overrides)
+    with pytest.raises(ValueError, match=message):
+        process_with_tiles(**kwargs)
