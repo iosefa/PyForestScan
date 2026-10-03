@@ -769,6 +769,12 @@ def test_calculate_rumple_missing_dimensions():
         calculate_rumple(np.zeros(3, dtype=[('X', 'f8'), ('Y', 'f8')]), (1, 1, 1))
 
 
+def test_calculate_rumple_non_one_dimensional_points():
+    points = rumple_points(np.ones((3, 3))).reshape(3, 3)
+    with pytest.raises(ValueError, match='Input point array must be one-dimensional'):
+        calculate_rumple(points, (1, 1, 1))
+
+
 @pytest.mark.parametrize('height', [-1.0, np.nan, np.inf])
 def test_calculate_rumple_no_valid_points(height):
     with pytest.raises(ValueError, match='No finite points'):
