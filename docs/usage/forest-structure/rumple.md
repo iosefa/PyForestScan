@@ -50,6 +50,42 @@ plot_metric("Rumple Index", rumple, extent, metric_name="Rumple", cmap="viridis"
 create_geotiff(rumple, "rumple.tif", "EPSG:32605", extent)
 ```
 
+## Filling Gaps
+
+Use `interpolation="linear"` to fill missing canopy heights before calculating
+rumple. Only empty cells are filled; measured heights are preserved.
+
+```python
+rumple, extent = calculate_rumple(
+    points, voxel_resolution, min_height=2.0, interpolation="linear",
+)
+```
+
+The default, `interpolation=None`, leaves gaps unfilled. The available methods
+match the CHM options:
+
+- `"linear"`: interpolate heights on triangles between observed cell centers.
+- `"cubic"`: use a smooth cubic surface between observed cell centers.
+- `"nearest"`: copy the closest observed height, using XY distances.
+
+Linear and cubic interpolation leave cells outside the observed cell centers'
+convex hull as NoData. They also leave gaps unfilled if there are too few
+noncollinear samples to form a surface. Nearest can fill outside that hull,
+but does not expand the raster extent. A complete 3x3 neighborhood is still
+needed for rumple, so the outermost row and column remain NoData.
+
+Interpolation happens before `min_height` is applied. Observed low or ground
+cells remain subject to the height mask; they are not replaced with higher
+canopy values. Interpolated heights below the threshold are masked too.
+
+This follows the same sequence as lidR: its
+[`p2r(na.fill = tin())`](https://search.r-project.org/CRAN/refmans/lidR/html/dsm_point2raster.html)
+option fills the canopy height model before `rumple_index()` is calculated.
+Here interpolation uses the gridded canopy maxima. For a numerical comparison,
+use the same filled height grid in both implementations. Filling gaps changes
+the estimated canopy surface and can affect roughness, so use consistent
+resolution and interpolation settings when comparing results.
+
 ## Tiled GeoTIFF Output
 
 For large EPT point clouds, use `metric="rumple"`:
@@ -66,6 +102,7 @@ process_with_tiles(
     srs="EPSG:32605",
     hag=True,
     rumple_min_height=2.0,
+    interpolation="linear",  # Optional: fill canopy gaps before calculating rumple.
 )
 ```
 
@@ -77,6 +114,13 @@ calculating rumple, then crops to its output grid. This also applies when
 `buffer_size=0`, so adjacent tiles retain the neighboring canopy data needed
 at their shared edges. `skip_existing` and `tile_indices` work as for the
 other tiled metrics.
+
+When interpolation is enabled, it uses the points in each buffered tile.
+Increase `buffer_size` enough to include observed canopy around gaps near tile
+edges. The one-cell minimum buffer supports the surface-area calculation, but
+may not be enough for interpolation across larger gaps. Filled values can
+differ from a whole-cloud calculation because fewer samples are available.
+The `interpolation` option applies to CHM and rumple only.
 
 ## Notes
 
@@ -91,12 +135,11 @@ other tiled metrics.
 - XY coordinates and heights must use the same linear units, such as meters
   in a projected CRS.
 - A complete 3x3 canopy neighborhood is required. The outermost row/column,
-  empty cells, and cells adjacent to missing or height-masked canopy remain
-  NaN, written as NoData in the GeoTIFF. Grids smaller than three cells in
-  either direction contain only NoData.
+  unfilled cells, and cells adjacent to missing or height-masked canopy
+  remain NaN, written as NoData in the GeoTIFF. Grids smaller than three
+  cells in either direction contain only NoData.
 - `min_height` masks canopy maxima strictly below the threshold; it does
-  not change the grid extent. No interpolation is applied. The tiled
-  `interpolation` option applies to CHM output only.
+  not change the grid extent. Interpolation is optional and defaults to None.
 - This replaces the earlier scalar API. Update
   `calculate_rumple(chm, cell_resolution)` calls to
   `rumple, extent = calculate_rumple(points, voxel_resolution)`.

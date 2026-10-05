@@ -84,7 +84,10 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         bounds (tuple, optional): Spatial bounds to crop the data. Must be of the form
             ([xmin, xmax], [ymin, ymax], [zmin, zmax]) or ([xmin, xmax], [ymin, ymax]).
             If None, tiling is done over the entire dataset.
-        interpolation (str or None, optional): Interpolation method for CHM calculation ("linear", "cubic", "nearest", or None).
+        interpolation (str or None, optional): Fill missing canopy heights for CHM
+            or rumple using "linear", "cubic", "nearest", or None. For rumple,
+            filling happens before the height mask and surface-area calculation.
+            Other metrics do not use this option. Defaults to None.
         remove_outliers (bool, optional): Whether to remove statistical outliers before calculating metrics. Defaults to False.
         outlier_mean_k (int, optional): Number of nearest neighbors used by the statistical outlier filter.
             Used only when remove_outliers is True. Defaults to 8.
@@ -111,7 +114,9 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
             for rumple. Defaults to None. Rumple uses a grid aligned with assign_voxels,
             with bounds expanded to whole cells and tile sizes that must be multiples
             of the XY voxel sizes. At least one neighboring cell is read around each
-            tile, even when buffer_size=0. No canopy interpolation is applied.
+            tile, even when buffer_size=0. With interpolation enabled, use a buffer
+            wide enough to include samples around gaps. Interpolation uses only
+            the buffered tile and can differ from a whole-cloud calculation.
 
     Returns:
         None
@@ -138,6 +143,8 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
             raise ValueError("buffer_size must be finite and nonnegative")
         if rumple_min_height is not None and not np.isfinite(rumple_min_height):
             raise ValueError("rumple_min_height must be finite or None")
+        if interpolation not in (None, "linear", "cubic", "nearest"):
+            raise ValueError("interpolation must be None, 'linear', 'cubic', or 'nearest'")
 
     (min_z, max_z) = (None, None)
     if bounds:
@@ -326,6 +333,7 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
 
                     result, extent = calculate_rumple(
                         tile_points, voxel_size, min_height=rumple_min_height,
+                        interpolation=interpolation,
                     )
                     core_min_x = min_x + i * tile_size[0]
                     core_max_x = min(max_x, core_min_x + tile_size[0])

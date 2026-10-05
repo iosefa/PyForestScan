@@ -1,6 +1,7 @@
 import numpy as np
 
 from scipy.interpolate import griddata
+from scipy.spatial import QhullError
 from scipy.stats import entropy
 from scipy import ndimage
 from typing import List, Tuple, Optional
@@ -586,7 +587,8 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear",
 
 def calculate_rumple(arr: np.ndarray,
                      voxel_resolution: Tuple[float, float, float],
-                     min_height: float | None = None) -> Tuple[np.ndarray, List]:
+                     min_height: float | None = None,
+                     interpolation: str | None = None) -> Tuple[np.ndarray, List]:
     """
     Calculate a rumple raster on the same XY grid as ``assign_voxels``.
 
@@ -605,18 +607,26 @@ def calculate_rumple(arr: np.ndarray,
             XY sets the raster resolution; dz does not quantize the canopy
             heights or affect rumple.
         min_height (float | None, optional): Mask canopy cells below this
-            height before calculating rumple. Defaults to None.
+            height after interpolation and before calculating rumple.
+            Observed cells below this threshold are not filled. Defaults to None.
+        interpolation (str | None, optional): Fill missing canopy heights
+            using "linear", "cubic", or "nearest" interpolation before
+            calculating surface area. Observed heights are preserved.
+            Linear and cubic leave gaps outside the observed cell centers'
+            convex hull, or without enough noncollinear samples, as NaN.
+            Nearest can also fill outside that hull within the raster extent.
+            Defaults to None (no filling).
 
     Returns:
         tuple[np.ndarray, list]: Rumple array shaped (X, Y), with Y ordered
             north to south, and extent [x_min, x_max, y_min, y_max]. A complete
-            3x3 canopy neighborhood is required: edges, missing cells, and
-            cells next to missing/masked canopy are NaN. No interpolation
-            is applied.
+            3x3 canopy neighborhood is required. Outer edges and neighborhoods
+            with remaining missing or masked canopy are NaN, even when
+            interpolation is enabled.
 
     Raises:
-        ValueError: If the resolution or height threshold is invalid, or
-            no finite points at or above ground remain.
+        ValueError: If the resolution, height threshold, or interpolation
+            method is invalid, or no finite points at or above ground remain.
         KeyError: If a required point dimension is missing.
     """
     resolution = np.asarray(voxel_resolution, dtype=float)
@@ -624,6 +634,8 @@ def calculate_rumple(arr: np.ndarray,
         raise ValueError("voxel_resolution must contain three positive, finite sizes (dx, dy, dz)")
     if min_height is not None and not np.isfinite(min_height):
         raise ValueError("min_height must be finite or None")
+    if interpolation not in (None, "linear", "cubic", "nearest"):
+        raise ValueError("interpolation must be None, 'linear', 'cubic', or 'nearest'")
 
     arr = np.asarray(arr)
     required = ('X', 'Y', 'HeightAboveGround')
@@ -640,6 +652,22 @@ def calculate_rumple(arr: np.ndarray,
     rumple = np.full(chm.shape, np.nan)
     if min(chm.shape) < 3:
         return rumple, extent
+
+    if interpolation is not None:
+        valid_cells = np.isfinite(chm)
+        if not valid_cells.all():
+            # Use physical distances so rectangular pixels interpolate correctly.
+            # Fill heights before the threshold mask; masked ground is not a gap.
+            known = np.argwhere(valid_cells) * resolution[:2]
+            missing = np.argwhere(~valid_cells) * resolution[:2]
+            try:
+                chm[~valid_cells] = griddata(
+                    known, chm[valid_cells], missing, method=interpolation,
+                )
+            except QhullError:
+                # Linear/cubic need a 2D triangulation. Sparse or collinear
+                # samples cannot support one, so their gaps remain NoData.
+                pass
 
     if min_height is not None:
         chm = np.where(chm >= float(min_height), chm, np.nan)

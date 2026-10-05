@@ -363,6 +363,36 @@ def test_rumple_tiles_match_whole_grid_and_georeferencing(rumple_ept, tmp_path, 
     np.testing.assert_allclose(mosaic, expected, equal_nan=True)
 
 
+@pytest.mark.parametrize('interpolation', ['linear', 'cubic'])
+def test_rumple_tiles_interpolate_gaps_across_seams(rumple_ept, tmp_path, interpolation):
+    points, _ = rumple_ept
+    points['HeightAboveGround'] = 10.0 + 0.5 * points['X'] + 0.25 * points['Y']
+    # Missing canopy cells straddle the seams at x=8 and y=9.
+    gaps = ((points['X'] >= 7) & (points['X'] <= 9) &
+            (points['Y'] >= 7.5) & (points['Y'] <= 10.5))
+    points['HeightAboveGround'][gaps] = np.nan
+    points['HeightAboveGround'][-2:] = np.nan  # Keep only samples at cell centers.
+    process_with_tiles(
+        'fake_ept', (8, 9), str(tmp_path), 'rumple', (2, 3, 1),
+        interpolation=interpolation, buffer_size=0.7, srs='EPSG:32605',
+        bounds=([0, 22], [0, 27]),
+    )
+
+    expected, extent = calculate_rumple(points, (2, 3, 1), interpolation=interpolation)
+    np.testing.assert_allclose(expected[1:-1, 1:-1], np.sqrt(1 + 0.5**2 + 0.25**2), atol=1e-6)
+    tiles = sorted(tmp_path.glob('tile_*_rumple.tif'))
+    assert len(tiles) == 9
+    for path in tiles:
+        with rasterio.open(path) as src:
+            x0 = int(round((src.bounds.left - extent[0]) / 2))
+            y0 = int(round((extent[3] - src.bounds.top) / 3))
+            values = src.read(1, masked=True).filled(np.nan).T
+            np.testing.assert_allclose(
+                values, expected[x0:x0 + src.width, y0:y0 + src.height],
+                atol=1e-6, equal_nan=True,
+            )
+
+
 def test_rumple_tiles_height_mask_selection_and_skip_existing(rumple_ept, tmp_path):
     points, reads = rumple_ept
     expected, _ = calculate_rumple(points, (2, 3, 1), min_height=16.0)
@@ -414,6 +444,7 @@ def test_rumple_tiles_empty_or_invalid_points_skip(mock_pipeline_cls, tmp_path, 
     ({'tile_size': (5, 9)}, 'tile_size'),
     ({'buffer_size': -0.1}, 'buffer_size'),
     ({'rumple_min_height': np.nan}, 'rumple_min_height'),
+    ({'interpolation': 'bilinear'}, 'interpolation'),
 ])
 def test_rumple_tiles_validate_grid_before_reading(tmp_path, overrides, message):
     kwargs = dict(ept_file='fake_ept', tile_size=(8, 9), output_path=str(tmp_path),
