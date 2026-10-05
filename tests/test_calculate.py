@@ -633,66 +633,245 @@ def test_calculate_chm_large_heights():
 # Tests for calculate_rumple
 # ----------------------------
 
-def test_calculate_rumple_flat_surface():
-    chm = np.full((4, 4), 12.0)
-    rumple = calculate_rumple(chm, (2.0, 3.0))
-    assert np.isclose(rumple, 1.0)
+def rumple_points(heights, resolution=(1.0, 1.0, 1.0)):
+    """Place canopy samples at cell centers, ordered west-east/north-south."""
+    heights = np.asarray(heights)
+    dx, dy, _ = resolution
+    x, y = np.meshgrid((np.arange(heights.shape[0]) + 0.5) * dx,
+                       (heights.shape[1] - np.arange(heights.shape[1]) - 0.5) * dy,
+                       indexing='ij')
+    points = np.zeros(heights.size, dtype=[('X', 'f8'), ('Y', 'f8'), ('HeightAboveGround', 'f8')])
+    points['X'], points['Y'] = x.ravel(), y.ravel()
+    points['HeightAboveGround'] = heights.ravel()
+    return points
+
+
+def test_calculate_rumple_flat_surface_matches_voxel_grid():
+    resolution = (2.0, 3.0, 1.0)
+    points = rumple_points(np.full((5, 7), 12.0), resolution)
+    # Off-center samples must still align with the voxel grid.
+    points['X'] += 0.2
+    points['Y'] -= 0.3
+    rumple, extent = calculate_rumple(points, resolution)
+    voxels, voxel_extent = assign_voxels(points, resolution)
+
+    assert rumple.shape == voxels.shape[:2] == (5, 7)
+    assert extent == voxel_extent == [0.0, 10.0, 0.0, 21.0]
+    np.testing.assert_allclose(rumple[1:-1, 1:-1], 1.0)
+    assert np.isnan(rumple[[0, -1], :]).all()
+    assert np.isnan(rumple[:, [0, -1]]).all()
 
 
 def test_calculate_rumple_planar_slope_matches_analytical_ratio():
     dx, dy = 2.0, 3.0
-    a, b = 0.5, 0.25
-    x = np.arange(5) * dx
-    y = np.arange(4) * dy
-    chm = a * x[:, None] + b * y[None, :]
+    a, b = 0.5, -0.25
+    points = rumple_points(np.full((5, 7), 12.0), (dx, dy, 1.0))
+    points['HeightAboveGround'] += a * points['X'] + b * points['Y']
 
-    rumple = calculate_rumple(chm, (dx, dy))
+    rumple, _ = calculate_rumple(points, (dx, dy, 1.0))
     expected = math.sqrt(1.0 + a ** 2 + b ** 2)
-    assert np.isclose(rumple, expected)
+    np.testing.assert_allclose(rumple[1:-1, 1:-1], expected)
 
 
-def test_calculate_rumple_rough_surface_exceeds_flat_surface():
-    flat = np.full((3, 3), 10.0)
-    rough = np.array([
-        [10.0, 10.0, 10.0],
-        [10.0, 15.0, 10.0],
-        [10.0, 10.0, 10.0],
-    ])
+def test_calculate_rumple_peak_area_and_spatial_variation():
+    dx, dy, height = 2.0, 3.0, 4.0
+    canopy = np.full((9, 7), 10.0)
+    canopy[3, 2] += height
+    points = rumple_points(canopy, (dx, dy, 1.0))
 
-    flat_rumple = calculate_rumple(flat, (1.0, 1.0))
-    rough_rumple = calculate_rumple(rough, (1.0, 1.0))
-    assert np.isclose(flat_rumple, 1.0)
-    assert rough_rumple > flat_rumple
+    rumple, _ = calculate_rumple(points, (dx, dy, 1.0))
 
-
-def test_calculate_rumple_min_height_can_remove_all_valid_patches():
-    chm = np.array([
-        [3.0, 3.0, 3.0],
-        [3.0, 1.0, 3.0],
-        [3.0, 3.0, 3.0],
-    ])
-    rumple = calculate_rumple(chm, (1.0, 1.0), min_height=2.0)
-    assert np.isnan(rumple)
+    # Eight triangles form a rectangular pyramid around the summit.
+    expected = (math.sqrt(1 + (height / dx) ** 2) +
+                math.sqrt(1 + (height / dy) ** 2)) / 2
+    assert rumple[3, 2] == pytest.approx(expected)
+    assert rumple[6, 4] == pytest.approx(1.0)
+    assert np.nanmin(rumple) >= 1.0
 
 
-def test_calculate_rumple_returns_nan_when_no_valid_surface_exists():
-    chm = np.array([
-        [np.nan, np.nan],
-        [np.nan, np.nan],
-    ])
-    rumple = calculate_rumple(chm, (1.0, 1.0))
-    assert np.isnan(rumple)
+@pytest.mark.parametrize('missing_height', [1.0, np.nan, np.inf])
+def test_calculate_rumple_masks_missing_or_low_neighborhoods(missing_height):
+    canopy = np.full((7, 7), 3.0)
+    canopy[3, 3] = missing_height
+    points = rumple_points(canopy)
+    rumple, extent = calculate_rumple(points, (1, 1, 1), min_height=3.0)
+
+    assert extent == [0, 7, 0, 7]
+    assert np.isnan(rumple[2:5, 2:5]).all()
+    assert rumple[1, 1] == pytest.approx(1.0)
+    assert np.isfinite(rumple).sum() == 16
 
 
-def test_calculate_rumple_invalid_inputs():
-    with pytest.raises(ValueError):
-        calculate_rumple(np.ones((2, 2, 2)), (1.0, 1.0))
+@pytest.mark.parametrize('interpolation', ['linear', 'cubic'])
+def test_calculate_rumple_interpolates_planar_gaps(interpolation):
+    resolution = (2.0, 3.0, 1.0)
+    points = rumple_points(np.full((7, 9), 12.0), resolution)
+    points['HeightAboveGround'] += 0.5 * points['X'] - 0.25 * points['Y']
+    heights = points['HeightAboveGround'].reshape(7, 9)
+    heights[2:4, 3:5] = np.nan
+    unfilled, unfilled_extent = calculate_rumple(points, resolution)
 
-    with pytest.raises(ValueError):
-        calculate_rumple(np.ones((2, 2)), (0.0, 1.0))
+    filled, extent = calculate_rumple(points, resolution, interpolation=interpolation)
 
-    with pytest.raises(ValueError):
-        calculate_rumple(np.ones((2, 2)), (1.0,))
+    assert extent == unfilled_extent
+    assert np.isfinite(unfilled).sum() < np.isfinite(filled).sum()
+    np.testing.assert_allclose(filled[1:-1, 1:-1], math.sqrt(1 + 0.5**2 + 0.25**2), atol=1e-6)
+    assert np.isnan(filled[[0, -1], :]).all()
+    assert np.isnan(filled[:, [0, -1]]).all()
+
+
+def test_calculate_rumple_nearest_uses_distances_and_recomputes_surface():
+    resolution = (8.0, 2.0, 1.0)
+    canopy = np.full((7, 9), 12.0)
+    # Both closest samples are 2 m away; the lower side samples are 8 m away.
+    canopy[3, 3:6] = 20.0
+    expected, expected_extent = calculate_rumple(rumple_points(canopy, resolution), resolution)
+    canopy[3, 4] = np.nan
+
+    filled, extent = calculate_rumple(
+        rumple_points(canopy, resolution), resolution, interpolation='nearest',
+    )
+
+    assert extent == expected_extent
+    # Check the surface area of the filled canopy, including its observed peaks.
+    np.testing.assert_allclose(filled, expected, equal_nan=True)
+
+
+@pytest.mark.parametrize('interpolation', ['linear', 'cubic', 'nearest'])
+def test_calculate_rumple_interpolation_preserves_height_mask(interpolation):
+    canopy = np.full((9, 9), 5.0)
+    canopy[2, 2] = 1.0
+    canopy[6, 6] = np.nan
+    rumple, _ = calculate_rumple(
+        rumple_points(canopy), (1, 1, 1), min_height=2.0, interpolation=interpolation,
+    )
+
+    assert np.isnan(rumple[1:4, 1:4]).all()
+    assert np.isfinite(rumple[5:8, 5:8]).all()
+    assert np.isfinite(rumple).sum() == 40
+
+
+@pytest.mark.parametrize('interpolation', ['linear', 'cubic', 'nearest'])
+def test_calculate_rumple_interpolation_outside_convex_hull(interpolation):
+    x, y = np.indices((7, 7))
+    canopy = np.where(x + y >= 5, 10.0, np.nan)
+    canopy[4, 3] = np.nan
+    rumple, _ = calculate_rumple(
+        rumple_points(canopy), (1, 1, 1), interpolation=interpolation,
+    )
+
+    assert rumple[4, 3] == pytest.approx(1.0)
+    if interpolation == 'nearest':
+        np.testing.assert_allclose(rumple[1:-1, 1:-1], 1.0)
+    else:
+        assert np.isnan(rumple[1, 1])
+
+
+@pytest.mark.parametrize('interpolation', ['linear', 'cubic'])
+@pytest.mark.parametrize('sample_count', [2, 3])
+def test_calculate_rumple_interpolation_without_2d_support(interpolation, sample_count):
+    canopy = np.full((7, 7), np.nan)
+    diagonal = np.linspace(0, 6, sample_count, dtype=int)
+    canopy[diagonal, diagonal] = 10.0
+    rumple, extent = calculate_rumple(
+        rumple_points(canopy), (1, 1, 1), interpolation=interpolation,
+    )
+    assert extent == [0, 7, 0, 7]
+    assert np.isnan(rumple).all()
+
+
+@pytest.mark.parametrize('shape', [(1, 1), (1, 5), (2, 5), (5, 2)])
+def test_calculate_rumple_small_grids_return_nodata(shape):
+    rumple, _ = calculate_rumple(rumple_points(np.full(shape, 10.0)), (1, 1, 1))
+    assert rumple.shape == shape
+    assert np.isnan(rumple).all()
+
+
+@pytest.mark.parametrize('interpolation', [None, 'linear', 'cubic', 'nearest'])
+def test_calculate_rumple_threshold_preserves_extent_when_all_cells_masked(interpolation):
+    canopy = np.full((5, 4), 1.0)
+    canopy[2, 2] = np.nan
+    rumple, extent = calculate_rumple(
+        rumple_points(canopy), (1, 1, 1), min_height=2.0, interpolation=interpolation,
+    )
+    assert rumple.shape == (5, 4)
+    assert extent == [0, 5, 0, 4]
+    assert np.isnan(rumple).all()
+
+
+def test_calculate_rumple_uses_canopy_maxima_and_ignores_vertical_bin_size():
+    heights = np.full((6, 5), 10.25)
+    heights[3, 2] = 12.75
+    canopy = rumple_points(heights)
+    understory = canopy.copy()
+    understory['HeightAboveGround'] = 1.0
+    expected, expected_extent = calculate_rumple(canopy, (1, 1, 1))
+
+    actual, extent = calculate_rumple(np.concatenate([understory, canopy]), (1, 1, 5))
+
+    np.testing.assert_allclose(actual, expected, equal_nan=True)
+    assert extent == expected_extent
+
+
+def test_calculate_rumple_resolution_controls_output_shape():
+    points = rumple_points(np.full((8, 6), 10.0))
+    fine, fine_extent = calculate_rumple(points, (1, 1, 1))
+    coarse, coarse_extent = calculate_rumple(points, (2, 2, 1))
+    assert fine.shape == (8, 6)
+    assert coarse.shape == (4, 3)
+    assert fine_extent == coarse_extent
+    np.testing.assert_allclose(coarse[1:-1, 1:-1], 1.0)
+
+
+def test_calculate_rumple_ignores_invalid_points_without_changing_grid():
+    points = rumple_points(np.full((5, 5), 10.0))
+    invalid = np.array([(100, 100, -1), (np.nan, 2, 10), (2, np.inf, 10),
+                        (100, 100, np.nan)], dtype=points.dtype)
+    expected, expected_extent = calculate_rumple(points, (1, 1, 1))
+    actual, extent = calculate_rumple(np.concatenate([points, invalid]), (1, 1, 1))
+    np.testing.assert_allclose(actual, expected, equal_nan=True)
+    assert extent == expected_extent
+
+
+@pytest.mark.parametrize('resolution', [(1, 1), (1,), (0, 1, 1), (-1, 1, 1),
+                                        (1, np.nan, 1), (1, 1, np.inf)])
+def test_calculate_rumple_invalid_resolution(resolution):
+    with pytest.raises(ValueError, match='voxel_resolution'):
+        calculate_rumple(rumple_points(np.ones((3, 3))), resolution)
+
+
+@pytest.mark.parametrize('threshold', [np.nan, np.inf, -np.inf])
+def test_calculate_rumple_invalid_threshold(threshold):
+    with pytest.raises(ValueError, match='min_height'):
+        calculate_rumple(rumple_points(np.ones((3, 3))), (1, 1, 1), min_height=threshold)
+
+
+@pytest.mark.parametrize('interpolation', ['', 'bilinear', True])
+def test_calculate_rumple_invalid_interpolation(interpolation):
+    with pytest.raises(ValueError, match='interpolation'):
+        calculate_rumple(rumple_points(np.ones((3, 3))), (1, 1, 1), interpolation=interpolation)
+
+
+def test_calculate_rumple_missing_dimensions():
+    with pytest.raises(KeyError, match='HeightAboveGround'):
+        calculate_rumple(np.zeros(3, dtype=[('X', 'f8'), ('Y', 'f8')]), (1, 1, 1))
+
+
+def test_calculate_rumple_non_one_dimensional_points():
+    points = rumple_points(np.ones((3, 3))).reshape(3, 3)
+    with pytest.raises(ValueError, match='Input point array must be one-dimensional'):
+        calculate_rumple(points, (1, 1, 1))
+
+
+@pytest.mark.parametrize('height', [-1.0, np.nan, np.inf])
+def test_calculate_rumple_no_valid_points(height):
+    with pytest.raises(ValueError, match='No finite points'):
+        calculate_rumple(rumple_points(np.full((3, 3), height)), (1, 1, 1))
+
+
+def test_calculate_rumple_empty_input():
+    with pytest.raises(ValueError, match='No finite points'):
+        calculate_rumple(rumple_points(np.ones((3, 3)))[:0], (1, 1, 1))
 
 
 # ----------------------------
