@@ -4,10 +4,13 @@ import numpy as np
 import os
 
 from tqdm import tqdm
+from scipy.interpolate import griddata
+from scipy.spatial import QhullError
 
 from pyforestscan.calculate import (
     calculate_fhd, calculate_pad, calculate_pai, assign_voxels,
-    calculate_chm, calculate_canopy_cover, calculate_rumple,
+    calculate_chm, calculate_canopy_cover, _rumple_cell_areas,
+    _validate_rumple_grid_resolution, _validate_rumple_method,
 )
 from pyforestscan.filters import remove_outliers_and_clean, downsample_poisson, downsample_voxel
 from pyforestscan.handlers import create_geotiff
@@ -64,7 +67,9 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        voxelgrid_mode: str = "first",
                        tile_indices: set[tuple[int, int]] | None = None,
                        outliers_before_hag: bool = False,
-                       rumple_min_height: float | None = None) -> None:
+                       rumple_min_height: float | None = None,
+                       rumple_resolution=None,
+                       rumple_method: str = "two_triangle") -> None:
     """
     Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,
     and write the results to the specified output directory.
@@ -111,12 +116,24 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
             statistical outlier filter and remove classification 7 points before HAG. This can
             avoid Delaunay failures caused by bad points. Defaults to False.
         rumple_min_height (float or None, optional): Mask canopy cells below this height
-            for rumple. Defaults to None. Rumple uses a grid aligned with assign_voxels,
-            with bounds expanded to whole cells and tile sizes that must be multiples
-            of the XY voxel sizes. At least one neighboring cell is read around each
-            tile, even when buffer_size=0. With interpolation enabled, use a buffer
-            wide enough to include samples around gaps. Interpolation uses only
-            the buffered tile and can differ from a whole-cloud calculation.
+            before calculating rumple. Defaults to None.
+        rumple_resolution (float or tuple, optional): Required when metric is "rumple".
+            Output cell size, either a scalar or (dx, dy), in coordinate units. Each
+            size must be a positive integer multiple of the corresponding XY
+            voxel_size. The voxel sizes set the fine CHM resolution; rumple_resolution
+            sets the area over which surface and ground areas are summed. Tile sizes
+            must be multiples of the output resolution. Bounds are expanded to whole
+            fine cells, and the output grid is anchored at their northwest corner and
+            padded east and south to whole output cells. Padding contributes no area.
+            Rumple tile indices start at the northwest corner (j=0 is northmost).
+            At least one fine neighboring cell is read around each tile, even when
+            buffer_size=0. With interpolation enabled, use a buffer wide enough to
+            include samples around gaps: filling uses only the buffered tile and can
+            differ from a whole-cloud calculation.
+        rumple_method (str, optional): Surface estimator for rumple: "two_triangle"
+            (default) preserves the original complete-quad mesh, or "jenness" uses
+            the eight-neighbor estimator and missing-cell rules used by lidR's raster
+            method. Cells without supported area produce NoData.
 
     Returns:
         None
@@ -132,13 +149,19 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         resolution = np.asarray(voxel_size, dtype=float)
         if resolution.shape != (3,) or not np.all(np.isfinite(resolution) & (resolution > 0)):
             raise ValueError("voxel_size must contain three positive, finite sizes (dx, dy, dz)")
+        if rumple_resolution is None:
+            raise ValueError("rumple_resolution is required for metric='rumple'")
+        _, output_resolution, rumple_factors = _validate_rumple_grid_resolution(
+            resolution[:2], rumple_resolution,
+        )
+        _validate_rumple_method(rumple_method)
         tile_dimensions = np.asarray(tile_size, dtype=float)
         if tile_dimensions.shape != (2,):
             raise ValueError("Rumple tile_size must contain a width and height")
-        tile_cells = tile_dimensions / resolution[:2]
+        tile_cells = tile_dimensions / output_resolution
         if (not np.all(np.isfinite(tile_cells) & (tile_cells >= 1))
                 or not np.allclose(tile_cells, np.round(tile_cells), rtol=0, atol=1e-8)):
-            raise ValueError("Rumple tile_size must be positive multiples of the XY voxel sizes")
+            raise ValueError("Rumple tile_size must be positive multiples of rumple_resolution")
         if not np.isfinite(buffer_size) or buffer_size < 0:
             raise ValueError("buffer_size must be finite and nonnegative")
         if rumple_min_height is not None and not np.isfinite(rumple_min_height):
@@ -156,12 +179,24 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         min_x, max_x, min_y, max_y, min_z, max_z = get_bounds_from_ept(ept_file)
 
     if metric == "rumple":
-        # Retain the requested read bounds, but cover them with whole grid
-        # cells so GeoTIFF pixels keep their requested size at the edges.
-        data_min_x, data_max_x, data_min_y, data_max_y = min_x, max_x, min_y, max_y
+        requested_bounds = np.asarray([min_x, max_x, min_y, max_y], dtype=float)
+        if (not np.all(np.isfinite(requested_bounds))
+                or max_x <= min_x or max_y <= min_y):
+            raise ValueError("Rumple bounds must be finite and have positive width and height")
+        data_min_x, data_max_x, data_min_y, data_max_y = map(float, requested_bounds)
         dx, dy = map(float, resolution[:2])
-        min_x, max_x = float(np.floor(min_x / dx) * dx), float(np.ceil(max_x / dx) * dx)
-        min_y, max_y = float(np.floor(min_y / dy) * dy), float(np.ceil(max_y / dy) * dy)
+        grid_dx, grid_dy = map(float, output_resolution)
+        fine_min_x = float(np.floor(min_x / dx) * dx)
+        fine_max_x = float(np.ceil(max_x / dx) * dx)
+        fine_min_y = float(np.floor(min_y / dy) * dy)
+        fine_max_y = float(np.ceil(max_y / dy) * dy)
+        fine_nx = int(round((fine_max_x - fine_min_x) / dx))
+        fine_ny = int(round((fine_max_y - fine_min_y) / dy))
+        # Anchor at the CHM's northwest corner. Extra output footprint at the
+        # east and south edges has no supporting surface or ground area.
+        min_x, max_y = fine_min_x, fine_max_y
+        max_x = min_x + int(np.ceil(fine_nx / rumple_factors[0])) * grid_dx
+        min_y = max_y - int(np.ceil(fine_ny / rumple_factors[1])) * grid_dy
 
     if not srs:
         srs = get_srs_from_ept(ept_file)
@@ -192,20 +227,25 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                     # Read complete neighboring cells before computing area.
                     buffer_x = float(max(dx, np.ceil(buffer_x / dx) * dx))
                     buffer_y = float(max(dy, np.ceil(buffer_y / dy) * dy))
-                tile_min_x = min_x + i * tile_size[0] - buffer_x
-                tile_max_x = min_x + (i + 1) * tile_size[0] + buffer_x
-                tile_min_y = min_y + j * tile_size[1] - buffer_y
-                tile_max_y = min_y + (j + 1) * tile_size[1] + buffer_y
-
-                tile_min_x = max(min_x, tile_min_x)
-                tile_max_x = min(max_x, tile_max_x)
-                tile_min_y = max(min_y, tile_min_y)
-                tile_max_y = min(max_y, tile_max_y)
                 if metric == "rumple":
-                    tile_min_x = max(data_min_x, tile_min_x)
-                    tile_max_x = min(data_max_x, tile_max_x)
-                    tile_min_y = max(data_min_y, tile_min_y)
-                    tile_max_y = min(data_max_y, tile_max_y)
+                    core_min_x = min_x + i * tile_size[0]
+                    core_max_x = min(max_x, core_min_x + tile_size[0])
+                    core_max_y = max_y - j * tile_size[1]
+                    core_min_y = max(min_y, core_max_y - tile_size[1])
+                    core_extent = (core_min_x, core_max_x, core_min_y, core_max_y)
+                    halo_min_x = max(fine_min_x, core_min_x - buffer_x)
+                    halo_max_x = min(fine_max_x, core_max_x + buffer_x)
+                    halo_min_y = max(fine_min_y, core_min_y - buffer_y)
+                    halo_max_y = min(fine_max_y, core_max_y + buffer_y)
+                    tile_min_x = max(data_min_x, halo_min_x)
+                    tile_max_x = min(data_max_x, halo_max_x)
+                    tile_min_y = max(data_min_y, halo_min_y)
+                    tile_max_y = min(data_max_y, halo_max_y)
+                else:
+                    tile_min_x = max(min_x, min_x + i * tile_size[0] - buffer_x)
+                    tile_max_x = min(max_x, min_x + (i + 1) * tile_size[0] + buffer_x)
+                    tile_min_y = max(min_y, min_y + j * tile_size[1] - buffer_y)
+                    tile_max_y = min(max_y, min_y + (j + 1) * tile_size[1] + buffer_y)
 
                 if tile_max_x <= tile_min_x or tile_max_y <= tile_min_y:
                     if verbose:
@@ -320,41 +360,77 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                         np.isfinite(tile_points['HeightAboveGround']) &
                         (tile_points['HeightAboveGround'] >= 0)
                     )
-                    # EPT bounds include both endpoints. Internal upper edges
-                    # belong to the next cell, beyond this tile's read halo.
-                    if tile_max_x < data_max_x:
-                        valid &= tile_points['X'] < tile_max_x
-                    if tile_max_y < data_max_y:
-                        valid &= tile_points['Y'] < tile_max_y
                     tile_points = tile_points[valid]
                     if tile_points.size == 0:
                         pbar.update(1)
                         continue
 
-                    result, extent = calculate_rumple(
-                        tile_points, voxel_size, min_height=rumple_min_height,
-                        interpolation=interpolation,
+                    # Bin against one fixed global canvas rather than deriving
+                    # each tile's CHM footprint from its available samples.
+                    # Internal grid-line points belong to the east/north cell;
+                    # the very last outer edge belongs to the last cell.
+                    global_x = np.floor((tile_points['X'] - fine_min_x) / dx).astype(int)
+                    global_y = np.floor((tile_points['Y'] - fine_min_y) / dy).astype(int)
+                    global_x[tile_points['X'] == fine_max_x] = fine_nx - 1
+                    global_y[tile_points['Y'] == fine_max_y] = fine_ny - 1
+                    global_y = fine_ny - 1 - global_y
+                    halo_x0 = int(round((halo_min_x - fine_min_x) / dx))
+                    halo_y0 = int(round((fine_max_y - halo_max_y) / dy))
+                    halo_shape = (int(round((halo_max_x - halo_min_x) / dx)),
+                                  int(round((halo_max_y - halo_min_y) / dy)))
+                    local_x, local_y = global_x - halo_x0, global_y - halo_y0
+                    in_halo = ((local_x >= 0) & (local_x < halo_shape[0]) &
+                               (local_y >= 0) & (local_y < halo_shape[1]))
+                    if not np.any(in_halo):
+                        pbar.update(1)
+                        continue
+                    chm = np.full(halo_shape, -np.inf)
+                    np.maximum.at(chm, (local_x[in_halo], local_y[in_halo]),
+                                  tile_points['HeightAboveGround'][in_halo])
+                    chm[~np.isfinite(chm)] = np.nan
+                    if interpolation is not None:
+                        observed = np.isfinite(chm)
+                        if np.any(~observed):
+                            try:
+                                chm[~observed] = griddata(
+                                    np.argwhere(observed) * resolution[:2],
+                                    chm[observed],
+                                    np.argwhere(~observed) * resolution[:2],
+                                    method=interpolation,
+                                )
+                            except QhullError:
+                                # Linear/cubic need enough non-collinear samples.
+                                # Leave unsupported heights missing.
+                                pass
+
+                    surface, ground = _rumple_cell_areas(
+                        chm, (dx, dy), min_height=rumple_min_height,
+                        method=rumple_method,
                     )
-                    core_min_x = min_x + i * tile_size[0]
-                    core_max_x = min(max_x, core_min_x + tile_size[0])
-                    core_min_y = min_y + j * tile_size[1]
-                    core_max_y = min(max_y, core_min_y + tile_size[1])
-                    core_extent = (core_min_x, core_max_x, core_min_y, core_max_y)
-                    core = np.full((int(round((core_max_x - core_min_x) / dx)),
-                                    int(round((core_max_y - core_min_y) / dy))), np.nan)
-
-                    # Arrays are (X, Y), with Y running north to south. Copy
-                    # only the core overlap and leave unsampled cells as NoData.
-                    x0 = max(0, int(round((core_min_x - extent[0]) / dx)))
-                    x1 = min(result.shape[0], int(round((core_max_x - extent[0]) / dx)))
-                    y0 = max(0, int(round((extent[3] - core_max_y) / dy)))
-                    y1 = min(result.shape[1], int(round((extent[3] - core_min_y) / dy)))
-                    if x1 > x0 and y1 > y0:
-                        dst_x = int(round((extent[0] + x0 * dx - core_min_x) / dx))
-                        dst_y = int(round((core_max_y - extent[3] + y0 * dy) / dy))
-                        core[dst_x:dst_x + x1 - x0, dst_y:dst_y + y1 - y0] = result[x0:x1, y0:y1]
-
-                    create_geotiff(core, result_file, srs, core_extent)
+                    core_shape = (int(round((core_max_x - core_min_x) / dx)),
+                                  int(round((core_max_y - core_min_y) / dy)))
+                    core_x0 = int(round((core_min_x - halo_min_x) / dx))
+                    core_y0 = int(round((halo_max_y - core_max_y) / dy))
+                    overlap_x = min(core_shape[0], halo_shape[0] - core_x0)
+                    overlap_y = min(core_shape[1], halo_shape[1] - core_y0)
+                    totals = []
+                    fx, fy = rumple_factors
+                    output_shape = (core_shape[0] // fx, core_shape[1] // fy)
+                    for areas in (surface, ground):
+                        # Aggregate only supported fine cells. An output cell
+                        # may be much larger than the entire CHM, so do not
+                        # allocate its padded footprint at fine resolution.
+                        supported = areas[
+                            core_x0:core_x0 + overlap_x, core_y0:core_y0 + overlap_y,
+                        ]
+                        summed = np.add.reduceat(supported, np.arange(0, overlap_x, fx), axis=0)
+                        summed = np.add.reduceat(summed, np.arange(0, overlap_y, fy), axis=1)
+                        total = np.zeros(output_shape)
+                        total[:summed.shape[0], :summed.shape[1]] = summed
+                        totals.append(total)
+                    result = np.full(totals[0].shape, np.nan)
+                    np.divide(totals[0], totals[1], out=result, where=totals[1] > 0)
+                    create_geotiff(result, result_file, srs, core_extent)
                 elif metric == "chm":
                     chm, extent = calculate_chm(tile_points, voxel_size, interpolation=interpolation)
 
