@@ -327,7 +327,7 @@ def calculate_voxel_stat(
     dimension: str,
     stat: str,
     z_index_range: Optional[Tuple[int, Optional[int]]] = None,
-):
+) -> Tuple[np.ndarray, List[float]]:
     """
     Compute a column-wise statistic for a given dimension over a 3-D voxel grid.
 
@@ -350,10 +350,10 @@ def calculate_voxel_stat(
             the first three voxels (indices 0, 1, 2).
 
     Returns:
-        tuple[np.ndarray, list]: (stat_array, extent)
-            - stat_array: 2-D array shaped (nx, ny) with the requested statistic per column.
-              Cells without points are NaN (except for 'count', which yields 0).
-            - extent: [x_min, x_max, y_min, y_max] covering the raster footprint.
+        tuple[np.ndarray, list]: The statistic array and raster extent. The array
+            has shape (nx, ny), with the requested statistic per column. Cells
+            without points are NaN, except for 'count', which yields 0. The
+            extent is [x_min, x_max, y_min, y_max], covering the raster footprint.
     """
     if dimension not in arr.dtype.names:
         raise KeyError(f"Dimension '{dimension}' not found in array fields")

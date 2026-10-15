@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyforestscan",
-    version="0.4.1",
+    version="0.5.0",
     author="Joseph Emile Honour Percival",
     author_email="ipercival@gmail.com",
     description="Analyzing forest structure using aerial LiDAR data",
@@ -20,7 +20,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=("tests", "tests.*")),
     python_requires=">=3.11",
     install_requires=[
         'requests>=2.32.4',
@@ -33,6 +33,7 @@ setuptools.setup(
         'numpy>=2.3.1',
         'matplotlib>=3.10.3',
         'scipy>=1.16.0',
+        'tqdm>=4.67.1',
     ],
     extras_require={
         'dev': [
