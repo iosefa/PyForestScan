@@ -592,16 +592,17 @@ def calculate_rumple(chm: np.ndarray,
     Calculate one rumple index for a Canopy Height Model (CHM).
 
     Rumple is canopy surface area divided by the corresponding planar area.
-    The default retains the original two-triangle calculation over complete
-    2x2 CHM patches. ``jenness`` uses eight neighbors per valid CHM cell,
-    including the missing-data and edge conventions used by lidR's raster
-    method through ``sp::surfaceArea``.
+    The default ``two_triangle`` method splits each 2x2 patch of CHM cell
+    centers into two triangles. The ``jenness`` method estimates the surface
+    within each CHM cell using its center height and eight neighboring heights.
 
     Args:
         chm (np.ndarray): 2D canopy heights, shaped (X, Y).
         cell_resolution (tuple[float, float]): Positive, finite CHM cell sizes
             (dx, dy), in the same linear units as the heights.
-        min_height (float | None): Mask heights below this threshold.
+        min_height (float | None): Treat heights strictly below this threshold
+            as missing during calculation. Defaults to None (use all finite
+            heights). The input CHM is not modified.
         method (str): "two_triangle" (default) or "jenness".
 
     Returns:
@@ -611,12 +612,21 @@ def calculate_rumple(chm: np.ndarray,
     Raises:
         ValueError: If the CHM, resolution, threshold, or method is invalid.
 
+    Notes:
+        Missing-data handling is determined by ``method``. NaN, infinite,
+        and height-masked values are treated as missing. ``two_triangle``
+        excludes a patch from both surface and ground area if any of its
+        four heights is missing. ``jenness`` excludes missing center cells;
+        for a valid center, it substitutes the center height for any missing
+        neighbor while calculating that cell's area. At the raster boundary,
+        Jenness repeats edge heights. Neither method fills missing CHM cells.
+
     See Also:
         calculate_rumple_grid: Aggregate the same surface onto an output grid.
     """
     chm, resolution = _prepare_rumple(chm, cell_resolution, min_height, method)
     if method == "two_triangle":
-        # Keep the original scalar's geometry and summation order.
+        # Sum the two triangle areas of each complete patch.
         tri1, tri2, valid = _rumple_triangles(chm, resolution)
         if not np.any(valid):
             return np.nan
@@ -653,7 +663,9 @@ def calculate_rumple_grid(chm: np.ndarray,
             Must agree with CHM shape and cell sizes. Defaults to local bounds
             [0, nx*dx, 0, ny*dy]. The output shares the northwest origin and
             extends east/south to whole output cells if needed.
-        min_height (float | None): Mask heights below this threshold.
+        min_height (float | None): Treat heights strictly below this threshold
+            as missing during calculation. Defaults to None (use all finite
+            heights). The input CHM is not modified.
         method (str): "two_triangle" (default) or "jenness".
 
     Returns:
@@ -662,11 +674,15 @@ def calculate_rumple_grid(chm: np.ndarray,
             only supported area, including along the outer boundary.
 
     Notes:
-        Two-triangle patches require four finite heights. Their triangles
-        are split at cell boundaries; no strips are lost between output cells.
-        Jenness excludes missing center cells, replaces missing neighbors
-        locally with the center height, and repeats outer edge heights, as
-        in lidR/sp. These conventions do not interpolate missing CHM cells.
+        Missing-data handling is determined by ``method``. NaN, infinite,
+        and height-masked values are treated as missing. ``two_triangle``
+        excludes a patch from both surface and ground area if any of its
+        four heights is missing. Valid triangles are split at output cell
+        boundaries and their areas allocated to each side. ``jenness``
+        excludes missing center cells; for a valid center, it substitutes
+        the center height for any missing neighbor while calculating that
+        cell's area. At the raster boundary, Jenness repeats edge heights.
+        Neither method fills missing CHM cells.
 
     Raises:
         ValueError: If inputs, resolutions, extent, threshold, or method

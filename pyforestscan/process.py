@@ -115,8 +115,10 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         outliers_before_hag (bool, optional): If True with remove_outliers=True, apply PDAL's
             statistical outlier filter and remove classification 7 points before HAG. This can
             avoid Delaunay failures caused by bad points. Defaults to False.
-        rumple_min_height (float or None, optional): Mask canopy cells below this height
-            before calculating rumple. Defaults to None.
+        rumple_min_height (float or None, optional): Treat canopy heights strictly
+            below this threshold as missing before calculating rumple. Defaults to
+            None (use all finite heights). Missing heights follow rumple_method's
+            rules and are not set to zero.
         rumple_resolution (float or tuple, optional): Required when metric is "rumple".
             Output cell size, either a scalar or (dx, dy), in coordinate units. Each
             size must be a positive integer multiple of the corresponding XY
@@ -130,10 +132,14 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
             buffer_size=0. With interpolation enabled, use a buffer wide enough to
             include samples around gaps: filling uses only the buffered tile and can
             differ from a whole-cloud calculation.
-        rumple_method (str, optional): Surface estimator for rumple: "two_triangle"
-            (default) preserves the original complete-quad mesh, or "jenness" uses
-            the eight-neighbor estimator and missing-cell rules used by lidR's raster
-            method. Cells without supported area produce NoData.
+        rumple_method (str, optional): Surface estimator and missing-data rule.
+            Nonfinite and height-masked CHM values are treated as missing.
+            "two_triangle" (default) splits each 2x2 CHM patch into two triangles
+            and excludes patches with any missing height from both surface and
+            ground area. "jenness" uses eight neighbors per cell: missing center
+            cells are excluded, missing neighbors use the center height locally,
+            and edge heights are repeated at the raster boundary. Cells without
+            supported area produce NoData.
 
     Returns:
         None

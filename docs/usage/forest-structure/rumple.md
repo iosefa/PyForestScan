@@ -25,7 +25,7 @@ These resolutions answer different questions:
 - **Rumple grid resolution** determines the area summarized by each result.
 
 For example, a 1 m CHM can produce a 20 m rumple raster. Each output cell
-summarizes surface area within a 20 m by 20 m footprint, using the original
+summarizes surface area within a 20 m by 20 m footprint, using the
 1 m canopy heights. The CHM is not first resampled to 20 m.
 
 Output resolution must be a whole multiple of CHM resolution in each
@@ -54,8 +54,8 @@ chm, chm_extent = calculate_chm(
     points, cell_resolution, interpolation="linear",
 )
 
-# One value for the whole CHM, using the existing scalar API.
-rumple_index = calculate_rumple(chm, cell_resolution, min_height=2.0)
+# One value for the whole CHM.
+rumple_index = calculate_rumple(chm, cell_resolution)
 print(f"Whole-CHM rumple: {rumple_index:.3f}")
 
 # A 20 m rumple raster, calculated from the same 1 m canopy surface.
@@ -64,7 +64,6 @@ rumple, extent = calculate_rumple_grid(
     cell_resolution,
     grid_resolution=20.0,
     extent=chm_extent,
-    min_height=2.0,
 )
 
 plot_metric("Rumple Index", rumple, extent, metric_name="Rumple", cmap="viridis")
@@ -93,16 +92,12 @@ The `method` argument is available on both rumple functions:
 | `"two_triangle"` (default) | Split each patch of four neighboring CHM cell centers into two triangles along the northeast–southwest diagonal. | Use a patch only when all four heights are valid. |
 | `"jenness"` | Use the central height and its eight neighbors to estimate the surface within each CHM cell. | Omit missing centers; substitute the central height for missing neighbors. Repeat edge heights at the outer raster boundary. |
 
-The default preserves the original scalar rumple calculation. Fixed-diagonal
-triangulation is also described by
+Fixed-diagonal triangulation is described by
 [FUSION's GridSurfaceStats](https://bpb-us-e1.wpmucdn.com/sites.uw.edu/dist/a/122/files/2017/12/FUSION_manual-1glx79l.pdf#page=96)
 and by [Geng et al. (2019)](https://doi.org/10.3390/jmse7030076).
-These references support the geometry; numerical equivalence with FUSION
-has not been established.
 
-The second method is named **Jenness**, after
-[Jenness (2004)](https://www.jennessent.com/downloads/WSB_32_3_Jenness.pdf).
-It forms eight triangles around each center and sums the portions inside
+The [Jenness (2004)](https://www.jennessent.com/downloads/WSB_32_3_Jenness.pdf)
+method forms eight triangles around each center and sums the portions inside
 that center's cell. Its handling of missing heights and outer edges follows
 [`sp::surfaceArea()`](https://search.r-project.org/CRAN/refmans/sp/html/surfaceArea.html),
 which lidR uses for raster inputs to `rumple_index()`.
@@ -130,21 +125,58 @@ The methods can give different values on the same CHM. Also, lidR's
 triangulates selected surface points within each output cell. That is a
 different surface estimate from either CHM method here.
 
-## Missing Heights and Interpolation
+## Missing Heights
 
-An output value describes the supported part of its footprint. Unsupported
-area is excluded from both the surface-area sum and the ground-area sum;
-a cell with no supported area is `NaN` (NoData in the GeoTIFF). A partially
-observed cell can therefore have a value even though its whole footprint
-is not covered by data.
+The `method` argument determines how missing heights are handled; there is
+no separate missing-data setting. Both functions treat `NaN` and infinite
+heights as missing. Finite heights, including zero, are used unless excluded
+by `min_height`.
 
-The two-triangle method leaves gaps wherever a four-height patch is
-incomplete. Jenness keeps valid centers next to gaps by using their own
-height for any missing neighbor, following lidR's raster calculation. This
-is a local assumption about the surface; it does not fill missing CHM
-centers and can reduce estimated roughness around gaps.
+- **`"two_triangle"`:** Each surface patch needs four heights from a 2x2 group
+  of CHM cells. If any height is missing, the entire patch is excluded from
+  both surface area and ground area. For example, one missing CHM cell
+  removes every patch that uses it, while complete patches still contribute.
+- **`"jenness"`:** A cell with a missing center height contributes neither
+  surface area nor ground area. A cell with a valid center still contributes
+  when neighbors are missing: each missing neighbor is assigned the center
+  height only for that cell's area calculation. For example, a valid 10 m
+  center uses 10 m for a missing neighbor. The missing cell itself stays
+  missing. At the outer raster boundary, edge heights are repeated to supply
+  neighbors outside the raster.
 
-For either method, fill gaps in the CHM before calculating rumple if that
+Jenness's local height substitution follows the raster calculation in
+[`sp::surfaceArea()`](https://search.r-project.org/CRAN/refmans/sp/html/surfaceArea.html),
+which is used by lidR. It assumes a level surface toward a missing neighbor
+and can reduce estimated roughness near gaps.
+
+Each rumple value divides the included surface area by its corresponding
+ground area. A partially observed output cell can therefore have a value;
+it describes only the portion included by the selected method. If no area
+is included, the result is `NaN` (NoData in the GeoTIFF).
+
+## Optional Height Threshold
+
+`min_height=None` is the default and uses all finite CHM heights. Set a
+threshold when the analysis should exclude low vegetation or ground heights:
+
+```python
+rumple_index = calculate_rumple(chm, cell_resolution, min_height=2.0)
+```
+
+This treats heights strictly below 2 m as missing in a temporary copy used
+for calculation. The input CHM is not modified, and excluded heights are
+not replaced with zero. With `"two_triangle"`, patches using those heights
+are omitted. With `"jenness"`, those center cells are omitted and valid
+neighboring centers use their own heights in their place. The same threshold
+is available in `calculate_rumple_grid()`.
+
+The threshold is applied after CHM creation, including any interpolation.
+Low areas and canopy gaps can be meaningful parts of the canopy surface;
+leave the threshold as `None` to include them.
+
+## Filling CHM Gaps
+
+For either method, fill missing heights during CHM creation if interpolation
 is appropriate for the data. `calculate_chm()` supports `"linear"` (its
 default), `"cubic"`, `"nearest"`, or `None` to leave gaps unfilled:
 
@@ -154,16 +186,11 @@ chm, chm_extent = calculate_chm(
 )
 ```
 
-This keeps the filled canopy surface available to inspect and reuse. The
-rumple functions themselves have no interpolation argument. lidR similarly
-offers CHM gap filling through its
-[`p2r(na.fill = tin())`](https://search.r-project.org/CRAN/refmans/lidR/html/dsm_point2raster.html)
-algorithm; its interpolation is not numerically identical to PyForestScan's.
-
-`min_height` masks heights strictly below the threshold after CHM creation.
-Those heights then follow the same missing-data rules as other gaps.
-Interpolation changes the estimated canopy surface, so keep its settings
-consistent when comparing rumple results.
+The resulting CHM can be inspected and reused for either rumple method.
+The rumple functions themselves have no interpolation argument. Any gaps
+remaining in the CHM follow the missing-height rules above. Interpolation
+changes the estimated surface, so use consistent settings when comparing
+rumple results.
 
 ## Tiled GeoTIFF Output
 
@@ -183,7 +210,6 @@ process_with_tiles(
     rumple_method="two_triangle",
     srs="EPSG:32605",
     hag=True,
-    rumple_min_height=2.0,
     interpolation="linear",
 )
 ```
@@ -194,9 +220,10 @@ voxel size does not round the canopy heights or affect rumple.
 
 Tile dimensions must be whole multiples of the rumple output resolution.
 Requested bounds expand to fine-grid cells aligned to absolute XY multiples
-of the voxel sizes, and the output begins at their northwest corner. The final east and south pixels
-can extend beyond the fine grid; the added space is excluded from the area
-calculation. Rumple tile indices start in the northwest, with `i` increasing
+of the voxel sizes, and the output begins at their northwest corner. The
+final east and south pixels can extend beyond the fine grid; the added space
+is excluded from the area calculation. Rumple tile indices start in the
+northwest, with `i` increasing
 east and `j` increasing south.
 
 `calculate_chm()` anchors its grid at the point minima, which can differ from
@@ -213,7 +240,8 @@ before calculating rumple and applying `rumple_min_height`. Increase
 `buffer_size` to include observed canopy around larger gaps near tile
 boundaries. Interpolated values can differ from a whole-cloud calculation
 when a buffered tile has fewer surrounding observations. This option
-continues to apply to CHM and rumple only.
+applies to CHM and rumple only. Use `rumple_min_height` to apply an optional
+height threshold with the rules described above.
 
 ## References
 
