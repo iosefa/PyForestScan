@@ -586,72 +586,231 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear",
 
 def calculate_rumple(chm: np.ndarray,
                      cell_resolution: Tuple[float, float],
-                     min_height: float | None = None) -> float:
+                     min_height: float | None = None,
+                     *, method: str = "two_triangle") -> float:
     """
-    Calculate the canopy rumple index from a Canopy Height Model (CHM).
+    Calculate one rumple index for a Canopy Height Model (CHM).
 
-    Rumple is defined here as the ratio of canopy surface area to planar
-    ground area. The CHM is treated as a triangulated surface over the raster
-    grid, and the surface area is summed over valid 2x2 CHM patches.
+    Rumple is canopy surface area divided by the corresponding planar area.
+    The default ``two_triangle`` method splits each 2x2 patch of CHM cell
+    centers into two triangles. The ``jenness`` method estimates the surface
+    within each CHM cell using its center height and eight neighboring heights.
 
     Args:
-        chm (np.ndarray): 2D array of canopy heights.
-        cell_resolution (tuple[float, float]): CHM cell size as (dx, dy).
-        min_height (float | None, optional): If provided, CHM cells below this
-            height threshold are masked before computing the rumple index.
-            Defaults to None.
+        chm (np.ndarray): 2D canopy heights, shaped (X, Y).
+        cell_resolution (tuple[float, float]): Positive, finite CHM cell sizes
+            (dx, dy), in the same linear units as the heights.
+        min_height (float | None): Treat heights strictly below this threshold
+            as missing during calculation. Defaults to None (use all finite
+            heights). The input CHM is not modified.
+        method (str): "two_triangle" (default) or "jenness".
 
     Returns:
-        float: Rumple index (>= 1 for valid surfaces) or NaN if no valid 2x2
-            surface patches remain after masking.
+        float: Surface-area ratio, or NaN when no valid surface remains.
+            Missing surface is excluded from both numerator and denominator.
 
     Raises:
-        ValueError: If the CHM is not 2D, if cell_resolution is invalid, or if
-            dx/dy are not positive.
+        ValueError: If the CHM, resolution, threshold, or method is invalid.
+
+    Notes:
+        Missing-data handling is determined by ``method``. NaN, infinite,
+        and height-masked values are treated as missing. ``two_triangle``
+        excludes a patch from both surface and ground area if any of its
+        four heights is missing. ``jenness`` excludes missing center cells;
+        for a valid center, it substitutes the center height for any missing
+        neighbor while calculating that cell's area. At the raster boundary,
+        Jenness repeats edge heights. Neither method fills missing CHM cells.
+
+    See Also:
+        calculate_rumple_grid: Aggregate the same surface onto an output grid.
     """
+    chm, resolution = _prepare_rumple(chm, cell_resolution, min_height, method)
+    if method == "two_triangle":
+        # Sum the two triangle areas of each complete patch.
+        tri1, tri2, valid = _rumple_triangles(chm, resolution)
+        if not np.any(valid):
+            return np.nan
+        surface_area = np.sum((tri1 + tri2)[valid], dtype=float)
+        planar_area = float(np.count_nonzero(valid)) * resolution[0] * resolution[1]
+    else:
+        surface, ground = _rumple_cell_areas(chm, resolution, method=method)
+        surface_area, planar_area = surface.sum(), ground.sum()
+    return float(surface_area / planar_area) if planar_area > 0 else np.nan
+
+
+def calculate_rumple_grid(chm: np.ndarray,
+                          cell_resolution: Tuple[float, float],
+                          grid_resolution: float | Tuple[float, float],
+                          *, extent: List[float] | None = None,
+                          min_height: float | None = None,
+                          method: str = "two_triangle") -> Tuple[np.ndarray, List]:
+    """
+    Calculate a rumple raster from a finer canopy height model.
+
+    Surface area is estimated at the CHM resolution, then summed within each
+    output cell and divided by its supported planar area. For example, use a
+    1 m CHM and ``grid_resolution=20`` to describe roughness over 20 m cells.
+    Heights are not resampled to the output resolution before estimating area.
+
+    Args:
+        chm (np.ndarray): Nonempty 2D heights shaped (X, Y), west to east and
+            north to south. Fill gaps during CHM creation if desired.
+        cell_resolution (tuple[float, float]): Positive, finite CHM (dx, dy).
+        grid_resolution (float | tuple[float, float]): Output pixel size,
+            either a square size or (width, height). Each must be a whole
+            multiple of the corresponding CHM size, at least one cell.
+        extent (list[float] | None): CHM outer bounds [xmin, xmax, ymin, ymax].
+            Must agree with CHM shape and cell sizes. Defaults to local bounds
+            [0, nx*dx, 0, ny*dy]. The output shares the northwest origin and
+            extends east/south to whole output cells if needed.
+        min_height (float | None): Treat heights strictly below this threshold
+            as missing during calculation. Defaults to None (use all finite
+            heights). The input CHM is not modified.
+        method (str): "two_triangle" (default) or "jenness".
+
+    Returns:
+        tuple[np.ndarray, list]: Rumple (X, Y) array and output extent. Cells
+            with no supported surface are NaN. Partially covered cells use
+            only supported area, including along the outer boundary.
+
+    Notes:
+        Missing-data handling is determined by ``method``. NaN, infinite,
+        and height-masked values are treated as missing. ``two_triangle``
+        excludes a patch from both surface and ground area if any of its
+        four heights is missing. Valid triangles are split at output cell
+        boundaries and their areas allocated to each side. ``jenness``
+        excludes missing center cells; for a valid center, it substitutes
+        the center height for any missing neighbor while calculating that
+        cell's area. At the raster boundary, Jenness repeats edge heights.
+        Neither method fills missing CHM cells.
+
+    Raises:
+        ValueError: If inputs, resolutions, extent, threshold, or method
+            are invalid.
+    """
+    resolution, output_resolution, factors = _validate_rumple_grid_resolution(
+        cell_resolution, grid_resolution,
+    )
+    chm, _ = _prepare_rumple(chm, resolution, min_height, method)
+    if 0 in chm.shape:
+        raise ValueError("chm must be nonempty for a rumple grid")
+    size = np.asarray(chm.shape) * resolution
+    if extent is None:
+        bounds = np.array([0.0, size[0], 0.0, size[1]])
+    else:
+        bounds = np.asarray(extent, dtype=float)
+        if (bounds.shape != (4,) or not np.all(np.isfinite(bounds))
+                or not np.allclose([bounds[1] - bounds[0], bounds[3] - bounds[2]],
+                                   size, rtol=1e-8, atol=1e-8)):
+            raise ValueError("extent must match the CHM shape and cell_resolution")
+    surface, ground = _rumple_cell_areas(chm, resolution, method=method)
+    shape = (np.asarray(chm.shape) - 1) // factors + 1
+    # Sum partial edge blocks directly, without allocating padded fine cells.
+    # An output cell can be much larger than the entire input CHM.
+    starts_x = np.arange(0, chm.shape[0], factors[0])
+    starts_y = np.arange(0, chm.shape[1], factors[1])
+    surface = np.add.reduceat(np.add.reduceat(surface, starts_x, axis=0), starts_y, axis=1)
+    ground = np.add.reduceat(np.add.reduceat(ground, starts_x, axis=0), starts_y, axis=1)
+    rumple = np.full(tuple(shape), np.nan)
+    np.divide(surface, ground, out=rumple, where=ground > 0)
+    return rumple, [float(bounds[0]), float(bounds[0] + shape[0] * output_resolution[0]),
+                    float(bounds[3] - shape[1] * output_resolution[1]), float(bounds[3])]
+
+
+def _validate_rumple_method(method):
+    if method not in ("two_triangle", "jenness"):
+        raise ValueError("method must be 'two_triangle' or 'jenness'")
+
+
+def _validate_rumple_resolution(cell_resolution):
+    resolution = np.asarray(cell_resolution, dtype=float)
+    if resolution.shape != (2,) or not np.all(np.isfinite(resolution) & (resolution > 0)):
+        raise ValueError("cell_resolution must contain two positive, finite sizes (dx, dy)")
+    return resolution
+
+
+def _validate_rumple_grid_resolution(cell_resolution, grid_resolution):
+    resolution = _validate_rumple_resolution(cell_resolution)
+    output = np.asarray(grid_resolution, dtype=float)
+    if output.ndim == 0:
+        output = np.repeat(output, 2)
+    if output.shape != (2,) or not np.all(np.isfinite(output) & (output > 0)):
+        raise ValueError("grid_resolution must be a positive, finite size or (width, height)")
+    with np.errstate(over="ignore"):
+        factors = output / resolution
+    if (not np.all(np.isfinite(factors) & (factors >= 1) & (factors < np.iinfo(np.intp).max))
+            or not np.allclose(factors, np.round(factors), rtol=0, atol=1e-8)):
+        raise ValueError("grid_resolution must be whole multiples of cell_resolution")
+    return resolution, output, np.round(factors).astype(int)
+
+
+def _prepare_rumple(chm, cell_resolution, min_height, method):
     chm = np.asarray(chm, dtype=float)
     if chm.ndim != 2:
         raise ValueError(f"chm must be a 2D array (got shape {chm.shape})")
-
-    if len(cell_resolution) != 2:
-        raise ValueError("cell_resolution must be a (dx, dy) tuple")
-
-    dx, dy = map(float, cell_resolution)
-    if dx <= 0 or dy <= 0:
-        raise ValueError("cell_resolution components must be > 0")
-
+    resolution = _validate_rumple_resolution(cell_resolution)
+    _validate_rumple_method(method)
     if min_height is not None:
+        if not np.isfinite(min_height):
+            raise ValueError("min_height must be finite or None")
         chm = np.where(chm >= float(min_height), chm, np.nan)
+    # R's sp distinguishes NA from NaN; our equivalent missing marker is NaN.
+    return np.where(np.isfinite(chm), chm, np.nan), resolution
 
-    z00 = chm[:-1, :-1]
-    z10 = chm[1:, :-1]
-    z01 = chm[:-1, 1:]
-    z11 = chm[1:, 1:]
 
-    valid = (
-        np.isfinite(z00) &
-        np.isfinite(z10) &
-        np.isfinite(z01) &
-        np.isfinite(z11)
-    )
-    if not np.any(valid):
-        return np.nan
+def _rumple_triangles(chm, resolution):
+    dx, dy = resolution
+    z00, z10 = chm[:-1, :-1], chm[1:, :-1]
+    z01, z11 = chm[:-1, 1:], chm[1:, 1:]
+    valid = np.isfinite(z00) & np.isfinite(z10) & np.isfinite(z01) & np.isfinite(z11)
+    tri1 = 0.5 * np.sqrt((dy * (z10 - z00)) ** 2 +
+                         (dx * (z01 - z00)) ** 2 + (dx * dy) ** 2)
+    tri2 = 0.5 * np.sqrt((dy * (z01 - z11)) ** 2 +
+                         (dx * (z11 - z10)) ** 2 + (dx * dy) ** 2)
+    return tri1, tri2, valid
 
-    # Approximate the CHM as a triangular mesh over each 2x2 raster patch.
-    tri1 = 0.5 * np.sqrt(
-        (dy * (z10 - z00)) ** 2 +
-        (dx * (z01 - z00)) ** 2 +
-        (dx * dy) ** 2
-    )
-    tri2 = 0.5 * np.sqrt(
-        (dy * (z01 - z11)) ** 2 +
-        (dx * (z11 - z10)) ** 2 +
-        (dx * dy) ** 2
-    )
 
-    surface_area = np.sum((tri1 + tri2)[valid], dtype=float)
-    planar_area = float(np.count_nonzero(valid)) * dx * dy
-    return surface_area / planar_area
+def _rumple_cell_areas(chm, cell_resolution, min_height=None, method="two_triangle"):
+    """Surface and supported planar areas within each CHM cell footprint."""
+    chm, resolution = _prepare_rumple(chm, cell_resolution, min_height, method)
+    dx, dy = resolution
+    surface = np.zeros(chm.shape)
+    ground = np.zeros(chm.shape)
+    if chm.size == 0:
+        return surface, ground
+    if method == "two_triangle":
+        tri1, tri2, valid = _rumple_triangles(chm, resolution)
+        tri1, tri2 = np.where(valid, tri1, 0.0), np.where(valid, tri2, 0.0)
+        # Split each center-to-center patch at its x/y midpoints. The two
+        # diagonal vertices receive 1/4 of each triangle; the other vertices
+        # receive 1/2 of their adjacent triangle. This clips the mesh exactly
+        # to CHM pixel footprints, including across coarse grid boundaries.
+        surface[:-1, :-1] += tri1 / 2
+        surface[1:, 1:] += tri2 / 2
+        surface[1:, :-1] += (tri1 + tri2) / 4
+        surface[:-1, 1:] += (tri1 + tri2) / 4
+        quarter_area = valid * (dx * dy / 4)
+        ground[:-1, :-1] += quarter_area
+        ground[1:, 1:] += quarter_area
+        ground[1:, :-1] += quarter_area
+        ground[:-1, 1:] += quarter_area
+    else:
+        valid = np.isfinite(chm)
+        padded = np.pad(chm, 1, mode="edge")
+        offsets = [(1, 0), (1, 1), (0, 1), (-1, 1),
+                   (-1, 0), (-1, -1), (0, -1), (1, -1)]
+        nx, ny = chm.shape
+        for (ax, ay), (bx, by) in zip(offsets, offsets[1:] + offsets[:1]):
+            za = padded[1 + ax:1 + ax + nx, 1 + ay:1 + ay + ny]
+            zb = padded[1 + bx:1 + bx + nx, 1 + by:1 + by + ny]
+            za = np.where(np.isfinite(za), za, chm) - chm
+            zb = np.where(np.isfinite(zb), zb, chm) - chm
+            slope_x = (ay * zb - by * za) / dx
+            slope_y = (bx * za - ax * zb) / dy
+            surface += np.hypot(np.hypot(slope_x, slope_y), 1.0) * (dx * dy / 8)
+        surface = np.where(valid, surface, 0.0)
+        ground = valid * (dx * dy)
+    return surface, ground
 
 
 def _calc_valid_region_mask(arr):

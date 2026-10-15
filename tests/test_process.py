@@ -1,9 +1,13 @@
 import pytest
 import numpy as np
+import ast
+import json
+import rasterio
 from unittest.mock import patch, MagicMock
 
 
 from pyforestscan.process import process_with_tiles
+from pyforestscan.calculate import calculate_rumple_grid, calculate_voxel_stat
 
 
 # todo: look into why this test takes so long...
@@ -292,3 +296,253 @@ def test_process_with_tiles_pai_handles_low_top_height(mock_pipeline_cls, tmp_pa
 
     created_tifs = list(out_dir.glob("tile_*_pai.tif"))
     assert len(created_tifs) >= 1, "Expected a PAI output tile even when top height < 1 m."
+
+
+@pytest.fixture
+def rumple_ept(monkeypatch):
+    """Simulate EPT bounds reads; calculate and write real rumple GeoTIFFs."""
+    x, y = np.meshgrid(np.arange(11) * 2.0 + 1.0,
+                       np.arange(9) * 3.0 + 1.5, indexing='ij')
+    points = np.zeros(x.size, dtype=[('X', 'f8'), ('Y', 'f8'), ('HeightAboveGround', 'f8')])
+    points['X'], points['Y'] = x.ravel(), y.ravel()
+    points['HeightAboveGround'] = 10.0 + 0.03 * points['X'] ** 2 + 0.01 * points['Y'] ** 2
+    # A gap and a peak exercise spatial variation, orientation, and NoData.
+    points['HeightAboveGround'][12] = np.nan
+    points['HeightAboveGround'][49] += 8.0
+    # Returns exactly on read boundaries must be assigned consistently.
+    edge_points = np.array([(10.0, 12.0, 25.0), (8.0, 15.0, 30.0)], dtype=points.dtype)
+    points = np.concatenate([points, edge_points])
+    reads = []
+
+    def pipeline(pipeline_json):
+        read = json.loads(pipeline_json)['pipeline'][0]
+        bounds = ast.literal_eval(read['bounds'])
+        reads.append(bounds)
+        (xmin, xmax), (ymin, ymax) = bounds[:2]
+        keep = ((points['X'] >= xmin) & (points['X'] <= xmax) &
+                (points['Y'] >= ymin) & (points['Y'] <= ymax))
+        result = MagicMock()
+        result.arrays = [points[keep]]
+        return result
+
+    monkeypatch.setattr('pyforestscan.process.pdal.Pipeline', pipeline)
+    return points, reads
+
+
+def _whole_rumple(points, method="two_triangle", min_height=None, interpolation=None):
+    from scipy.interpolate import griddata
+
+    valid = np.isfinite(points['HeightAboveGround']) & (points['HeightAboveGround'] >= 0)
+    chm, extent = calculate_voxel_stat(points[valid], (2, 3, 1), 'HeightAboveGround', 'max')
+    if interpolation is not None:
+        observed = np.isfinite(chm)
+        chm[~observed] = griddata(np.argwhere(observed) * (2, 3), chm[observed],
+                                 np.argwhere(~observed) * (2, 3), method=interpolation)
+    return calculate_rumple_grid(chm, (2, 3), (4, 6), extent=extent,
+                                 min_height=min_height, method=method)
+
+
+def _assert_rumple_mosaic(directory, expected, extent):
+    mosaic = np.full(expected.shape, np.nan)
+    covered = np.zeros(expected.shape, dtype=int)
+    for path in sorted(directory.glob('tile_*_rumple.tif')):
+        with rasterio.open(path) as src:
+            assert src.crs.to_epsg() == 32605
+            assert src.res == (4.0, 6.0)
+            assert src.nodata == -9999
+            assert src.count == 1
+            values = src.read(1, masked=True).filled(np.nan).T
+            x0 = int(round((src.bounds.left - extent[0]) / 4))
+            y0 = int(round((extent[3] - src.bounds.top) / 6))
+            xs = slice(x0, x0 + src.width)
+            ys = slice(y0, y0 + src.height)
+            np.testing.assert_allclose(values, expected[xs, ys], equal_nan=True, atol=1e-6)
+            mosaic[xs, ys] = values
+            covered[xs, ys] += 1
+    np.testing.assert_array_equal(covered, 1)
+    np.testing.assert_allclose(mosaic, expected, equal_nan=True, atol=1e-6)
+
+
+@pytest.mark.parametrize('method', ['two_triangle', 'jenness'])
+@pytest.mark.parametrize('buffer_size', [0.0, 0.4])
+def test_rumple_tiles_match_whole_grid_and_georeferencing(rumple_ept, tmp_path, buffer_size, method):
+    points, reads = rumple_ept
+    expected, extent = _whole_rumple(points, method=method)
+    process_with_tiles(
+        'fake_ept', (8, 12), str(tmp_path), 'rumple', (2, 3, 1),
+        rumple_resolution=(4, 6), rumple_method=method,
+        buffer_size=buffer_size, srs='EPSG:32605',
+        bounds=([0.2, 21.8], [0.3, 26.8], [0, 100]),
+    )
+    assert len(list(tmp_path.glob('tile_*_rumple.tif'))) == 9
+    assert len(reads) == 9
+    assert reads[0][2] == [0, 100]
+    # Fine CHM 22 x 27 becomes a 24 x 30 output footprint, padded east/south.
+    np.testing.assert_allclose(extent, [0, 24, -3, 27])
+    with rasterio.open(tmp_path / 'tile_0_0_rumple.tif') as src:
+        assert tuple(src.bounds) == (0, 15, 8, 27)
+    _assert_rumple_mosaic(tmp_path, expected, extent)
+
+
+@pytest.mark.parametrize('method', ['two_triangle', 'jenness'])
+def test_rumple_tiles_preserve_missing_outer_chm_cells(rumple_ept, tmp_path, method):
+    points, _ = rumple_ept
+    finite = np.isfinite(points['HeightAboveGround'])
+    chm, extent = calculate_voxel_stat(points[finite], (2, 3, 1), 'HeightAboveGround', 'max')
+    points['HeightAboveGround'][(points['X'] < 2) | (points['Y'] > 24)] = np.nan
+    chm[0, :] = np.nan
+    chm[:, 0] = np.nan
+    expected, extent = calculate_rumple_grid(chm, (2, 3), (4, 6), extent=extent, method=method)
+    process_with_tiles(
+        'fake_ept', (8, 12), str(tmp_path), 'rumple', (2, 3, 1),
+        rumple_resolution=(4, 6), rumple_method=method,
+        buffer_size=0, srs='EPSG:32605', bounds=([0, 22], [0, 27]),
+    )
+    _assert_rumple_mosaic(tmp_path, expected, extent)
+
+
+@pytest.mark.parametrize('method', ['two_triangle', 'jenness'])
+@pytest.mark.parametrize('interpolation', ['linear', 'cubic', 'nearest'])
+def test_rumple_tiles_interpolate_gaps_across_seams(rumple_ept, tmp_path, interpolation, method):
+    points, _ = rumple_ept
+    points['HeightAboveGround'] = 10.0 + 0.5 * points['X'] + 0.25 * points['Y']
+    # Missing canopy cells straddle the seams at x=8 and y=15.
+    gaps = ((points['X'] >= 7) & (points['X'] <= 9) &
+            (points['Y'] >= 13.5) & (points['Y'] <= 16.5))
+    points['HeightAboveGround'][gaps] = np.nan
+    points['HeightAboveGround'][-2:] = np.nan  # Keep only samples at cell centers.
+    process_with_tiles(
+        'fake_ept', (8, 12), str(tmp_path), 'rumple', (2, 3, 1),
+        rumple_resolution=(4, 6), rumple_method=method,
+        interpolation=interpolation, buffer_size=3, srs='EPSG:32605',
+        rumple_min_height=16, bounds=([0, 22], [0, 27]),
+    )
+    expected, extent = _whole_rumple(points, method=method, min_height=16,
+                                     interpolation=interpolation)
+    assert len(list(tmp_path.glob('tile_*_rumple.tif'))) == 9
+    _assert_rumple_mosaic(tmp_path, expected, extent)
+
+
+@pytest.mark.parametrize('method', ['two_triangle', 'jenness'])
+def test_rumple_tiles_height_mask_selection_and_skip_existing(rumple_ept, tmp_path, method):
+    points, reads = rumple_ept
+    expected, _ = _whole_rumple(points, method=method, min_height=16)
+    kwargs = dict(
+        ept_file='fake_ept', tile_size=(8, 12), output_path=str(tmp_path),
+        metric='rumple', voxel_size=(2, 3, 1), srs='EPSG:32605',
+        rumple_resolution=(4, 6), rumple_method=method,
+        bounds=([0, 22], [0, 27]), tile_indices={(1, 1)},
+        rumple_min_height=16.0, buffer_size=0.0,
+    )
+    process_with_tiles(**kwargs)
+    path = tmp_path / 'tile_1_1_rumple.tif'
+    assert list(tmp_path.glob('*.tif')) == [path]
+    with rasterio.open(path) as src:
+        np.testing.assert_allclose(src.read(1, masked=True).filled(np.nan).T,
+                                   expected[2:4, 2:4], equal_nan=True)
+    original = path.read_bytes()
+    process_with_tiles(**kwargs, skip_existing=True)
+    assert len(reads) == 1
+    assert path.read_bytes() == original
+
+
+@pytest.mark.parametrize('method', ['two_triangle', 'jenness'])
+def test_rumple_tiles_all_masked_write_nodata(rumple_ept, tmp_path, method):
+    process_with_tiles(
+        'fake_ept', (8, 12), str(tmp_path), 'rumple', (2, 3, 1),
+        rumple_resolution=(4, 6), rumple_method=method,
+        srs='EPSG:32605', bounds=([0, 22], [0, 27]),
+        tile_indices={(1, 1)}, rumple_min_height=100.0,
+    )
+    with rasterio.open(tmp_path / 'tile_1_1_rumple.tif') as src:
+        assert src.read(1, masked=True).mask.all()
+
+
+@pytest.mark.parametrize('height', [None, -1.0, np.nan])
+@patch('pyforestscan.process.pdal.Pipeline')
+def test_rumple_tiles_empty_or_invalid_points_skip(mock_pipeline_cls, tmp_path, height):
+    points = np.zeros(0 if height is None else 2,
+                      dtype=[('X', 'f8'), ('Y', 'f8'), ('HeightAboveGround', 'f8')])
+    if height is not None:
+        points['HeightAboveGround'] = height
+    mock_pipeline_cls.return_value.arrays = [points]
+    process_with_tiles('fake_ept', (4, 4), str(tmp_path), 'rumple', (1, 1, 1),
+                       rumple_resolution=2, srs='EPSG:32605', bounds=([0, 4], [0, 4]))
+    assert not list(tmp_path.glob('*.tif'))
+
+
+@pytest.mark.parametrize('overrides, message', [
+    ({'voxel_size': (0, 1, 1)}, 'voxel_size'),
+    ({'voxel_size': (1, np.inf, 1)}, 'voxel_size'),
+    ({'rumple_resolution': None}, 'rumple_resolution'),
+    ({'rumple_resolution': (3, 6)}, 'grid_resolution'),
+    ({'rumple_resolution': (1, 3)}, 'grid_resolution'),
+    ({'rumple_method': 'jensen'}, 'method'),
+    ({'tile_size': (8,)}, 'tile_size'),
+    ({'tile_size': (6, 12)}, 'tile_size'),
+    ({'buffer_size': -0.1}, 'buffer_size'),
+    ({'rumple_min_height': np.nan}, 'rumple_min_height'),
+    ({'interpolation': 'bilinear'}, 'interpolation'),
+    ({'bounds': ([0, np.inf], [0, 4])}, 'bounds'),
+    ({'bounds': ([4, 0], [0, 4])}, 'bounds'),
+])
+def test_rumple_tiles_validate_grid_before_reading(tmp_path, overrides, message):
+    kwargs = dict(ept_file='fake_ept', tile_size=(8, 12), output_path=str(tmp_path),
+                  metric='rumple', voxel_size=(2, 3, 1), rumple_resolution=(4, 6))
+    kwargs.update(overrides)
+    with patch('pyforestscan.process.pdal.Pipeline') as pipeline:
+        with pytest.raises(ValueError, match=message):
+            process_with_tiles(**kwargs)
+        pipeline.assert_not_called()
+
+
+@pytest.mark.parametrize('method', ['two_triangle', 'jenness'])
+def test_rumple_tiles_assign_points_on_outer_bounds(rumple_ept, tmp_path, method):
+    points, _ = rumple_ept
+    # Reuse the two extra returns for exact outer-edge samples.
+    points['X'][-2:] = [22, 0]
+    points['Y'][-2:] = [0, 27]
+    points['HeightAboveGround'][-2:] = [60, 40]
+    expected, extent = _whole_rumple(points, method=method)
+    process_with_tiles(
+        'fake_ept', (8, 12), str(tmp_path), 'rumple', (2, 3, 1),
+        rumple_resolution=(4, 6), rumple_method=method, buffer_size=0,
+        srs='EPSG:32605', bounds=([0, 22], [0, 27]),
+    )
+    _assert_rumple_mosaic(tmp_path, expected, extent)
+
+
+@pytest.mark.parametrize('interpolation', ['linear', 'cubic'])
+@patch('pyforestscan.process.pdal.Pipeline')
+def test_rumple_tiles_sparse_interpolation_leaves_missing_heights(mock_pipeline_cls, tmp_path, interpolation):
+    # A single sample cannot support a linear/cubic interpolation surface.
+    points = np.array([(0.5, 0.5, 10.0)],
+                      dtype=[('X', 'f8'), ('Y', 'f8'), ('HeightAboveGround', 'f8')])
+    mock_pipeline_cls.return_value.arrays = [points]
+    process_with_tiles(
+        'fake_ept', (4, 4), str(tmp_path), 'rumple', (1, 1, 1),
+        rumple_resolution=2, interpolation=interpolation,
+        srs='EPSG:32605', bounds=([0, 4], [0, 4]),
+    )
+    with rasterio.open(tmp_path / 'tile_0_0_rumple.tif') as src:
+        assert src.read(1, masked=True).mask.all()
+
+
+@pytest.mark.parametrize('method', ['two_triangle', 'jenness'])
+def test_rumple_tiles_large_output_cell_does_not_allocate_fine_padding(rumple_ept, tmp_path, method):
+    from pyforestscan.calculate import calculate_rumple
+
+    points, _ = rumple_ept
+    points = points[np.isfinite(points['HeightAboveGround'])]
+    chm, _ = calculate_voxel_stat(points, (2, 3, 1), 'HeightAboveGround', 'max')
+    expected = calculate_rumple(chm, (2, 3), method=method)
+    output_resolution = (100_000_000, 99_999_999)
+    process_with_tiles(
+        'fake_ept', output_resolution, str(tmp_path), 'rumple', (2, 3, 1),
+        rumple_resolution=output_resolution, rumple_method=method,
+        buffer_size=0, srs='EPSG:32605', bounds=([0, 22], [0, 27]),
+    )
+    with rasterio.open(tmp_path / 'tile_0_0_rumple.tif') as src:
+        assert src.shape == (1, 1)
+        assert src.res == output_resolution
+        np.testing.assert_allclose(src.read(1), [[expected]])
