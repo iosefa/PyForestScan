@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1102,6 +1102,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pyforestscan.calculate.calculate_rumple_grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        calculate_rumple_grid
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pyforestscan.calculate.calculate_voxel_stat" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1405,6 +1416,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pyforestscan.calculate.calculate_rumple_grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        calculate_rumple_grid
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pyforestscan.calculate.calculate_voxel_stat" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1592,29 +1614,29 @@
 <span class="normal">82</span>
 <span class="normal">83</span>
 <span class="normal">84</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">assign_voxels</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Assigns voxel grids to spatial data points based on the specified resolutions.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        arr (numpy.ndarray): Input array-like object containing point cloud data with &#39;X&#39;, &#39;Y&#39;, and &#39;HeightAboveGround&#39; fields.</span>
+<span class="sd">        arr (numpy.ndarray): Input array-like object containing point cloud data with 'X', 'Y', and 'HeightAboveGround' fields.</span>
 <span class="sd">        voxel_resolution (tuple of floats): The resolution for x, y, and z dimensions of the voxel grid.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        tuple of (numpy.ndarray, List): A tuple containing the histogram of the voxel grid (with corrected orientation) and the extent of the point cloud.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span> <span class="o">=</span> <span class="n">voxel_resolution</span>
 
-    <span class="n">pts</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">arr</span><span class="p">[</span><span class="s1">&#39;HeightAboveGround&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">arr</span><span class="p">[</span><span class="s1">'HeightAboveGround'</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
 
-    <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">/</span> <span class="n">dx</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span>
-    <span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span> <span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span> <span class="n">dy</span><span class="p">)</span> <span class="o">*</span> <span class="n">dy</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="s1">'X'</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">/</span> <span class="n">dx</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span> <span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="s1">'Y'</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span> <span class="n">dy</span><span class="p">)</span> <span class="o">*</span> <span class="n">dy</span>
 
-    <span class="n">x_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">pts</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dx</span><span class="p">)</span>
-    <span class="n">y_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">pts</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">-</span> <span class="n">dy</span><span class="p">,</span> <span class="o">-</span><span class="n">dy</span><span class="p">)</span>
-    <span class="n">z_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">pts</span><span class="p">[</span><span class="s1">&#39;HeightAboveGround&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">dz</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
+    <span class="n">x_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">pts</span><span class="p">[</span><span class="s1">'X'</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dx</span><span class="p">)</span>
+    <span class="n">y_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y0</span><span class="p">,</span> <span class="n">pts</span><span class="p">[</span><span class="s1">'Y'</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">-</span> <span class="n">dy</span><span class="p">,</span> <span class="o">-</span><span class="n">dy</span><span class="p">)</span>
+    <span class="n">z_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">pts</span><span class="p">[</span><span class="s1">'HeightAboveGround'</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">dz</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>
 
     <span class="n">hist</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogramdd</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">pts</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">pts</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">],</span> <span class="n">pts</span><span class="p">[</span><span class="s1">&#39;HeightAboveGround&#39;</span><span class="p">])),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">pts</span><span class="p">[</span><span class="s1">'X'</span><span class="p">],</span> <span class="n">pts</span><span class="p">[</span><span class="s1">'Y'</span><span class="p">],</span> <span class="n">pts</span><span class="p">[</span><span class="s1">'HeightAboveGround'</span><span class="p">])),</span>
         <span class="n">bins</span><span class="o">=</span><span class="p">(</span><span class="n">x_bins</span><span class="p">,</span> <span class="n">y_bins</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">z_bins</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">hist</span> <span class="o">=</span> <span class="n">hist</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
@@ -1854,7 +1876,7 @@ or min_height &gt;= max_height).</p>
                            <span class="n">min_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
                            <span class="n">max_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                            <span class="n">k</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate GEDI-style canopy cover at a height threshold using PAD.</span>
 
 <span class="sd">    Uses the Beer–Lambert relation: Cover(z) = 1 - exp(-k * PAI_above(z)), where</span>
@@ -1878,11 +1900,11 @@ or min_height &gt;= max_height).</p>
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If parameters are invalid (e.g., non-positive voxel_height, k &lt; 0,</span>
 <span class="sd">            or min_height &gt;= max_height).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">voxel_height</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;voxel_height must be &gt; 0 metres (got </span><span class="si">{</span><span class="n">voxel_height</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"voxel_height must be &gt; 0 metres (got </span><span class="si">{</span><span class="n">voxel_height</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;k must be &gt;= 0 (got </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"k must be &gt;= 0 (got </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 
     <span class="c1"># Determine effective max height and handle empty integration range</span>
     <span class="n">effective_max_height</span> <span class="o">=</span> <span class="n">max_height</span> <span class="k">if</span> <span class="n">max_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pad</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">voxel_height</span>
@@ -1917,7 +1939,7 @@ or min_height &gt;= max_height).</p>
 
 
 <h2 id="pyforestscan.calculate.calculate_chm" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">calculate_chm</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">interp_valid_region</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interp_clean_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">calculate_chm</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">'linear'</span><span class="p">,</span> <span class="n">interp_valid_region</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interp_clean_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#pyforestscan.calculate.calculate_chm" class="headerlink" title="Permanent link">&para;</a></h2>
 
@@ -2189,22 +2211,22 @@ Ignored if <code>interpolation</code> is None.</p>
 <span class="normal">581</span>
 <span class="normal">582</span>
 <span class="normal">583</span>
-<span class="normal">584</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_chm</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+<span class="normal">584</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_chm</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">voxel_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
                   <span class="n">interp_valid_region</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interp_clean_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate the Canopy Height Model (CHM) for a given voxel grid.</span>
 
-<span class="sd">    The CHM is computed as the maximum &#39;HeightAboveGround&#39; value within each (X, Y) voxel.</span>
+<span class="sd">    The CHM is computed as the maximum 'HeightAboveGround' value within each (X, Y) voxel.</span>
 <span class="sd">    Optionally, gaps in the CHM can be filled using interpolation.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        arr (np.ndarray): Input structured numpy array containing point cloud data</span>
-<span class="sd">            with fields &#39;X&#39;, &#39;Y&#39;, and &#39;HeightAboveGround&#39;.</span>
+<span class="sd">            with fields 'X', 'Y', and 'HeightAboveGround'.</span>
 <span class="sd">        voxel_resolution (tuple of float): The resolution for the X and Y dimensions</span>
 <span class="sd">            of the voxel grid, specified as (x_resolution, y_resolution).</span>
 <span class="sd">        interpolation (str or None, optional): Method for interpolating gaps in the CHM.</span>
-<span class="sd">            Supported methods are &quot;nearest&quot;, &quot;linear&quot;, &quot;cubic&quot;, or None. If None, no interpolation</span>
-<span class="sd">            is performed. Defaults to &quot;linear&quot;.</span>
+<span class="sd">            Supported methods are "nearest", "linear", "cubic", or None. If None, no interpolation</span>
+<span class="sd">            is performed. Defaults to "linear".</span>
 <span class="sd">        interp_valid_region (bool): Whether to calculate a valid region mask using morphological operations for</span>
 <span class="sd">            interpolation. If True, interpolation is only applied within the valid data region. If False (default),</span>
 <span class="sd">            interpolation is applied to all NaN values. Ignored if `interpolation` is None.</span>
@@ -2221,11 +2243,11 @@ Ignored if <code>interpolation</code> is None.</p>
 <span class="sd">        ValueError: If input array does not contain the required fields.</span>
 <span class="sd">        ValueError: If `interpolation` is specified but not one of the supported methods.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">x_resolution</span><span class="p">,</span> <span class="n">y_resolution</span> <span class="o">=</span> <span class="n">voxel_resolution</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span>
-    <span class="n">z</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;HeightAboveGround&#39;</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">'X'</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">'Y'</span><span class="p">]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">'HeightAboveGround'</span><span class="p">]</span>
 
     <span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
     <span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
@@ -2468,7 +2490,7 @@ Areas with no voxel returns in the requested height range will have NaN values.<
                   <span class="n">voxel_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
                   <span class="n">min_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
                   <span class="n">max_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate the Foliage Height Diversity (FHD) for a given set of voxel returns.</span>
 
 <span class="sd">    This function computes FHD by calculating the entropy of the voxel return proportions</span>
@@ -2486,9 +2508,9 @@ Areas with no voxel returns in the requested height range will have NaN values.<
 <span class="sd">    Returns:</span>
 <span class="sd">        np.ndarray: 2D numpy array of shape (X, Y) with FHD values for each (X, Y) location.</span>
 <span class="sd">            Areas with no voxel returns in the requested height range will have NaN values.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">voxel_height</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;voxel_height must be &gt; 0 metres (got </span><span class="si">{</span><span class="n">voxel_height</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"voxel_height must be &gt; 0 metres (got </span><span class="si">{</span><span class="n">voxel_height</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 
     <span class="n">effective_max_height</span> <span class="o">=</span> <span class="n">max_height</span> <span class="k">if</span> <span class="n">max_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">voxel_returns</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">voxel_height</span>
     <span class="k">if</span> <span class="n">min_height</span> <span class="o">&gt;=</span> <span class="n">effective_max_height</span><span class="p">:</span>
@@ -2502,7 +2524,7 @@ Areas with no voxel returns in the requested height range will have NaN values.<
     <span class="n">core_returns</span> <span class="o">=</span> <span class="n">voxel_returns</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
     <span class="n">sum_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">core_returns</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">):</span>
         <span class="n">proportions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span>
             <span class="n">core_returns</span><span class="p">,</span>
             <span class="n">sum_counts</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
@@ -2696,7 +2718,7 @@ Columns that have zero returns across all Z are set to NaN.</p>
                   <span class="n">beer_lambert_constant</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                   <span class="n">drop_ground</span><span class="o">=</span><span class="kc">True</span>
                   <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate the Plant Area Density (PAD) using the Beer-Lambert Law.</span>
 
 <span class="sd">    Args:</span>
@@ -2711,10 +2733,10 @@ Columns that have zero returns across all Z are set to NaN.</p>
 <span class="sd">    Returns:</span>
 <span class="sd">        np.ndarray: 3D numpy array containing PAD values for each voxel, same shape as `voxel_returns`.</span>
 <span class="sd">            Columns that have zero returns across all Z are set to NaN.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">voxel_height</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;voxel_height must be &gt; 0 metres (got </span><span class="si">{</span><span class="n">voxel_height</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="sa">f</span><span class="s2">"voxel_height must be &gt; 0 metres (got </span><span class="si">{</span><span class="n">voxel_height</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
     <span class="n">reversed_cols</span> <span class="o">=</span> <span class="n">voxel_returns</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
@@ -2728,7 +2750,7 @@ Columns that have zero returns across all Z are set to NaN.</p>
         <span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">shots_out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span>
     <span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">):</span>
         <span class="n">pad_sky</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">shots_in</span> <span class="o">/</span> <span class="n">shots_out</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">beer_lambert_constant</span> <span class="o">*</span> <span class="n">voxel_height</span><span class="p">)</span>
     <span class="n">pad_sky</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">pad_sky</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
@@ -2922,7 +2944,7 @@ Columns that have zero returns across all Z are set to NaN.</p>
                   <span class="n">voxel_height</span><span class="p">,</span>
                   <span class="n">min_height</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                   <span class="n">max_height</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate Plant Area Index (PAI) from Plant Area Density (PAD) data by summing PAD values along the height (Z) axis.</span>
 
 <span class="sd">    Args:</span>
@@ -2938,9 +2960,9 @@ Columns that have zero returns across all Z are set to NaN.</p>
 <span class="sd">        - If the requested integration range is empty (e.g., min_height &gt;= available</span>
 <span class="sd">          maximum height), returns a zeros array (no canopy above the threshold),</span>
 <span class="sd">          mirroring the behavior used by canopy cover.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">voxel_height</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;voxel_height must be &gt; 0 metres (got </span><span class="si">{</span><span class="n">voxel_height</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"voxel_height must be &gt; 0 metres (got </span><span class="si">{</span><span class="n">voxel_height</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 
     <span class="n">effective_max_height</span> <span class="o">=</span> <span class="n">max_height</span> <span class="k">if</span> <span class="n">max_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pad</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">voxel_height</span>
 
@@ -3106,7 +3128,7 @@ Required when <code>per_area=True</code>.</p>
 <span class="normal">321</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_point_density</span><span class="p">(</span><span class="n">voxel_returns</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                             <span class="n">per_area</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                             <span class="n">cell_area</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate point density (or count) per (X, Y) voxel column by summing returns across Z.</span>
 
 <span class="sd">    Args:</span>
@@ -3121,11 +3143,11 @@ Required when <code>per_area=True</code>.</p>
 <span class="sd">    Notes:</span>
 <span class="sd">        - For columns with no returns, the count is 0. This differs from metrics like FHD where no-data is NaN.</span>
 <span class="sd">        - If you want density per m^2, set ``per_area=True`` and pass ``cell_area = dx * dy``.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">voxel_returns</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">per_area</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">cell_area</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">cell_area</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cell_area must be &gt; 0 when per_area=True&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"cell_area must be &gt; 0 when per_area=True"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">counts</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">cell_area</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">counts</span>
 </code></pre></div></td></tr></table></div>
@@ -3138,17 +3160,18 @@ Required when <code>per_area=True</code>.</p>
 
 
 <h2 id="pyforestscan.calculate.calculate_rumple" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">calculate_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">min_height</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">calculate_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">min_height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'two_triangle'</span><span class="p">)</span></code>
 
 <a href="#pyforestscan.calculate.calculate_rumple" class="headerlink" title="Permanent link">&para;</a></h2>
 
 
     <div class="doc doc-contents ">
 
-        <p>Calculate the canopy rumple index from a Canopy Height Model (CHM).</p>
-<p>Rumple is defined here as the ratio of canopy surface area to planar
-ground area. The CHM is treated as a triangulated surface over the raster
-grid, and the surface area is summed over valid 2x2 CHM patches.</p>
+        <p>Calculate one rumple index for a Canopy Height Model (CHM).</p>
+<p>Rumple is canopy surface area divided by the corresponding planar area.
+The default <code>two_triangle</code> method splits each 2x2 patch of CHM cell
+centers into two triangles. The <code>jenness</code> method estimates the surface
+within each CHM cell using its center height and eight neighboring heights.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -3171,7 +3194,7 @@ grid, and the surface area is summed over valid 2x2 CHM patches.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>2D array of canopy heights.</p>
+                <p>2D canopy heights, shaped (X, Y).</p>
               </div>
             </td>
             <td>
@@ -3187,7 +3210,8 @@ grid, and the surface area is summed over valid 2x2 CHM patches.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>CHM cell size as (dx, dy).</p>
+                <p>Positive, finite CHM cell sizes
+(dx, dy), in the same linear units as the heights.</p>
               </div>
             </td>
             <td>
@@ -3203,13 +3227,29 @@ grid, and the surface area is summed over valid 2x2 CHM patches.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If provided, CHM cells below this
-height threshold are masked before computing the rumple index.
-Defaults to None.</p>
+                <p>Treat heights strictly below this threshold
+as missing during calculation. Defaults to None (use all finite
+heights). The input CHM is not modified.</p>
               </div>
             </td>
             <td>
                   <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>method</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>"two_triangle" (default) or "jenness".</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;two_triangle&#39;</code>
             </td>
           </tr>
       </tbody>
@@ -3231,8 +3271,8 @@ Defaults to None.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Rumple index (&gt;= 1 for valid surfaces) or NaN if no valid 2x2
-surface patches remain after masking.</p>
+                <p>Surface-area ratio, or NaN when no valid surface remains.
+Missing surface is excluded from both numerator and denominator.</p>
               </div>
             </td>
           </tr>
@@ -3255,14 +3295,29 @@ surface patches remain after masking.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If the CHM is not 2D, if cell_resolution is invalid, or if
-dx/dy are not positive.</p>
+                <p>If the CHM, resolution, threshold, or method is invalid.</p>
               </div>
             </td>
           </tr>
       </tbody>
     </table>
 
+
+<details class="notes" open>
+  <summary>Notes</summary>
+  <p>Missing-data handling is determined by <code>method</code>. NaN, infinite,
+and height-masked values are treated as missing. <code>two_triangle</code>
+excludes a patch from both surface and ground area if any of its
+four heights is missing. <code>jenness</code> excludes missing center cells;
+for a valid center, it substitutes the center height for any missing
+neighbor while calculating that cell's area. At the raster boundary,
+Jenness repeats edge heights. Neither method fills missing CHM cells.</p>
+</details>
+
+<details class="see-also" open>
+  <summary>See Also</summary>
+  <p>calculate_rumple_grid: Aggregate the same surface onto an output grid.</p>
+</details>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>pyforestscan/calculate.py</code></summary>
@@ -3317,10 +3372,266 @@ dx/dy are not positive.</p>
 <span class="normal">635</span>
 <span class="normal">636</span>
 <span class="normal">637</span>
-<span class="normal">638</span>
-<span class="normal">639</span>
-<span class="normal">640</span>
-<span class="normal">641</span>
+<span class="normal">638</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                     <span class="n">cell_resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                     <span class="n">min_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="o">*</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"two_triangle"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate one rumple index for a Canopy Height Model (CHM).</span>
+
+<span class="sd">    Rumple is canopy surface area divided by the corresponding planar area.</span>
+<span class="sd">    The default ``two_triangle`` method splits each 2x2 patch of CHM cell</span>
+<span class="sd">    centers into two triangles. The ``jenness`` method estimates the surface</span>
+<span class="sd">    within each CHM cell using its center height and eight neighboring heights.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        chm (np.ndarray): 2D canopy heights, shaped (X, Y).</span>
+<span class="sd">        cell_resolution (tuple[float, float]): Positive, finite CHM cell sizes</span>
+<span class="sd">            (dx, dy), in the same linear units as the heights.</span>
+<span class="sd">        min_height (float | None): Treat heights strictly below this threshold</span>
+<span class="sd">            as missing during calculation. Defaults to None (use all finite</span>
+<span class="sd">            heights). The input CHM is not modified.</span>
+<span class="sd">        method (str): "two_triangle" (default) or "jenness".</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: Surface-area ratio, or NaN when no valid surface remains.</span>
+<span class="sd">            Missing surface is excluded from both numerator and denominator.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the CHM, resolution, threshold, or method is invalid.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        Missing-data handling is determined by ``method``. NaN, infinite,</span>
+<span class="sd">        and height-masked values are treated as missing. ``two_triangle``</span>
+<span class="sd">        excludes a patch from both surface and ground area if any of its</span>
+<span class="sd">        four heights is missing. ``jenness`` excludes missing center cells;</span>
+<span class="sd">        for a valid center, it substitutes the center height for any missing</span>
+<span class="sd">        neighbor while calculating that cell's area. At the raster boundary,</span>
+<span class="sd">        Jenness repeats edge heights. Neither method fills missing CHM cells.</span>
+
+<span class="sd">    See Also:</span>
+<span class="sd">        calculate_rumple_grid: Aggregate the same surface onto an output grid.</span>
+<span class="sd">    """</span>
+    <span class="n">chm</span><span class="p">,</span> <span class="n">resolution</span> <span class="o">=</span> <span class="n">_prepare_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">min_height</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"two_triangle"</span><span class="p">:</span>
+        <span class="c1"># Sum the two triangle areas of each complete patch.</span>
+        <span class="n">tri1</span><span class="p">,</span> <span class="n">tri2</span><span class="p">,</span> <span class="n">valid</span> <span class="o">=</span> <span class="n">_rumple_triangles</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">resolution</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">valid</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">surface_area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">tri1</span> <span class="o">+</span> <span class="n">tri2</span><span class="p">)[</span><span class="n">valid</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">planar_area</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">valid</span><span class="p">))</span> <span class="o">*</span> <span class="n">resolution</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">resolution</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">surface</span><span class="p">,</span> <span class="n">ground</span> <span class="o">=</span> <span class="n">_rumple_cell_areas</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">resolution</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+        <span class="n">surface_area</span><span class="p">,</span> <span class="n">planar_area</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">ground</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">surface_area</span> <span class="o">/</span> <span class="n">planar_area</span><span class="p">)</span> <span class="k">if</span> <span class="n">planar_area</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="pyforestscan.calculate.calculate_rumple_grid" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">calculate_rumple_grid</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">grid_resolution</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'two_triangle'</span><span class="p">)</span></code>
+
+<a href="#pyforestscan.calculate.calculate_rumple_grid" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Calculate a rumple raster from a finer canopy height model.</p>
+<p>Surface area is estimated at the CHM resolution, then summed within each
+output cell and divided by its supported planar area. For example, use a
+1 m CHM and <code>grid_resolution=20</code> to describe roughness over 20 m cells.
+Heights are not resampled to the output resolution before estimating area.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>chm</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Nonempty 2D heights shaped (X, Y), west to east and
+north to south. Fill gaps during CHM creation if desired.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>cell_resolution</code>
+            </td>
+            <td>
+                  <code><span title="tuple">tuple</span>[<span title="float">float</span>, <span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Positive, finite CHM (dx, dy).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>grid_resolution</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span> | <span title="tuple">tuple</span>[<span title="float">float</span>, <span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Output pixel size,
+either a square size or (width, height). Each must be a whole
+multiple of the corresponding CHM size, at least one cell.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>extent</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="float">float</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>CHM outer bounds [xmin, xmax, ymin, ymax].
+Must agree with CHM shape and cell sizes. Defaults to local bounds
+[0, nx<em>dx, 0, ny</em>dy]. The output shares the northwest origin and
+extends east/south to whole output cells if needed.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>min_height</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Treat heights strictly below this threshold
+as missing during calculation. Defaults to None (use all finite
+heights). The input CHM is not modified.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>method</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>"two_triangle" (default) or "jenness".</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;two_triangle&#39;</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="numpy.ndarray">ndarray</span>, <span title="typing.List">List</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>tuple[np.ndarray, list]: Rumple (X, Y) array and output extent. Cells
+with no supported surface are NaN. Partially covered cells use
+only supported area, including along the outer boundary.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="notes" open>
+  <summary>Notes</summary>
+  <p>Missing-data handling is determined by <code>method</code>. NaN, infinite,
+and height-masked values are treated as missing. <code>two_triangle</code>
+excludes a patch from both surface and ground area if any of its
+four heights is missing. Valid triangles are split at output cell
+boundaries and their areas allocated to each side. <code>jenness</code>
+excludes missing center cells; for a valid center, it substitutes
+the center height for any missing neighbor while calculating that
+cell's area. At the raster boundary, Jenness repeats edge heights.
+Neither method fills missing CHM cells.</p>
+</details>
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If inputs, resolutions, extent, threshold, or method
+are invalid.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>pyforestscan/calculate.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">641</span>
 <span class="normal">642</span>
 <span class="normal">643</span>
 <span class="normal">644</span>
@@ -3333,74 +3644,146 @@ dx/dy are not positive.</p>
 <span class="normal">651</span>
 <span class="normal">652</span>
 <span class="normal">653</span>
-<span class="normal">654</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-                     <span class="n">cell_resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
-                     <span class="n">min_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Calculate the canopy rumple index from a Canopy Height Model (CHM).</span>
+<span class="normal">654</span>
+<span class="normal">655</span>
+<span class="normal">656</span>
+<span class="normal">657</span>
+<span class="normal">658</span>
+<span class="normal">659</span>
+<span class="normal">660</span>
+<span class="normal">661</span>
+<span class="normal">662</span>
+<span class="normal">663</span>
+<span class="normal">664</span>
+<span class="normal">665</span>
+<span class="normal">666</span>
+<span class="normal">667</span>
+<span class="normal">668</span>
+<span class="normal">669</span>
+<span class="normal">670</span>
+<span class="normal">671</span>
+<span class="normal">672</span>
+<span class="normal">673</span>
+<span class="normal">674</span>
+<span class="normal">675</span>
+<span class="normal">676</span>
+<span class="normal">677</span>
+<span class="normal">678</span>
+<span class="normal">679</span>
+<span class="normal">680</span>
+<span class="normal">681</span>
+<span class="normal">682</span>
+<span class="normal">683</span>
+<span class="normal">684</span>
+<span class="normal">685</span>
+<span class="normal">686</span>
+<span class="normal">687</span>
+<span class="normal">688</span>
+<span class="normal">689</span>
+<span class="normal">690</span>
+<span class="normal">691</span>
+<span class="normal">692</span>
+<span class="normal">693</span>
+<span class="normal">694</span>
+<span class="normal">695</span>
+<span class="normal">696</span>
+<span class="normal">697</span>
+<span class="normal">698</span>
+<span class="normal">699</span>
+<span class="normal">700</span>
+<span class="normal">701</span>
+<span class="normal">702</span>
+<span class="normal">703</span>
+<span class="normal">704</span>
+<span class="normal">705</span>
+<span class="normal">706</span>
+<span class="normal">707</span>
+<span class="normal">708</span>
+<span class="normal">709</span>
+<span class="normal">710</span>
+<span class="normal">711</span>
+<span class="normal">712</span>
+<span class="normal">713</span>
+<span class="normal">714</span>
+<span class="normal">715</span>
+<span class="normal">716</span>
+<span class="normal">717</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_rumple_grid</span><span class="p">(</span><span class="n">chm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                          <span class="n">cell_resolution</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                          <span class="n">grid_resolution</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                          <span class="o">*</span><span class="p">,</span> <span class="n">extent</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                          <span class="n">min_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                          <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"two_triangle"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate a rumple raster from a finer canopy height model.</span>
 
-<span class="sd">    Rumple is defined here as the ratio of canopy surface area to planar</span>
-<span class="sd">    ground area. The CHM is treated as a triangulated surface over the raster</span>
-<span class="sd">    grid, and the surface area is summed over valid 2x2 CHM patches.</span>
+<span class="sd">    Surface area is estimated at the CHM resolution, then summed within each</span>
+<span class="sd">    output cell and divided by its supported planar area. For example, use a</span>
+<span class="sd">    1 m CHM and ``grid_resolution=20`` to describe roughness over 20 m cells.</span>
+<span class="sd">    Heights are not resampled to the output resolution before estimating area.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        chm (np.ndarray): 2D array of canopy heights.</span>
-<span class="sd">        cell_resolution (tuple[float, float]): CHM cell size as (dx, dy).</span>
-<span class="sd">        min_height (float | None, optional): If provided, CHM cells below this</span>
-<span class="sd">            height threshold are masked before computing the rumple index.</span>
-<span class="sd">            Defaults to None.</span>
+<span class="sd">        chm (np.ndarray): Nonempty 2D heights shaped (X, Y), west to east and</span>
+<span class="sd">            north to south. Fill gaps during CHM creation if desired.</span>
+<span class="sd">        cell_resolution (tuple[float, float]): Positive, finite CHM (dx, dy).</span>
+<span class="sd">        grid_resolution (float | tuple[float, float]): Output pixel size,</span>
+<span class="sd">            either a square size or (width, height). Each must be a whole</span>
+<span class="sd">            multiple of the corresponding CHM size, at least one cell.</span>
+<span class="sd">        extent (list[float] | None): CHM outer bounds [xmin, xmax, ymin, ymax].</span>
+<span class="sd">            Must agree with CHM shape and cell sizes. Defaults to local bounds</span>
+<span class="sd">            [0, nx*dx, 0, ny*dy]. The output shares the northwest origin and</span>
+<span class="sd">            extends east/south to whole output cells if needed.</span>
+<span class="sd">        min_height (float | None): Treat heights strictly below this threshold</span>
+<span class="sd">            as missing during calculation. Defaults to None (use all finite</span>
+<span class="sd">            heights). The input CHM is not modified.</span>
+<span class="sd">        method (str): "two_triangle" (default) or "jenness".</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        float: Rumple index (&gt;= 1 for valid surfaces) or NaN if no valid 2x2</span>
-<span class="sd">            surface patches remain after masking.</span>
+<span class="sd">        tuple[np.ndarray, list]: Rumple (X, Y) array and output extent. Cells</span>
+<span class="sd">            with no supported surface are NaN. Partially covered cells use</span>
+<span class="sd">            only supported area, including along the outer boundary.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        Missing-data handling is determined by ``method``. NaN, infinite,</span>
+<span class="sd">        and height-masked values are treated as missing. ``two_triangle``</span>
+<span class="sd">        excludes a patch from both surface and ground area if any of its</span>
+<span class="sd">        four heights is missing. Valid triangles are split at output cell</span>
+<span class="sd">        boundaries and their areas allocated to each side. ``jenness``</span>
+<span class="sd">        excludes missing center cells; for a valid center, it substitutes</span>
+<span class="sd">        the center height for any missing neighbor while calculating that</span>
+<span class="sd">        cell's area. At the raster boundary, Jenness repeats edge heights.</span>
+<span class="sd">        Neither method fills missing CHM cells.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If the CHM is not 2D, if cell_resolution is invalid, or if</span>
-<span class="sd">            dx/dy are not positive.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">chm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">chm</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;chm must be a 2D array (got shape </span><span class="si">{</span><span class="n">chm</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cell_resolution</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cell_resolution must be a (dx, dy) tuple&quot;</span><span class="p">)</span>
-
-    <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">dx</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">dy</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cell_resolution components must be &gt; 0&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">min_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">chm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">chm</span> <span class="o">&gt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_height</span><span class="p">),</span> <span class="n">chm</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
-
-    <span class="n">z00</span> <span class="o">=</span> <span class="n">chm</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">z10</span> <span class="o">=</span> <span class="n">chm</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">z01</span> <span class="o">=</span> <span class="n">chm</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
-    <span class="n">z11</span> <span class="o">=</span> <span class="n">chm</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span>
-
-    <span class="n">valid</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">z00</span><span class="p">)</span> <span class="o">&amp;</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">z10</span><span class="p">)</span> <span class="o">&amp;</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">z01</span><span class="p">)</span> <span class="o">&amp;</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">z11</span><span class="p">)</span>
+<span class="sd">        ValueError: If inputs, resolutions, extent, threshold, or method</span>
+<span class="sd">            are invalid.</span>
+<span class="sd">    """</span>
+    <span class="n">resolution</span><span class="p">,</span> <span class="n">output_resolution</span><span class="p">,</span> <span class="n">factors</span> <span class="o">=</span> <span class="n">_validate_rumple_grid_resolution</span><span class="p">(</span>
+        <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">grid_resolution</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">valid</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-
-    <span class="c1"># Approximate the CHM as a triangular mesh over each 2x2 raster patch.</span>
-    <span class="n">tri1</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
-        <span class="p">(</span><span class="n">dy</span> <span class="o">*</span> <span class="p">(</span><span class="n">z10</span> <span class="o">-</span> <span class="n">z00</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
-        <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="p">(</span><span class="n">z01</span> <span class="o">-</span> <span class="n">z00</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
-        <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="p">)</span>
-    <span class="n">tri2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
-        <span class="p">(</span><span class="n">dy</span> <span class="o">*</span> <span class="p">(</span><span class="n">z01</span> <span class="o">-</span> <span class="n">z11</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
-        <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="p">(</span><span class="n">z11</span> <span class="o">-</span> <span class="n">z10</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
-        <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="p">)</span>
-
-    <span class="n">surface_area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">tri1</span> <span class="o">+</span> <span class="n">tri2</span><span class="p">)[</span><span class="n">valid</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-    <span class="n">planar_area</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">valid</span><span class="p">))</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span>
-    <span class="k">return</span> <span class="n">surface_area</span> <span class="o">/</span> <span class="n">planar_area</span>
+    <span class="n">chm</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_prepare_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">resolution</span><span class="p">,</span> <span class="n">min_height</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+    <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">chm</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"chm must be nonempty for a rumple grid"</span><span class="p">)</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">chm</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">resolution</span>
+    <span class="k">if</span> <span class="n">extent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">extent</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">bounds</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">bounds</span><span class="p">))</span>
+                <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">([</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
+                                   <span class="n">size</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"extent must match the CHM shape and cell_resolution"</span><span class="p">)</span>
+    <span class="n">surface</span><span class="p">,</span> <span class="n">ground</span> <span class="o">=</span> <span class="n">_rumple_cell_areas</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">resolution</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">chm</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">factors</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="c1"># Sum partial edge blocks directly, without allocating padded fine cells.</span>
+    <span class="c1"># An output cell can be much larger than the entire input CHM.</span>
+    <span class="n">starts_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">chm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">factors</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">starts_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">chm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">factors</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">surface</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">reduceat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">reduceat</span><span class="p">(</span><span class="n">surface</span><span class="p">,</span> <span class="n">starts_x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">starts_y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ground</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">reduceat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">reduceat</span><span class="p">(</span><span class="n">ground</span><span class="p">,</span> <span class="n">starts_x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">starts_y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">rumple</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">surface</span><span class="p">,</span> <span class="n">ground</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">rumple</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">ground</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rumple</span><span class="p">,</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">output_resolution</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">output_resolution</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">3</span><span class="p">])]</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3537,13 +3920,14 @@ the first three voxels (indices 0, 1, 2).</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="numpy.ndarray">ndarray</span>, <span title="typing.List">List</span>[<span title="float">float</span>]]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>tuple[np.ndarray, list]: (stat_array, extent)
-- stat_array: 2-D array shaped (nx, ny) with the requested statistic per column.
-  Cells without points are NaN (except for 'count', which yields 0).
-- extent: [x_min, x_max, y_min, y_max] covering the raster footprint.</p>
+                <p>tuple[np.ndarray, list]: The statistic array and raster extent. The array
+has shape (nx, ny), with the requested statistic per column. Cells
+without points are NaN, except for 'count', which yields 0. The
+extent is [x_min, x_max, y_min, y_max], covering the raster footprint.</p>
               </div>
             </td>
           </tr>
@@ -3720,8 +4104,8 @@ the first three voxels (indices 0, 1, 2).</p>
     <span class="n">dimension</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">stat</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">z_index_range</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Compute a column-wise statistic for a given dimension over a 3-D voxel grid.</span>
 
 <span class="sd">    The function bins points into voxels with the same XY/Z sizing used by ``assign_voxels``.</span>
@@ -3729,47 +4113,47 @@ the first three voxels (indices 0, 1, 2).</p>
 <span class="sd">    simple statistic (mean, min, max, etc.) on the provided dimension.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        arr (np.ndarray): Structured array containing at least &#39;X&#39;, &#39;Y&#39;, and &#39;HeightAboveGround&#39;</span>
+<span class="sd">        arr (np.ndarray): Structured array containing at least 'X', 'Y', and 'HeightAboveGround'</span>
 <span class="sd">            fields, plus the provided ``dimension``.</span>
 <span class="sd">        voxel_resolution (tuple[float, float, float]): (dx, dy, dz) sizes in the same units</span>
 <span class="sd">            as the coordinates and height-above-ground values. All components must be &gt; 0.</span>
-<span class="sd">        dimension (str): Dimension/field name to evaluate (e.g. &#39;Z&#39;, &#39;Intensity&#39;,</span>
-<span class="sd">            &#39;HeightAboveGround&#39;). The field must exist on ``arr``.</span>
+<span class="sd">        dimension (str): Dimension/field name to evaluate (e.g. 'Z', 'Intensity',</span>
+<span class="sd">            'HeightAboveGround'). The field must exist on ``arr``.</span>
 <span class="sd">        stat (str): Statistic to compute. Supported values (case-insensitive) are:</span>
-<span class="sd">            {&#39;mean&#39;, &#39;sum&#39;, &#39;count&#39;, &#39;min&#39;, &#39;max&#39;, &#39;median&#39;, &#39;std&#39;}.</span>
+<span class="sd">            {'mean', 'sum', 'count', 'min', 'max', 'median', 'std'}.</span>
 <span class="sd">        z_index_range (Tuple[int, Optional[int]] | None): Inclusive-exclusive Z index bounds</span>
 <span class="sd">            expressed in voxel indices `(start, stop)`. Defaults to the full column when None.</span>
 <span class="sd">            ``stop`` may be None to include the topmost voxels. For example, `(0, 3)` covers</span>
 <span class="sd">            the first three voxels (indices 0, 1, 2).</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        tuple[np.ndarray, list]: (stat_array, extent)</span>
-<span class="sd">            - stat_array: 2-D array shaped (nx, ny) with the requested statistic per column.</span>
-<span class="sd">              Cells without points are NaN (except for &#39;count&#39;, which yields 0).</span>
-<span class="sd">            - extent: [x_min, x_max, y_min, y_max] covering the raster footprint.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        tuple[np.ndarray, list]: The statistic array and raster extent. The array</span>
+<span class="sd">            has shape (nx, ny), with the requested statistic per column. Cells</span>
+<span class="sd">            without points are NaN, except for 'count', which yields 0. The</span>
+<span class="sd">            extent is [x_min, x_max, y_min, y_max], covering the raster footprint.</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">dimension</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dimension &#39;</span><span class="si">{</span><span class="n">dimension</span><span class="si">}</span><span class="s2">&#39; not found in array fields&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;HeightAboveGround&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Input array must include a &#39;HeightAboveGround&#39; field&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Dimension '</span><span class="si">{</span><span class="n">dimension</span><span class="si">}</span><span class="s2">' not found in array fields"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">'HeightAboveGround'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">"Input array must include a 'HeightAboveGround' field"</span><span class="p">)</span>
 
     <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span> <span class="o">=</span> <span class="n">voxel_resolution</span>
     <span class="k">if</span> <span class="n">dx</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">dy</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">dz</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;voxel_resolution components must be &gt; 0&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"voxel_resolution components must be &gt; 0"</span><span class="p">)</span>
 
-    <span class="n">supported_stats</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="s1">&#39;count&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">}</span>
+    <span class="n">supported_stats</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'mean'</span><span class="p">,</span> <span class="s1">'sum'</span><span class="p">,</span> <span class="s1">'count'</span><span class="p">,</span> <span class="s1">'min'</span><span class="p">,</span> <span class="s1">'max'</span><span class="p">,</span> <span class="s1">'median'</span><span class="p">,</span> <span class="s1">'std'</span><span class="p">}</span>
     <span class="n">key</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_stats</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported statistic &#39;</span><span class="si">{</span><span class="n">stat</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
-                         <span class="sa">f</span><span class="s2">&quot;Choose from </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">supported_stats</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported statistic '</span><span class="si">{</span><span class="n">stat</span><span class="si">}</span><span class="s2">'. "</span>
+                         <span class="sa">f</span><span class="s2">"Choose from </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">supported_stats</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-    <span class="n">pts</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">arr</span><span class="p">[</span><span class="s1">&#39;HeightAboveGround&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">arr</span><span class="p">[</span><span class="s1">'HeightAboveGround'</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">pts</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No points available (all HeightAboveGround &lt; 0)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No points available (all HeightAboveGround &lt; 0)"</span><span class="p">)</span>
 
-    <span class="n">x_vals</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span>
-    <span class="n">y_vals</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span>
-    <span class="n">hag_vals</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="s1">&#39;HeightAboveGround&#39;</span><span class="p">]</span>
+    <span class="n">x_vals</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="s1">'X'</span><span class="p">]</span>
+    <span class="n">y_vals</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="s1">'Y'</span><span class="p">]</span>
+    <span class="n">hag_vals</span> <span class="o">=</span> <span class="n">pts</span><span class="p">[</span><span class="s1">'HeightAboveGround'</span><span class="p">]</span>
 
     <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">x_vals</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">/</span> <span class="n">dx</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span>
     <span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">y_vals</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span> <span class="n">dy</span><span class="p">)</span> <span class="o">*</span> <span class="n">dy</span>
@@ -3804,17 +4188,17 @@ the first three voxels (indices 0, 1, 2).</p>
         <span class="n">z_start</span><span class="p">,</span> <span class="n">z_stop</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">nz</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">z_index_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;z_index_range must be a (start, stop) tuple&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"z_index_range must be a (start, stop) tuple"</span><span class="p">)</span>
         <span class="n">z_start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">z_index_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
         <span class="n">z_stop</span> <span class="o">=</span> <span class="n">z_index_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">z_stop</span> <span class="o">=</span> <span class="n">nz</span> <span class="k">if</span> <span class="n">z_stop</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">z_stop</span><span class="p">),</span> <span class="n">nz</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">z_start</span> <span class="o">&gt;=</span> <span class="n">z_stop</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;z_index_range start must be &lt; stop&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"z_index_range start must be &lt; stop"</span><span class="p">)</span>
 
     <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">z_idx</span> <span class="o">&gt;=</span> <span class="n">z_start</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">z_idx</span> <span class="o">&lt;</span> <span class="n">z_stop</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;count&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'count'</span><span class="p">:</span>
             <span class="n">result</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
         <span class="n">extent</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_bins</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_bins</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y_bins_desc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y_bins_desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">extent</span>
@@ -3831,35 +4215,35 @@ the first three voxels (indices 0, 1, 2).</p>
 
     <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">flat_idx</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">flat_size</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;count&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'count'</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">counts</span>
-    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;sum&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'sum'</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">flat_idx</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">values</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">flat_size</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'mean'</span><span class="p">:</span>
         <span class="n">sums</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">flat_idx</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">values</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">flat_size</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">,</span> <span class="n">divide</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">):</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">sums</span> <span class="o">/</span> <span class="n">counts</span>
         <span class="n">data</span><span class="p">[</span><span class="n">counts</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;std&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'std'</span><span class="p">:</span>
         <span class="n">sums</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">flat_idx</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">values</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">flat_size</span><span class="p">)</span>
         <span class="n">sumsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">flat_idx</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">values</span> <span class="o">*</span> <span class="n">values</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">flat_size</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">invalid</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">,</span> <span class="n">divide</span><span class="o">=</span><span class="s1">'ignore'</span><span class="p">):</span>
             <span class="n">mean</span> <span class="o">=</span> <span class="n">sums</span> <span class="o">/</span> <span class="n">counts</span>
             <span class="n">var</span> <span class="o">=</span> <span class="p">(</span><span class="n">sumsq</span> <span class="o">/</span> <span class="n">counts</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">mean</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">var</span><span class="p">[</span><span class="n">counts</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
         <span class="n">var</span><span class="p">[</span><span class="n">var</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># numerical safety</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;min&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'min'</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">flat_size</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">flat_idx</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
         <span class="n">data</span><span class="p">[</span><span class="n">data</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'max'</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">flat_size</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">flat_idx</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
         <span class="n">data</span><span class="p">[</span><span class="n">data</span> <span class="o">==</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'median'</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">flat_size</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-        <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">flat_idx</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;mergesort&#39;</span><span class="p">)</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">flat_idx</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'mergesort'</span><span class="p">)</span>
         <span class="n">sorted_idx</span> <span class="o">=</span> <span class="n">flat_idx</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
         <span class="n">sorted_vals</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
         <span class="n">unique</span><span class="p">,</span> <span class="n">first</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">sorted_idx</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -3868,10 +4252,10 @@ the first three voxels (indices 0, 1, 2).</p>
             <span class="n">chunk</span> <span class="o">=</span> <span class="n">sorted_vals</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">start</span> <span class="o">+</span> <span class="n">count</span><span class="p">]</span>
             <span class="n">data</span><span class="p">[</span><span class="n">u</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;Unhandled statistic path&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"Unhandled statistic path"</span><span class="p">)</span>
 
     <span class="n">grid</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;count&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'count'</span><span class="p">,</span> <span class="s1">'sum'</span><span class="p">):</span>
         <span class="n">grid</span><span class="p">[</span><span class="n">counts</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="n">extent</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_bins</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_bins</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y_bins_desc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y_bins_desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
@@ -4045,7 +4429,7 @@ the first three voxels (indices 0, 1, 2).</p>
 <span class="normal">50</span>
 <span class="normal">51</span>
 <span class="normal">52</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">generate_dtm</span><span class="p">(</span><span class="n">ground_points</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Generates a Digital Terrain Model (DTM) raster from classified ground points.</span>
 
 <span class="sd">    Args:</span>
@@ -4057,15 +4441,15 @@ the first three voxels (indices 0, 1, 2).</p>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If no ground points are found for DTM generation.</span>
-<span class="sd">        KeyError: If point cloud data is missing &#39;X&#39;, &#39;Y&#39;, or &#39;Z&#39; fields.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        KeyError: If point cloud data is missing 'X', 'Y', or 'Z' fields.</span>
+<span class="sd">    """</span>
     <span class="c1">#todo: add parameter to allow interpolation of NA values.</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">pt</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">ground_points</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">array</span><span class="p">])</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">pt</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">ground_points</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">array</span><span class="p">])</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">pt</span><span class="p">[</span><span class="s1">&#39;Z&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">ground_points</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">array</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">pt</span><span class="p">[</span><span class="s1">'X'</span><span class="p">]</span> <span class="k">for</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">ground_points</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">array</span><span class="p">])</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">pt</span><span class="p">[</span><span class="s1">'Y'</span><span class="p">]</span> <span class="k">for</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">ground_points</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">array</span><span class="p">])</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">pt</span><span class="p">[</span><span class="s1">'Z'</span><span class="p">]</span> <span class="k">for</span> <span class="n">array</span> <span class="ow">in</span> <span class="n">ground_points</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">array</span><span class="p">])</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Ground point cloud data missing &#39;X&#39;, &#39;Y&#39;, or &#39;Z&#39; fields.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Ground point cloud data missing 'X', 'Y', or 'Z' fields."</span><span class="p">)</span>
 
     <span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
     <span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
@@ -4121,7 +4505,7 @@ the first three voxels (indices 0, 1, 2).</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    2026-07-01
+    2026-10-14
   </span>
 
     
@@ -4174,7 +4558,7 @@ the first three voxels (indices 0, 1, 2).</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
       

@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -569,6 +569,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#surface-resolution-and-output-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Surface Resolution and Output Resolution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#calculating-rumple" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -580,10 +591,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#notes" class="md-nav__link">
+  <a href="#choosing-a-method" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Notes
+        Choosing a Method
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#missing-heights" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing Heights
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-height-threshold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional Height Threshold
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filling-chm-gaps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filling CHM Gaps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tiled-geotiff-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tiled GeoTIFF Output
       
     </span>
   </a>
@@ -1242,6 +1297,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#surface-resolution-and-output-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Surface Resolution and Output Resolution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#calculating-rumple" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1253,10 +1319,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#notes" class="md-nav__link">
+  <a href="#choosing-a-method" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Notes
+        Choosing a Method
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#missing-heights" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missing Heights
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-height-threshold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional Height Threshold
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filling-chm-gaps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filling CHM Gaps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tiled-geotiff-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tiled GeoTIFF Output
       
     </span>
   </a>
@@ -1296,23 +1406,32 @@
 
 <h1 id="rumple-index">Rumple Index<a class="headerlink" href="#rumple-index" title="Permanent link">&para;</a></h1>
 <h2 id="theory">Theory<a class="headerlink" href="#theory" title="Permanent link">&para;</a></h2>
-<p>Rumple is a measure of canopy surface complexity. It is defined as the ratio
-of canopy surface area to projected ground area:</p>
+<p>Rumple measures canopy surface complexity as the ratio of canopy surface
+area to its projected ground area:</p>
 <div class="arithmatex">\[
 \text{Rumple} = \frac{A_{\text{surface}}}{A_{\text{planar}}}
 \]</div>
-<p>Where:</p>
+<p>A flat, horizontal canopy has a rumple value of 1.0. Slopes and height
+variation increase its surface area and therefore its rumple value.</p>
+<p><code>calculate_rumple()</code> returns one value for a canopy height model (CHM).
+<code>calculate_rumple_grid()</code> divides that surface into larger output cells and
+returns one value per cell. Both functions offer the same two methods for
+estimating surface area.</p>
+<h2 id="surface-resolution-and-output-resolution">Surface Resolution and Output Resolution<a class="headerlink" href="#surface-resolution-and-output-resolution" title="Permanent link">&para;</a></h2>
+<p>These resolutions answer different questions:</p>
 <ul>
-<li><span class="arithmatex">\( A_{\text{surface}} \)</span> is the area of the canopy surface.</li>
-<li><span class="arithmatex">\( A_{\text{planar}} \)</span> is the projected ground area beneath that surface.</li>
+<li><strong>CHM resolution</strong> determines how finely the canopy surface is sampled.</li>
+<li><strong>Rumple grid resolution</strong> determines the area summarized by each result.</li>
 </ul>
-<p>A flat canopy has a rumple value of 1.0. More structurally complex or
-corrugated canopies have values greater than 1.0.</p>
-<p>PyForestScan computes rumple from a Canopy Height Model (CHM) by treating the
-CHM as a triangulated surface over the raster grid and summing surface area
-over valid 2x2 CHM patches.</p>
+<p>For example, a 1 m CHM can produce a 20 m rumple raster. Each output cell
+summarizes surface area within a 20 m by 20 m footprint, using the
+1 m canopy heights. The CHM is not first resampled to 20 m.</p>
+<p>Output resolution must be a whole multiple of CHM resolution in each
+direction. Equal resolutions are also allowed: this gives a local surface
+area ratio at each CHM cell. Use the same CHM resolution, output resolution,
+grid alignment, method, and treatment of gaps when comparing maps or sites.</p>
 <h2 id="calculating-rumple">Calculating Rumple<a class="headerlink" href="#calculating-rumple" title="Permanent link">&para;</a></h2>
-<p>To calculate rumple:</p>
+<p>Create the CHM first, then use it for either a single value or a raster:</p>
 <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
 <span class="normal"> 2</span>
 <span class="normal"> 3</span>
@@ -1324,36 +1443,247 @@ over valid 2x2 CHM patches.</p>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.handlers</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_lidar</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.calculate</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_chm</span><span class="p">,</span> <span class="n">calculate_rumple</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.handlers</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_lidar</span><span class="p">,</span> <span class="n">create_geotiff</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.calculate</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">calculate_chm</span><span class="p">,</span>
+    <span class="n">calculate_rumple</span><span class="p">,</span>
+    <span class="n">calculate_rumple_grid</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.visualize</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_metric</span>
 
-<span class="n">file_path</span> <span class="o">=</span> <span class="s2">&quot;../example_data/20191210_5QKB020880.laz&quot;</span>
-<span class="n">arrays</span> <span class="o">=</span> <span class="n">read_lidar</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;EPSG:32605&quot;</span><span class="p">,</span> <span class="n">hag</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">file_path</span> <span class="o">=</span> <span class="s2">"../example_data/20191210_5QKB020880.laz"</span>
+<span class="n">points</span> <span class="o">=</span> <span class="n">read_lidar</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">"EPSG:32605"</span><span class="p">,</span> <span class="n">hag</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-<span class="n">cell_resolution</span> <span class="o">=</span> <span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>
-<span class="n">chm</span><span class="p">,</span> <span class="n">extent</span> <span class="o">=</span> <span class="n">calculate_chm</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
-<span class="n">rumple</span> <span class="o">=</span> <span class="n">calculate_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">min_height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">cell_resolution</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="n">chm</span><span class="p">,</span> <span class="n">chm_extent</span> <span class="o">=</span> <span class="n">calculate_chm</span><span class="p">(</span>
+    <span class="n">points</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rumple: </span><span class="si">{</span><span class="n">rumple</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># One value for the whole CHM.</span>
+<span class="n">rumple_index</span> <span class="o">=</span> <span class="n">calculate_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Whole-CHM rumple: </span><span class="si">{</span><span class="n">rumple_index</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># A 20 m rumple raster, calculated from the same 1 m canopy surface.</span>
+<span class="n">rumple</span><span class="p">,</span> <span class="n">extent</span> <span class="o">=</span> <span class="n">calculate_rumple_grid</span><span class="p">(</span>
+    <span class="n">chm</span><span class="p">,</span>
+    <span class="n">cell_resolution</span><span class="p">,</span>
+    <span class="n">grid_resolution</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+    <span class="n">extent</span><span class="o">=</span><span class="n">chm_extent</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">plot_metric</span><span class="p">(</span><span class="s2">"Rumple Index"</span><span class="p">,</span> <span class="n">rumple</span><span class="p">,</span> <span class="n">extent</span><span class="p">,</span> <span class="n">metric_name</span><span class="o">=</span><span class="s2">"Rumple"</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">"viridis"</span><span class="p">)</span>
+<span class="n">create_geotiff</span><span class="p">(</span><span class="n">rumple</span><span class="p">,</span> <span class="s2">"rumple_20m.tif"</span><span class="p">,</span> <span class="s2">"EPSG:32605"</span><span class="p">,</span> <span class="n">extent</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
-<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
+<p><code>cell_resolution</code> is <code>(dx, dy)</code>. <code>grid_resolution</code> accepts either one number
+for square pixels or <code>(dx, dy)</code> for rectangular pixels. XY coordinates and
+heights must use the same linear units, such as meters in a projected CRS.</p>
+<p>Pass the CHM extent as <code>[x_min, x_max, y_min, y_max]</code> to preserve its location.
+The output starts at the CHM's northwest corner. If necessary, the last
+column and row extend east and south to make whole output pixels. The added
+space contributes neither surface area nor ground area. Without <code>extent</code>,
+the CHM is placed at <code>[0, nx * dx, 0, ny * dy]</code>.</p>
+<p>Input and output arrays have shape <code>(X, Y)</code>, with Y ordered north to south,
+matching <code>calculate_chm()</code> and <code>create_geotiff()</code>.</p>
+<h2 id="choosing-a-method">Choosing a Method<a class="headerlink" href="#choosing-a-method" title="Permanent link">&para;</a></h2>
+<p>The <code>method</code> argument is available on both rumple functions:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Surface estimate</th>
+<th>Missing heights</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"two_triangle"</code> (default)</td>
+<td>Split each patch of four neighboring CHM cell centers into two triangles along the northeast–southwest diagonal.</td>
+<td>Use a patch only when all four heights are valid.</td>
+</tr>
+<tr>
+<td><code>"jenness"</code></td>
+<td>Use the central height and its eight neighbors to estimate the surface within each CHM cell.</td>
+<td>Omit missing centers; substitute the central height for missing neighbors. Repeat edge heights at the outer raster boundary.</td>
+</tr>
+</tbody>
+</table>
+<p>Fixed-diagonal triangulation is described by
+<a href="https://bpb-us-e1.wpmucdn.com/sites.uw.edu/dist/a/122/files/2017/12/FUSION_manual-1glx79l.pdf#page=96">FUSION's GridSurfaceStats</a>
+and by <a href="https://doi.org/10.3390/jmse7030076">Geng et al. (2019)</a>.</p>
+<p>The <a href="https://www.jennessent.com/downloads/WSB_32_3_Jenness.pdf">Jenness (2004)</a>
+method forms eight triangles around each center and sums the portions inside
+that center's cell. Its handling of missing heights and outer edges follows
+<a href="https://search.r-project.org/CRAN/refmans/sp/html/surfaceArea.html"><code>sp::surfaceArea()</code></a>,
+which lidR uses for raster inputs to <code>rumple_index()</code>.</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">rumple</span><span class="p">,</span> <span class="n">extent</span> <span class="o">=</span> <span class="n">calculate_rumple_grid</span><span class="p">(</span>
+    <span class="n">chm</span><span class="p">,</span>
+    <span class="n">cell_resolution</span><span class="p">,</span>
+    <span class="n">grid_resolution</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+    <span class="n">extent</span><span class="o">=</span><span class="n">chm_extent</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">"jenness"</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>Both methods sum surface area and corresponding ground area within each
+output cell, then divide those totals. They do not take an unweighted mean
+of fine-cell rumple values. With <code>"two_triangle"</code>, triangle portions crossing
+an output boundary contribute to each side according to their area. The
+outer half-cell margin beyond the CHM centers has no triangle support and
+is excluded. With <code>"jenness"</code>, each valid center contributes its full CHM
+cell footprint.</p>
+<p>The methods can give different values on the same CHM. Also, lidR's
+<a href="https://r-lidar.github.io/lidRbook/outbox.html#rumple-index">point-cloud rumple map example</a>
+triangulates selected surface points within each output cell. That is a
+different surface estimate from either CHM method here.</p>
+<h2 id="missing-heights">Missing Heights<a class="headerlink" href="#missing-heights" title="Permanent link">&para;</a></h2>
+<p>The <code>method</code> argument determines how missing heights are handled; there is
+no separate missing-data setting. Both functions treat <code>NaN</code> and infinite
+heights as missing. Finite heights, including zero, are used unless excluded
+by <code>min_height</code>.</p>
 <ul>
-<li><code>calculate_rumple</code> returns a single scalar value, not a raster.</li>
-<li><code>min_height</code> can be used to exclude low vegetation before calculating
-  canopy surface complexity.</li>
-<li>Interpolating the CHM before calculating rumple may fill gaps, but it can
-  also smooth the canopy surface and reduce rumple slightly.</li>
+<li><strong><code>"two_triangle"</code>:</strong> Each surface patch needs four heights from a 2x2 group
+  of CHM cells. If any height is missing, the entire patch is excluded from
+  both surface area and ground area. For example, one missing CHM cell
+  removes every patch that uses it, while complete patches still contribute.</li>
+<li><strong><code>"jenness"</code>:</strong> A cell with a missing center height contributes neither
+  surface area nor ground area. A cell with a valid center still contributes
+  when neighbors are missing: each missing neighbor is assigned the center
+  height only for that cell's area calculation. For example, a valid 10 m
+  center uses 10 m for a missing neighbor. The missing cell itself stays
+  missing. At the outer raster boundary, edge heights are repeated to supply
+  neighbors outside the raster.</li>
 </ul>
+<p>Jenness's local height substitution follows the raster calculation in
+<a href="https://search.r-project.org/CRAN/refmans/sp/html/surfaceArea.html"><code>sp::surfaceArea()</code></a>,
+which is used by lidR. It assumes a level surface toward a missing neighbor
+and can reduce estimated roughness near gaps.</p>
+<p>Each rumple value divides the included surface area by its corresponding
+ground area. A partially observed output cell can therefore have a value;
+it describes only the portion included by the selected method. If no area
+is included, the result is <code>NaN</code> (NoData in the GeoTIFF).</p>
+<h2 id="optional-height-threshold">Optional Height Threshold<a class="headerlink" href="#optional-height-threshold" title="Permanent link">&para;</a></h2>
+<p><code>min_height=None</code> is the default and uses all finite CHM heights. Set a
+threshold when the analysis should exclude low vegetation or ground heights:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">rumple_index</span> <span class="o">=</span> <span class="n">calculate_rumple</span><span class="p">(</span><span class="n">chm</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">min_height</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>This treats heights strictly below 2 m as missing in a temporary copy used
+for calculation. The input CHM is not modified, and excluded heights are
+not replaced with zero. With <code>"two_triangle"</code>, patches using those heights
+are omitted. With <code>"jenness"</code>, those center cells are omitted and valid
+neighboring centers use their own heights in their place. The same threshold
+is available in <code>calculate_rumple_grid()</code>.</p>
+<p>The threshold is applied after CHM creation, including any interpolation.
+Low areas and canopy gaps can be meaningful parts of the canopy surface;
+leave the threshold as <code>None</code> to include them.</p>
+<h2 id="filling-chm-gaps">Filling CHM Gaps<a class="headerlink" href="#filling-chm-gaps" title="Permanent link">&para;</a></h2>
+<p>For either method, fill missing heights during CHM creation if interpolation
+is appropriate for the data. <code>calculate_chm()</code> supports <code>"linear"</code> (its
+default), <code>"cubic"</code>, <code>"nearest"</code>, or <code>None</code> to leave gaps unfilled:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">chm</span><span class="p">,</span> <span class="n">chm_extent</span> <span class="o">=</span> <span class="n">calculate_chm</span><span class="p">(</span>
+    <span class="n">points</span><span class="p">,</span> <span class="n">cell_resolution</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>The resulting CHM can be inspected and reused for either rumple method.
+The rumple functions themselves have no interpolation argument. Any gaps
+remaining in the CHM follow the missing-height rules above. Interpolation
+changes the estimated surface, so use consistent settings when comparing
+rumple results.</p>
+<h2 id="tiled-geotiff-output">Tiled GeoTIFF Output<a class="headerlink" href="#tiled-geotiff-output" title="Permanent link">&para;</a></h2>
+<p>For large EPT point clouds, use <code>metric="rumple"</code> and specify both the fine
+CHM resolution and the rumple output resolution:</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pyforestscan.process</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_with_tiles</span>
+
+<span class="n">process_with_tiles</span><span class="p">(</span>
+    <span class="n">ept_file</span><span class="o">=</span><span class="s2">"../example_data/ept/ept.json"</span><span class="p">,</span>
+    <span class="n">tile_size</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">"rumple_tiles"</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">"rumple"</span><span class="p">,</span>
+    <span class="n">voxel_size</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>  <span class="c1"># XY resolution of the canopy surface.</span>
+    <span class="n">rumple_resolution</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>     <span class="c1"># XY resolution of the output raster.</span>
+    <span class="n">rumple_method</span><span class="o">=</span><span class="s2">"two_triangle"</span><span class="p">,</span>
+    <span class="n">srs</span><span class="o">=</span><span class="s2">"EPSG:32605"</span><span class="p">,</span>
+    <span class="n">hag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">interpolation</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>This writes <code>tile_&lt;i&gt;_&lt;j&gt;_rumple.tif</code> files. <code>rumple_resolution</code> is required
+for this metric; <code>rumple_method</code> defaults to <code>"two_triangle"</code>. The vertical
+voxel size does not round the canopy heights or affect rumple.</p>
+<p>Tile dimensions must be whole multiples of the rumple output resolution.
+Requested bounds expand to fine-grid cells aligned to absolute XY multiples
+of the voxel sizes, and the output begins at their northwest corner. The
+final east and south pixels can extend beyond the fine grid; the added space
+is excluded from the area calculation. Rumple tile indices start in the
+northwest, with <code>i</code> increasing
+east and <code>j</code> increasing south.</p>
+<p><code>calculate_chm()</code> anchors its grid at the point minima, which can differ from
+the tiled grid origin. To compare tiled and direct calculations numerically,
+use the same canopy heights, fine-grid alignment, extent, and resolutions.</p>
+<p>Each tile reads at least one extra fine-grid cell on every available side,
+including when <code>buffer_size=0</code>. This supplies the neighboring heights needed
+at internal tile boundaries. <code>skip_existing</code> and <code>tile_indices</code> work as for
+the other tiled metrics.</p>
+<p>The tiled <code>interpolation</code> option fills missing fine-grid canopy heights
+before calculating rumple and applying <code>rumple_min_height</code>. Increase
+<code>buffer_size</code> to include observed canopy around larger gaps near tile
+boundaries. Interpolated values can differ from a whole-cloud calculation
+when a buffered tile has fewer surrounding observations. This option
+applies to CHM and rumple only. Use <code>rumple_min_height</code> to apply an optional
+height threshold with the rules described above.</p>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
-<p>McElhinny, Chris, Phillip Gibbons, Cris Brack, and Juergen Bauhus. 2005.
-"Forest and woodland stand structural complexity: Its definition and
-measurement." Forest Ecology and Management 218 (1-3): 1-24.
-<a href="https://doi.org/10.1016/j.foreco.2005.08.034">https://doi.org/10.1016/j.foreco.2005.08.034</a>.</p>
+<p>Jenness, Jeff S. 2004. "Calculating landscape surface area from digital
+elevation models." Wildlife Society Bulletin 32 (3): 829–839.
+<a href="https://www.jennessent.com/downloads/WSB_32_3_Jenness.pdf">https://www.jennessent.com/downloads/WSB_32_3_Jenness.pdf</a>.</p>
+<p>Geng, Yuyang, et al. 2019. "Marine Coastline Polygonal Ridges and Surface
+Roughness Development on a Salt-Crusted Playa: Recognition by
+Structure-from-Motion Photogrammetry." Journal of Marine Science and
+Engineering 7 (3): 76. Section 2.4, Figure 3 and equations 14–18.
+<a href="https://doi.org/10.3390/jmse7030076">https://doi.org/10.3390/jmse7030076</a>.</p>
+<p>McGaughey, Robert J. FUSION/LDV software manual. "GridSurfaceStats" and
+"SurfaceStats."
+<a href="https://bpb-us-e1.wpmucdn.com/sites.uw.edu/dist/a/122/files/2017/12/FUSION_manual-1glx79l.pdf">https://bpb-us-e1.wpmucdn.com/sites.uw.edu/dist/a/122/files/2017/12/FUSION_manual-1glx79l.pdf</a>.</p>
 <p>Kane, Van R., Jonathan D. Bakker, Robert J. McGaughey, James A. Lutz,
 Rolf F. Gersonde, and Jerry F. Franklin. 2010. "Examining conifer canopy
 structural complexity across forest ages and elevations with LiDAR data."
-Canadian Journal of Forest Research 40 (4): 774-787.
+Canadian Journal of Forest Research 40 (4): 774–787.
 <a href="https://doi.org/10.1139/X10-064">https://doi.org/10.1139/X10-064</a>.</p>
 
 
@@ -1375,7 +1705,7 @@ Canadian Journal of Forest Research 40 (4): 774-787.
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    2026-07-01
+    2026-10-14
   </span>
 
     
@@ -1428,7 +1758,7 @@ Canadian Journal of Forest Research 40 (4): 774-787.
       <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
       

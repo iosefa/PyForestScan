@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1649,7 +1649,7 @@
 <span class="normal">401</span>
 <span class="normal">402</span>
 <span class="normal">403</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">create_geotiff</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">crs</span><span class="p">,</span> <span class="n">spatial_extent</span><span class="p">,</span> <span class="n">nodata</span><span class="o">=-</span><span class="mi">9999</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Create a GeoTIFF file from the given data layer.</span>
 
 <span class="sd">    The function transposes the input layer before saving and writes it as a single-band GeoTIFF.</span>
@@ -1667,16 +1667,16 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        rasterio.errors.RasterioError: If there is an error creating the GeoTIFF.</span>
 <span class="sd">        ValueError: If the layer has invalid dimensions or the spatial extent is invalid.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">layer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">nan</span><span class="o">=-</span><span class="mi">9999</span><span class="p">)</span>
 
     <span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">,</span> <span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span> <span class="o">=</span> <span class="n">spatial_extent</span>
 
     <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">layer</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">layer</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid layer dimensions: </span><span class="si">{</span><span class="n">layer</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">. Cannot create GeoTIFF.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid layer dimensions: </span><span class="si">{</span><span class="n">layer</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">. Cannot create GeoTIFF."</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">x_max</span> <span class="o">&lt;=</span> <span class="n">x_min</span> <span class="ow">or</span> <span class="n">y_max</span> <span class="o">&lt;=</span> <span class="n">y_min</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid spatial extent: </span><span class="si">{</span><span class="n">spatial_extent</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid spatial extent: </span><span class="si">{</span><span class="n">spatial_extent</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 
     <span class="n">layer</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">T</span>
 
@@ -1686,8 +1686,8 @@
     <span class="p">)</span>
 
     <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-            <span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span>
-            <span class="n">driver</span><span class="o">=</span><span class="s1">&#39;GTiff&#39;</span><span class="p">,</span>
+            <span class="n">output_file</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">,</span>
+            <span class="n">driver</span><span class="o">=</span><span class="s1">'GTiff'</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
             <span class="n">width</span><span class="o">=</span><span class="n">layer</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
             <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -1813,7 +1813,7 @@
 <span class="normal"> 98</span>
 <span class="normal"> 99</span>
 <span class="normal">100</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_raster_epsg</span><span class="p">(</span><span class="n">dtm_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Retrieve the EPSG code from a raster file.</span>
 
 <span class="sd">    Args:</span>
@@ -1824,9 +1824,9 @@
 
 <span class="sd">    Raises:</span>
 <span class="sd">        FileNotFoundError: If the specified file does not exist.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">dtm_path</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No such file: &#39;</span><span class="si">{</span><span class="n">dtm_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No such file: '</span><span class="si">{</span><span class="n">dtm_path</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">dtm_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">dtm</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">dtm</span><span class="o">.</span><span class="n">crs</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
 </code></pre></div></td></tr></table></div>
@@ -1985,7 +1985,7 @@
 <span class="normal">79</span>
 <span class="normal">80</span>
 <span class="normal">81</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_polygon_from_file</span><span class="p">(</span><span class="n">vector_file_path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Load a polygon geometry and its CRS from a given vector file.</span>
 
 <span class="sd">    Args:</span>
@@ -2000,16 +2000,16 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        FileNotFoundError: If the specified vector file does not exist.</span>
 <span class="sd">        ValueError: If the file cannot be read or is not a valid vector file format.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">vector_file_path</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No such file: &#39;</span><span class="si">{</span><span class="n">vector_file_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No such file: '</span><span class="si">{</span><span class="n">vector_file_path</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">vector_file_path</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to read file: </span><span class="si">{</span><span class="n">vector_file_path</span><span class="si">}</span><span class="s2">. Ensure it is a valid vector file format.&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unable to read file: </span><span class="si">{</span><span class="n">vector_file_path</span><span class="si">}</span><span class="s2">. Ensure it is a valid vector file format."</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
-    <span class="n">polygon</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;geometry&#39;</span><span class="p">]</span>
+    <span class="n">polygon</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="s1">'geometry'</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">polygon</span><span class="p">,</span> <span class="n">MultiPolygon</span><span class="p">):</span>
         <span class="n">polygon</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">polygon</span><span class="o">.</span><span class="n">geoms</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">polygon</span><span class="o">.</span><span class="n">wkt</span><span class="p">,</span> <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>
@@ -2382,7 +2382,7 @@ is missing or invalid.</p>
 <span class="normal">295</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">read_lidar</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">srs</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thin_radius</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">hag</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">hag_dtm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">crop_poly</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                <span class="n">poly</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reproject</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Read and process a LiDAR point cloud file using PDAL with various options.</span>
 
 <span class="sd">    Args:</span>
@@ -2407,48 +2407,48 @@ is missing or invalid.</p>
 <span class="sd">    Raises:</span>
 <span class="sd">        FileNotFoundError: If the input file, DTM file, or polygon file does not exist.</span>
 <span class="sd">        ValueError: If the input file extension is unsupported; thinning radius is non-positive;</span>
-<span class="sd">            both &#39;hag&#39; and &#39;hag_dtm&#39; are True at the same time; or a required parameter (e.g., DTM for hag_dtm)</span>
+<span class="sd">            both 'hag' and 'hag_dtm' are True at the same time; or a required parameter (e.g., DTM for hag_dtm)</span>
 <span class="sd">            is missing or invalid.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_url</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">input_file</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No such file: &#39;</span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No such file: '</span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
-    <span class="n">las_extensions</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.las&#39;</span><span class="p">,</span> <span class="s1">&#39;.laz&#39;</span><span class="p">)</span>
-    <span class="n">copc_extensions</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.copc&#39;</span><span class="p">,</span> <span class="s1">&#39;.copc.laz&#39;</span><span class="p">)</span>
-    <span class="n">ept_file</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;ept.json&#39;</span><span class="p">)</span>
+    <span class="n">las_extensions</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'.las'</span><span class="p">,</span> <span class="s1">'.laz'</span><span class="p">)</span>
+    <span class="n">copc_extensions</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'.copc'</span><span class="p">,</span> <span class="s1">'.copc.laz'</span><span class="p">)</span>
+    <span class="n">ept_file</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'ept.json'</span><span class="p">)</span>
 
     <span class="n">file_lower</span> <span class="o">=</span> <span class="n">input_file</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">file_lower</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">las_extensions</span><span class="p">):</span>
-        <span class="n">reader</span> <span class="o">=</span> <span class="s1">&#39;readers.las&#39;</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="s1">'readers.las'</span>
     <span class="k">elif</span> <span class="n">file_lower</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">copc_extensions</span><span class="p">):</span>
-        <span class="n">reader</span> <span class="o">=</span> <span class="s1">&#39;readers.copc&#39;</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="s1">'readers.copc'</span>
     <span class="k">elif</span> <span class="n">file_lower</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">ept_file</span><span class="p">):</span>
-        <span class="n">reader</span> <span class="o">=</span> <span class="s1">&#39;readers.ept&#39;</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="s1">'readers.ept'</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;The input file must be a .las, .laz, .copc, .copc.laz file, or an ept.json file.&quot;</span>
+            <span class="s2">"The input file must be a .las, .laz, .copc, .copc.laz file, or an ept.json file."</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">hag</span> <span class="ow">and</span> <span class="n">hag_dtm</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot use both &#39;hag&#39; and &#39;hag_dtm&#39; options at the same time.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Cannot use both 'hag' and 'hag_dtm' options at the same time."</span><span class="p">)</span>
 
     <span class="n">pipeline_stages</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">crs_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">if</span> <span class="n">crop_poly</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">poly</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Must provide a polygon or polygon wkt if cropping to a polygon.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">poly</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s1">&#39;POLYGON&#39;</span><span class="p">,</span> <span class="s1">&#39;MULTIPOLYGON&#39;</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Must provide a polygon or polygon wkt if cropping to a polygon."</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">poly</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s1">'POLYGON'</span><span class="p">,</span> <span class="s1">'MULTIPOLYGON'</span><span class="p">)):</span>
             <span class="n">polygon_wkt</span> <span class="o">=</span> <span class="n">poly</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">poly</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">poly</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No such polygon file: &#39;</span><span class="si">{</span><span class="n">poly</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No such polygon file: '</span><span class="si">{</span><span class="n">poly</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
             <span class="n">polygon_wkt</span><span class="p">,</span> <span class="n">crs_vector</span> <span class="o">=</span> <span class="n">load_polygon_from_file</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
         <span class="n">pipeline_stages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_crop_polygon</span><span class="p">(</span><span class="n">polygon_wkt</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">thin_radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">thin_radius</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Thinning radius must be a positive number.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Thinning radius must be a positive number."</span><span class="p">)</span>
         <span class="n">pipeline_stages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_filter_radius</span><span class="p">(</span><span class="n">thin_radius</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">reproject</span><span class="p">:</span>
@@ -2459,25 +2459,25 @@ is missing or invalid.</p>
 
     <span class="k">if</span> <span class="n">hag_dtm</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">dtm</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;DTM file path must be provided when &#39;hag_dtm&#39; is True.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"DTM file path must be provided when 'hag_dtm' is True."</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">dtm</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No such DTM file: &#39;</span><span class="si">{</span><span class="n">dtm</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">dtm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tif&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The DTM file must be a .tif file.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No such DTM file: '</span><span class="si">{</span><span class="n">dtm</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dtm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">'.tif'</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The DTM file must be a .tif file."</span><span class="p">)</span>
         <span class="n">crs_raster</span> <span class="o">=</span> <span class="n">get_raster_epsg</span><span class="p">(</span><span class="n">dtm</span><span class="p">)</span>
         <span class="n">crs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">crs_raster</span><span class="p">)</span>
         <span class="n">pipeline_stages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_hag_raster</span><span class="p">(</span><span class="n">dtm</span><span class="p">))</span>
 
     <span class="n">base_pipeline</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">reader</span><span class="p">,</span>
-        <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="n">input_file</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="n">reader</span><span class="p">,</span>
+        <span class="s2">"filename"</span><span class="p">:</span> <span class="n">input_file</span>
     <span class="p">}</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">reproject</span><span class="p">:</span>
-        <span class="n">base_pipeline</span><span class="p">[</span><span class="s2">&quot;spatialreference&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">srs</span>
-    <span class="k">if</span> <span class="n">bounds</span> <span class="ow">and</span> <span class="n">reader</span> <span class="o">==</span> <span class="s1">&#39;readers.ept&#39;</span><span class="p">:</span>
-        <span class="n">base_pipeline</span><span class="p">[</span><span class="s2">&quot;bounds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bounds</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">base_pipeline</span><span class="p">[</span><span class="s2">"spatialreference"</span><span class="p">]</span> <span class="o">=</span> <span class="n">srs</span>
+    <span class="k">if</span> <span class="n">bounds</span> <span class="ow">and</span> <span class="n">reader</span> <span class="o">==</span> <span class="s1">'readers.ept'</span><span class="p">:</span>
+        <span class="n">base_pipeline</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">bounds</span><span class="si">}</span><span class="s2">"</span>
     <span class="n">main_pipeline_json</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;pipeline&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">"pipeline"</span><span class="p">:</span> <span class="p">[</span>
             <span class="n">base_pipeline</span>
         <span class="p">]</span> <span class="o">+</span> <span class="n">pipeline_stages</span>
     <span class="p">}</span>
@@ -2610,7 +2610,7 @@ is missing or invalid.</p>
 <span class="normal">48</span>
 <span class="normal">49</span>
 <span class="normal">50</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">simplify_crs</span><span class="p">(</span><span class="n">crs_list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Convert a list of coordinate reference system (CRS) representations to their corresponding EPSG codes.</span>
 
 <span class="sd">    Args:</span>
@@ -2621,17 +2621,17 @@ is missing or invalid.</p>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        CRSError: If any of the CRS definitions cannot be converted to an EPSG code.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">epsg_codes</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">crs</span> <span class="ow">in</span> <span class="n">crs_list</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">crs_obj</span> <span class="o">=</span> <span class="n">CRS</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
             <span class="n">epsg</span> <span class="o">=</span> <span class="n">crs_obj</span><span class="o">.</span><span class="n">to_epsg</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">epsg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">CRSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot convert CRS &#39;</span><span class="si">{</span><span class="n">crs</span><span class="si">}</span><span class="s2">&#39; to an EPSG code.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">CRSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Cannot convert CRS '</span><span class="si">{</span><span class="n">crs</span><span class="si">}</span><span class="s2">' to an EPSG code."</span><span class="p">)</span>
             <span class="n">epsg_codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">epsg</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">CRSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">CRSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error converting CRS &#39;</span><span class="si">{</span><span class="n">crs</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+            <span class="k">raise</span> <span class="n">CRSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error converting CRS '</span><span class="si">{</span><span class="n">crs</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
     <span class="k">return</span> <span class="n">epsg_codes</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -2749,7 +2749,7 @@ is missing or invalid.</p>
 <span class="normal">183</span>
 <span class="normal">184</span>
 <span class="normal">185</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_crs</span><span class="p">(</span><span class="n">crs_list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Validate that all CRS (Coordinate Reference System) representations in the list are identical.</span>
 
 <span class="sd">    Args:</span>
@@ -2760,10 +2760,10 @@ is missing or invalid.</p>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If the CRSs do not match.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">simplified_crs_list</span> <span class="o">=</span> <span class="n">simplify_crs</span><span class="p">(</span><span class="n">crs_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">crs</span> <span class="o">==</span> <span class="n">simplified_crs_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">crs</span> <span class="ow">in</span> <span class="n">simplified_crs_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The CRS of the inputs do not match.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The CRS of the inputs do not match."</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">True</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -2883,7 +2883,7 @@ is missing or invalid.</p>
 <span class="normal">116</span>
 <span class="normal">117</span>
 <span class="normal">118</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_extensions</span><span class="p">(</span><span class="n">las_file_path</span><span class="p">,</span> <span class="n">dtm_file_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Validate that input file paths have the correct extensions for point cloud and DTM files.</span>
 
 <span class="sd">    Args:</span>
@@ -2893,11 +2893,11 @@ is missing or invalid.</p>
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If the point cloud file does not have a .las or .laz extension.</span>
 <span class="sd">        ValueError: If the DTM file does not have a .tif extension.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">las_file_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">((</span><span class="s1">&#39;.las&#39;</span><span class="p">,</span> <span class="s1">&#39;.laz&#39;</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The point cloud file must be a .las or .laz file.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">dtm_file_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tif&#39;</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The DTM file must be a .tif file.&quot;</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">las_file_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">((</span><span class="s1">'.las'</span><span class="p">,</span> <span class="s1">'.laz'</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The point cloud file must be a .las or .laz file."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dtm_file_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">'.tif'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The DTM file must be a .tif file."</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -3110,7 +3110,7 @@ is missing or invalid.</p>
 <span class="normal">350</span>
 <span class="normal">351</span>
 <span class="normal">352</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">write_las</span><span class="p">(</span><span class="n">arrays</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">srs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Write point cloud data to a LAS or LAZ file.</span>
 
 <span class="sd">    Args:</span>
@@ -3120,41 +3120,41 @@ is missing or invalid.</p>
 <span class="sd">        compress (bool, optional): If True, write a compressed LAZ file (.laz). If False, write an uncompressed LAS file (.las). Defaults to True.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If &#39;compress&#39; is True and the output file extension is not .laz.</span>
-<span class="sd">        ValueError: If &#39;compress&#39; is False and the output file extension is not .las.</span>
+<span class="sd">        ValueError: If 'compress' is True and the output file extension is not .laz.</span>
+<span class="sd">        ValueError: If 'compress' is False and the output file extension is not .las.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">output_extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">output_file</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">output_extension</span> <span class="o">!=</span> <span class="s1">&#39;.laz&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If &#39;compress&#39; is True, output file must have a .laz extension.&quot;</span><span class="p">)</span>
-        <span class="n">output_format</span> <span class="o">=</span> <span class="s2">&quot;writers.las&quot;</span>
+        <span class="k">if</span> <span class="n">output_extension</span> <span class="o">!=</span> <span class="s1">'.laz'</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"If 'compress' is True, output file must have a .laz extension."</span><span class="p">)</span>
+        <span class="n">output_format</span> <span class="o">=</span> <span class="s2">"writers.las"</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">output_extension</span> <span class="o">!=</span> <span class="s1">&#39;.las&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If &#39;compress&#39; is False, output file must have a .las extension.&quot;</span><span class="p">)</span>
-        <span class="n">output_format</span> <span class="o">=</span> <span class="s2">&quot;writers.las&quot;</span>
+        <span class="k">if</span> <span class="n">output_extension</span> <span class="o">!=</span> <span class="s1">'.las'</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"If 'compress' is False, output file must have a .las extension."</span><span class="p">)</span>
+        <span class="n">output_format</span> <span class="o">=</span> <span class="s2">"writers.las"</span>
 
     <span class="n">pipeline_steps</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">if</span> <span class="n">srs</span><span class="p">:</span>
         <span class="n">pipeline_steps</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;filters.reprojection&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;in_srs&quot;</span><span class="p">:</span> <span class="n">srs</span><span class="p">,</span>
-            <span class="s2">&quot;out_srs&quot;</span><span class="p">:</span> <span class="n">srs</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"filters.reprojection"</span><span class="p">,</span>
+            <span class="s2">"in_srs"</span><span class="p">:</span> <span class="n">srs</span><span class="p">,</span>
+            <span class="s2">"out_srs"</span><span class="p">:</span> <span class="n">srs</span>
         <span class="p">})</span>
 
     <span class="n">pipeline_steps</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">output_format</span><span class="p">,</span>
-        <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="n">output_file</span><span class="p">,</span>
-        <span class="s2">&quot;minor_version&quot;</span><span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;extra_dims&quot;</span><span class="p">:</span> <span class="s2">&quot;all&quot;</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="n">output_format</span><span class="p">,</span>
+        <span class="s2">"filename"</span><span class="p">:</span> <span class="n">output_file</span><span class="p">,</span>
+        <span class="s2">"minor_version"</span><span class="p">:</span> <span class="s2">"4"</span><span class="p">,</span>
+        <span class="s2">"extra_dims"</span><span class="p">:</span> <span class="s2">"all"</span>
     <span class="p">})</span>
 
     <span class="n">pipeline_def</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;pipeline&quot;</span><span class="p">:</span> <span class="n">pipeline_steps</span>
+        <span class="s2">"pipeline"</span><span class="p">:</span> <span class="n">pipeline_steps</span>
     <span class="p">}</span>
 
     <span class="n">pipeline_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">pipeline_def</span><span class="p">)</span>
@@ -3197,7 +3197,7 @@ is missing or invalid.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    2026-07-01
+    2026-10-14
   </span>
 
     
@@ -3250,7 +3250,7 @@ is missing or invalid.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
       
