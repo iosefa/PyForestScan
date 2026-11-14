@@ -13,7 +13,7 @@ Steps to install PDAL and GDAL:
 1.  Install PDAL and GDAL using `conda`:
 
 ``` bash
-conda create -n pyforestscan_env -c conda-forge pdal gdal
+conda create -n pyforestscan_env -c conda-forge python=3.12 pdal python-pdal libpdal-tiledb gdal pip
 ```
 
 2. Activate the conda env:
@@ -21,6 +21,11 @@ conda create -n pyforestscan_env -c conda-forge pdal gdal
 ```bash
 conda activate pyforestscan_env
 ```
+
+The environment includes the Python PDAL bindings and the native TileDB
+plugin. The conda-forge package
+[`libpdal-tiledb`](https://anaconda.org/conda-forge/libpdal-tiledb) supplies
+PDAL's TileDB reader and writer.
 
 For more information on PDAL and its capabilities, visit the official PDAL documentation: <https://pdal.io/en/latest/>.
 
@@ -31,6 +36,22 @@ Once dependencies are installed, PyForestScan can be installed from PyPI:
 ``` bash
 pip install pyforestscan
 ```
+
+The Python `tiledb` package is a required dependency and is installed with
+PyForestScan. It provides array metadata access. TileDB point-cloud reads and
+writes also require the native PDAL plugin installed above; installing the
+Python package alone does not provide it.
+
+Verify that the environment has both TileDB drivers:
+
+```bash
+pdal --drivers
+```
+
+Look for `readers.tiledb` and `writers.tiledb` in the output. If either is
+missing, install `libpdal-tiledb` into the active conda environment. See the
+[TileDB guide](usage/tiledb.md) for conversion, spatial queries, and tiled
+forest-metric examples.
 
 ## Install from GitHub
 

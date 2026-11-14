@@ -19,7 +19,7 @@ PyForestScan is a Python library designed for analyzing and visualizing forest s
 ## Features
 
 - **Forest Metrics**: Calculate and visualize key metrics like Canopy Height, PAI, PAD, FHD, Canopy Cover, and Rumple Index.
-- **Large Point Cloud Support**: Utilizes efficient data formats such as EPT for large point cloud processing.
+- **Large Point Cloud Support**: Read spatial subsets and calculate forest metrics from EPT and TileDB point clouds.
 - **Visualization**: Create 2D and 3D visualizations of forest structure and structural metrics
 - **Extensibility**: Easily add custom filters and visualization techniques to suit your needs.
 
@@ -39,6 +39,12 @@ pip install pyforestscan
 - PDAL >= 2.7
 - GDAL >= 3.5
 - Python >= 3.11
+- TileDB Python package (`tiledb`, installed with PyForestScan)
+- Native PDAL TileDB drivers for TileDB point clouds (`conda install -c conda-forge libpdal-tiledb`)
+
+The Python TileDB package and native PDAL plugin are separate dependencies.
+See the [TileDB guide](https://pyforestscan.sefa.ai/usage/tiledb/) for setup,
+streaming conversion, spatial queries, and tiled GeoTIFF output.
 
 ## Quick Start
 

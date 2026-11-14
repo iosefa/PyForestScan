@@ -12,7 +12,7 @@ RUN fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
 
 USER 1000
-RUN mamba install -c conda-forge sqlite gdal pdal -y && \
+RUN mamba install -c conda-forge sqlite gdal pdal libpdal-tiledb -y && \
     pip install --no-cache-dir pyforestscan jupyter-server-proxy && \
     mamba update -c conda-forge -y && \
     jupyter server extension enable --sys-prefix jupyter_server_proxy
