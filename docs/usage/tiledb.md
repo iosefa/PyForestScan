@@ -4,31 +4,11 @@ TileDB stores a point cloud as a sparse array that can be queried by location.
 PyForestScan can create these arrays, read a selected area into NumPy, and
 process large arrays into forest-metric GeoTIFF tiles.
 
-The array stores the original points, including numeric attributes such as
-`Classification`, `Intensity`, and `HeightAboveGround`. Storage tiles are
-internal groups of points; they do not define the voxel size or raster
-resolution used to calculate forest metrics.
+Points retain numeric attributes such as `Classification`, `Intensity`, and
+`HeightAboveGround`. You choose the voxel size and raster resolution when
+calculating metrics, independently of how TileDB stores the points.
 
-## Installation
-
-Install PyForestScan and the native PDAL TileDB drivers in the same environment:
-
-```bash
-conda create -n pyforestscan_env -c conda-forge python=3.12 pdal python-pdal libpdal-tiledb gdal pip
-conda activate pyforestscan_env
-pip install pyforestscan
-```
-
-The Python package `tiledb` is a required PyForestScan dependency and is
-installed by pip. PyForestScan uses it to inspect array metadata and occupied
-bounds. The separate native PDAL plugin provides point-cloud reading and
-writing; installing the Python package alone does not install this plugin.
-See the [installation guide](../installation.md) and the official PDAL
-[TileDB reader](https://pdal.io/en/stable/stages/readers.tiledb.html) and
-[writer](https://pdal.io/en/stable/stages/writers.tiledb.html) documentation.
-
-Run `pdal --drivers` and check that both `readers.tiledb` and `writers.tiledb`
-are listed.
+See the [installation guide](../installation.md) for setup.
 
 ## Create an Array
 
@@ -75,7 +55,7 @@ existing array or append to it. A local TileDB array is a directory; the
 
 ## Inspect and Read an Array
 
-`get_tiledb_info()` inspects metadata without materializing the point cloud:
+`get_tiledb_info()` returns the bounds and CRS without loading the points:
 
 ```python
 from pyforestscan.tiledb_io import get_tiledb_info
@@ -182,8 +162,7 @@ region:
 vfs.s3.region us-west-2
 ```
 
-Use the AWS credentials already configured for your environment. The example
-configuration contains no credentials. TileDB documents its
+Use the AWS credentials configured for your environment. See TileDB's
 [S3 authentication and configuration](https://documentation.cloud.tiledb.com/academy/structure/arrays/tutorials/advanced/backends/amazon-s3/)
 and [configuration file options](https://documentation.cloud.tiledb.com/academy/structure/arrays/tutorials/basics/configuration/).
 
