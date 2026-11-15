@@ -14,6 +14,9 @@ from urllib.parse import urlparse
 
 from pyforestscan.pipeline import _crop_polygon, _filter_radius, _hag_delaunay, _hag_raster, _reproject
 from pyproj.exceptions import CRSError
+from pyforestscan.tiledb_io import (
+    _tiledb_reader, convert_to_tiledb, get_tiledb_info, write_tiledb,
+)
 
 
 def _is_url(input_str):
@@ -185,17 +188,67 @@ def validate_crs(crs_list) -> bool:
     return True
 
 
-def read_lidar(input_file, srs, bounds=None, thin_radius=None,
+def _resolve_source_type(input_file, source_type=None):
+    """Resolve explicit input formats or the existing filename conventions."""
+    if source_type is not None:
+        if not isinstance(source_type, str) or source_type.lower() not in ("las", "copc", "ept", "tiledb"):
+            raise ValueError("source_type must be 'las', 'copc', 'ept', or 'tiledb'")
+        return source_type.lower()
+    filename = os.fspath(input_file).lower()
+    # Retain the existing LAS reader for .laz names, including .copc.laz.
+    # An explicit source_type="copc" selects its indexed reader and bounds.
+    if filename.endswith(('.las', '.laz')):
+        return "las"
+    if filename.endswith('.copc'):
+        return "copc"
+    if filename.endswith('ept.json'):
+        return "ept"
+    raise ValueError(
+        "The input file must be a .las, .laz, .copc, .copc.laz file, or an ept.json file. "
+        "For a TileDB array, pass source_type='tiledb'."
+    )
+
+
+def _reader_stage(input_file, *, source_type=None, bounds=None, srs=None, tiledb_config=None):
+    """Build a native-coordinate reader; TileDB queries may have no overlap."""
+    input_file = os.fspath(input_file)
+    source_type = _resolve_source_type(input_file, source_type)
+    if source_type == "tiledb":
+        reader = _tiledb_reader(input_file, bounds=bounds, config_file=tiledb_config)
+        if reader is None:
+            return None
+    else:
+        if not _is_url(input_file) and not os.path.isfile(input_file):
+            raise FileNotFoundError(f"No such file: '{input_file}'")
+        reader = {"type": f"readers.{source_type}", "filename": input_file}
+        if bounds is not None and source_type in ("ept", "copc"):
+            reader["bounds"] = str(bounds)
+    if srs is not None:
+        reader.pop("default_srs", None)
+        reader["spatialreference"] = srs
+    return reader
+
+
+def read_lidar(input_file, srs=None, bounds=None, thin_radius=None,
                hag=False, hag_dtm=False, dtm=None, crop_poly=False,
-               poly=None, reproject=False) -> np.ndarray or None:
+               poly=None, reproject=False, *, source_type=None,
+               tiledb_config=None) -> list[np.ndarray] | None:
     """
     Read and process a LiDAR point cloud file using PDAL with various options.
 
     Args:
-        input_file (str): Path to the input LiDAR file. Supported formats: .las, .laz, .copc, .copc.laz, or ept.json.
-        srs (str): Spatial Reference System (SRS) of the point cloud.
-        bounds (tuple or list, optional): Bounds for cropping data (only applies to EPT format).
-            Format: ([xmin, xmax], [ymin, ymax], [zmin, zmax]).
+        input_file (str): Point-cloud filename or TileDB array URI. File formats
+            are inferred from .las, .laz, .copc, .copc.laz, or ept.json. TileDB
+            arrays require source_type="tiledb" and may be local directories or
+            remote URIs supported by TileDB, such as s3://bucket/array.
+        srs (str, optional): Override the input CRS without changing coordinates,
+            or the target CRS when reproject=True. Defaults to the source CRS,
+            including CRS metadata stored in a TileDB array.
+        bounds (tuple or list, optional): Native-coordinate bounds for EPT,
+            COPC, or TileDB reads, applied before any reprojection. Format:
+            ([xmin, xmax], [ymin, ymax]) with an optional [zmin, zmax].
+            LAS/LAZ reads ignore this option.
+            For indexed .copc.laz reads, explicitly pass source_type="copc".
         thin_radius (float, optional): Radius for thinning the point cloud. Must be positive.
         hag (bool, optional): If True, calculate Height Above Ground (HAG) using Delaunay triangulation.
             Defaults to False.
@@ -204,11 +257,18 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None,
         dtm (str, optional): Path to the DTM (.tif) file, required if hag_dtm is True.
         crop_poly (bool, optional): If True, crop the point cloud using a polygon. Defaults to False.
         poly (str, optional): Path to a polygon file or the WKT string of the polygon geometry.
-        reproject (bool, optional): If True, reproject the point cloud to the CRS defined by ``srs``.
-            Defaults to False.
+        reproject (bool, optional): If True, reproject the point cloud to the CRS
+            defined by srs, which is required in this case. Defaults to False.
+        source_type (str, optional): Explicit reader: "las", "copc", "ept", or
+            "tiledb". Defaults to filename inference for the file formats;
+            .copc.laz uses the LAS reader by default.
+        tiledb_config (str, optional): TileDB configuration file, passed to
+            metadata inspection and PDAL reads. Useful for S3 settings and
+            credentials; credentials are not written to array metadata.
 
     Returns:
-        np.ndarray or None: Processed point cloud data as a NumPy array, or None if no data is retrieved.
+        list[np.ndarray] or None: PDAL point-view arrays, or None if no points
+            remain after the query and filters.
 
     Raises:
         FileNotFoundError: If the input file, DTM file, or polygon file does not exist.
@@ -216,30 +276,21 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None,
             both 'hag' and 'hag_dtm' are True at the same time; or a required parameter (e.g., DTM for hag_dtm)
             is missing or invalid.
     """
-    if not _is_url(input_file) and not os.path.isfile(input_file):
-        raise FileNotFoundError(f"No such file: '{input_file}'")
-
-    las_extensions = ('.las', '.laz')
-    copc_extensions = ('.copc', '.copc.laz')
-    ept_file = ('ept.json')
-
-    file_lower = input_file.lower()
-    if file_lower.endswith(las_extensions):
-        reader = 'readers.las'
-    elif file_lower.endswith(copc_extensions):
-        reader = 'readers.copc'
-    elif file_lower.endswith(ept_file):
-        reader = 'readers.ept'
-    else:
-        raise ValueError(
-            "The input file must be a .las, .laz, .copc, .copc.laz file, or an ept.json file."
-        )
+    if reproject and not srs:
+        raise ValueError("srs is required when reproject=True")
+    base_pipeline = _reader_stage(
+        input_file, source_type=source_type, bounds=bounds,
+        srs=None if reproject else srs, tiledb_config=tiledb_config,
+    )
 
     if hag and hag_dtm:
         raise ValueError("Cannot use both 'hag' and 'hag_dtm' options at the same time.")
 
     pipeline_stages = []
-    crs_list = []
+    tiledb_source = _resolve_source_type(input_file, source_type) == "tiledb"
+    native_srs = None if base_pipeline is None else (
+        base_pipeline.get("spatialreference") or base_pipeline.get("default_srs")
+    )
 
     if crop_poly:
         if not poly:
@@ -250,6 +301,11 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None,
             if not poly or not os.path.isfile(poly):
                 raise FileNotFoundError(f"No such polygon file: '{poly}'")
             polygon_wkt, crs_vector = load_polygon_from_file(poly)
+            if tiledb_source and base_pipeline is not None:
+                if not native_srs:
+                    raise ValueError("TileDB source CRS is required to crop with a polygon file")
+                if CRS(native_srs) != CRS(crs_vector):
+                    raise ValueError("The polygon CRS must match the TileDB source CRS")
         pipeline_stages.append(_crop_polygon(polygon_wkt))
 
     if thin_radius is not None:
@@ -271,17 +327,16 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None,
         if not dtm.lower().endswith('.tif'):
             raise ValueError("The DTM file must be a .tif file.")
         crs_raster = get_raster_epsg(dtm)
-        crs_list.append(crs_raster)
+        if tiledb_source and base_pipeline is not None:
+            current_srs = srs if reproject else native_srs
+            if not current_srs:
+                raise ValueError("TileDB source CRS is required to calculate HAG from a DTM")
+            if CRS(current_srs) != CRS(crs_raster):
+                raise ValueError("The DTM CRS must match the point-cloud CRS after reprojection")
         pipeline_stages.append(_hag_raster(dtm))
 
-    base_pipeline = {
-        "type": reader,
-        "filename": input_file
-    }
-    if not reproject:
-        base_pipeline["spatialreference"] = srs
-    if bounds and reader == 'readers.ept':
-        base_pipeline["bounds"] = f"{bounds}"
+    if base_pipeline is None:
+        return None
     main_pipeline_json = {
         "pipeline": [
             base_pipeline
@@ -291,7 +346,7 @@ def read_lidar(input_file, srs, bounds=None, thin_radius=None,
     main_pipeline = pdal.Pipeline(json.dumps(main_pipeline_json))
     main_pipeline.execute()
 
-    point_cloud = main_pipeline.arrays
+    point_cloud = [array for array in main_pipeline.arrays if array.size]
     return point_cloud if point_cloud else None
 
 

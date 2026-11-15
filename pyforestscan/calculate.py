@@ -73,6 +73,13 @@ def assign_voxels(arr, voxel_resolution) -> Tuple[np.ndarray, List]:
     x_bins = np.arange(x0, pts['X'].max() + dx, dx)
     y_bins = np.arange(y0, pts['Y'].min() - dy, -dy)
     z_bins = np.arange(0.0, pts['HeightAboveGround'].max() + dz, dz)
+    # A singleton coordinate on a grid line still occupies one voxel.
+    if x_bins.size < 2:
+        x_bins = np.array([x0, x0 + dx])
+    if y_bins.size < 2:
+        y_bins = np.array([y0, y0 - dy])
+    if z_bins.size < 2:
+        z_bins = np.array([0.0, dz])
 
     hist, _ = np.histogramdd(
         np.column_stack((pts['X'], pts['Y'], pts['HeightAboveGround'])),
@@ -526,8 +533,8 @@ def calculate_chm(arr, voxel_resolution, interpolation="linear",
     x_min, x_max = x.min(), x.max()
     y_min, y_max = y.min(), y.max()
 
-    nx = int(np.ceil((x_max - x_min) / x_resolution))
-    ny = int(np.ceil((y_max - y_min) / y_resolution))
+    nx = max(1, int(np.ceil((x_max - x_min) / x_resolution)))
+    ny = max(1, int(np.ceil((y_max - y_min) / y_resolution)))
 
     chm = np.full((nx, ny), np.nan)
 

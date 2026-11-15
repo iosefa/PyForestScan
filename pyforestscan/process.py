@@ -16,6 +16,7 @@ from pyforestscan.filters import remove_outliers_and_clean, downsample_poisson, 
 from pyforestscan.handlers import create_geotiff
 from pyforestscan.pipeline import _filter_expression, _filter_statistical_outlier, _hag_raster, _hag_delaunay
 from pyforestscan.utils import get_bounds_from_ept, get_srs_from_ept
+from pyforestscan.tiledb_io import get_tiledb_info, _tiledb_reader
 
 
 import tempfile
@@ -54,6 +55,7 @@ def _crop_dtm(dtm_path, tile_min_x, tile_min_y, tile_max_x, tile_max_y):
     return cropped_path
 
 
+
 def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        voxel_height=1, buffer_size=0.1, srs=None, hag=False,
                        hag_dtm=False, dtm=None, bounds=None, interpolation=None, remove_outliers=False,
@@ -69,20 +71,24 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                        outliers_before_hag: bool = False,
                        rumple_min_height: float | None = None,
                        rumple_resolution=None,
-                       rumple_method: str = "two_triangle") -> None:
+                       rumple_method: str = "two_triangle",
+                       source_type: str = "ept",
+                       tiledb_config: str | None = None) -> None:
     """
-    Process a large EPT point cloud by tiling, compute CHM or other metrics for each tile,
-    and write the results to the specified output directory.
+    Process an EPT or TileDB point cloud by tiling and write metric GeoTIFFs.
 
     Args:
-        ept_file (str): Path to the EPT file containing the point cloud data.
+        ept_file (str): EPT JSON path/URL. Pass a TileDB array URI here when
+            source_type="tiledb".
         tile_size (tuple): Size of each tile as (tile_width, tile_height).
         output_path (str): Directory where the output files will be saved.
         metric (str): Metric to compute for each tile ("chm", "fhd", "pai", "cover", or "rumple").
         voxel_size (tuple): Voxel resolution as (x_resolution, y_resolution, z_resolution).
         voxel_height (float, optional): Height of each voxel in meters. Required if metric is "fhd", "pai", or "cover".
         buffer_size (float, optional): Fractional buffer size relative to tile size (e.g., 0.1 for 10% buffer). Defaults to 0.1.
-        srs (str, optional): Spatial Reference System for the output. If None, uses SRS from the EPT file.
+        srs (str, optional): Spatial Reference System for the output. Defaults
+            to source metadata. An explicit value overrides the CRS label; this
+            function does not reproject coordinates.
         hag (bool, optional): If True, compute Height Above Ground using Delaunay triangulation. Defaults to False.
         hag_dtm (bool, optional): If True, compute Height Above Ground using a provided DTM raster. Defaults to False.
         dtm (str, optional): Path to the DTM raster file. Required if hag_dtm is True.
@@ -140,6 +146,13 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
             cells are excluded, missing neighbors use the center height locally,
             and edge heights are repeated at the raster boundary. Cells without
             supported area produce NoData.
+        source_type (str, optional): Input format, "ept" (default) or "tiledb".
+            TileDB uses the occupied array bounds and native CRS metadata by
+            default. A zero-width occupied X or Y range expands to one voxel;
+            explicit bounds must have positive width and height. Bounds are
+            always expressed in the source coordinates.
+        tiledb_config (str, optional): TileDB configuration file used for both
+            metadata inspection and bounded PDAL reads, including S3 settings.
 
     Returns:
         None
@@ -150,6 +163,13 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
     """
     if metric not in ["chm", "fhd", "pai", "cover", "rumple"]:
         raise ValueError(f"Unsupported metric: {metric}")
+    source_type = "ept" if source_type is None else source_type
+    if source_type not in ("ept", "tiledb"):
+        raise ValueError("source_type must be 'ept' or 'tiledb' for tiled processing")
+    if source_type == "tiledb":
+        source_resolution = np.asarray(voxel_size, dtype=float)
+        if source_resolution.shape != (3,) or not np.all(np.isfinite(source_resolution) & (source_resolution > 0)):
+            raise ValueError("voxel_size must contain three positive, finite sizes (dx, dy, dz)")
 
     if metric == "rumple":
         resolution = np.asarray(voxel_size, dtype=float)
@@ -175,6 +195,12 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         if interpolation not in (None, "linear", "cubic", "nearest"):
             raise ValueError("interpolation must be None, 'linear', 'cubic', or 'nearest'")
 
+    source_info = None
+    if source_type == "tiledb":
+        source_info = get_tiledb_info(ept_file, config_file=tiledb_config)
+        if source_info["bounds"] is None:
+            return
+
     (min_z, max_z) = (None, None)
     if bounds:
         if len(bounds) == 2:
@@ -182,7 +208,21 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         else:
             (min_x, max_x), (min_y, max_y), (min_z, max_z) = bounds
     else:
-        min_x, max_x, min_y, max_y, min_z, max_z = get_bounds_from_ept(ept_file)
+        source_bounds = (source_info["bounds"] if source_type == "tiledb"
+                         else get_bounds_from_ept(ept_file))
+        min_x, max_x, min_y, max_y, min_z, max_z = source_bounds
+        if source_type == "tiledb":
+            if min_x == max_x:
+                min_x = np.floor(min_x / source_resolution[0]) * source_resolution[0]
+                max_x = min_x + source_resolution[0]
+            if min_y == max_y:
+                max_y = np.ceil(max_y / source_resolution[1]) * source_resolution[1]
+                min_y = max_y - source_resolution[1]
+
+    if source_type == "tiledb":
+        if (not np.all(np.isfinite([min_x, max_x, min_y, max_y]))
+                or min_x >= max_x or min_y >= max_y):
+            raise ValueError("TileDB bounds must have finite positive width and height")
 
     if metric == "rumple":
         requested_bounds = np.asarray([min_x, max_x, min_y, max_y], dtype=float)
@@ -205,7 +245,10 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
         min_y = max_y - int(np.ceil(fine_ny / rumple_factors[1])) * grid_dy
 
     if not srs:
-        srs = get_srs_from_ept(ept_file)
+        srs = (source_info["srs"] if source_type == "tiledb"
+               else get_srs_from_ept(ept_file))
+    if source_type == "tiledb" and not srs:
+        raise ValueError("TileDB array has no CRS metadata; provide srs for the output")
 
     num_tiles_x = int(np.ceil((max_x - min_x) / tile_size[0]))
     num_tiles_y = int(np.ceil((max_y - min_y) / tile_size[1]))
@@ -294,11 +337,22 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                         tile_max_x, tile_max_y
                     )
                     tile_pipeline_stages.append(_hag_raster(cropped_dtm_path))
-                base_pipeline = {
-                    "type": "readers.ept",
-                    "filename": ept_file,
-                    "bounds": f"{tile_bounds}",
-                }
+                if source_type == "tiledb":
+                    base_pipeline = _tiledb_reader(
+                        ept_file, bounds=tile_bounds, config_file=tiledb_config,
+                        info=source_info,
+                    )
+                    if base_pipeline is None:
+                        pbar.update(1)
+                        continue
+                    base_pipeline.pop("default_srs", None)
+                    base_pipeline["spatialreference"] = srs
+                else:
+                    base_pipeline = {
+                        "type": "readers.ept",
+                        "filename": ept_file,
+                        "bounds": f"{tile_bounds}",
+                    }
                 tile_pipeline_json = {
                     "pipeline": [base_pipeline] + tile_pipeline_stages
                 }
@@ -440,28 +494,28 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                 elif metric == "chm":
                     chm, extent = calculate_chm(tile_points, voxel_size, interpolation=interpolation)
 
-                    if buffer_pixels_x * 2 >= chm.shape[1] or buffer_pixels_y * 2 >= chm.shape[0]:
+                    if buffer_pixels_x * 2 >= chm.shape[0] or buffer_pixels_y * 2 >= chm.shape[1]:
                         if verbose:
                             print(
                                 f"Warning: Buffer size exceeds CHM dimensions for tile ({i}, {j}). Adjusting buffer size.")
-                        buffer_pixels_x = max(0, chm.shape[1] // 2 - 1)
-                        buffer_pixels_y = max(0, chm.shape[0] // 2 - 1)
+                        buffer_pixels_x = min(buffer_pixels_x, max(0, (chm.shape[0] - 1) // 2))
+                        buffer_pixels_y = min(buffer_pixels_y, max(0, (chm.shape[1] - 1) // 2))
 
                     # Safe crop: avoid Python's -0 slice behavior producing empty arrays.
                     if buffer_pixels_x < 0 or buffer_pixels_y < 0:
                         raise ValueError("Computed negative buffer pixels; check voxel and buffer sizes.")
 
                     start_x = buffer_pixels_x
-                    end_x = chm.shape[1] - buffer_pixels_x if buffer_pixels_x > 0 else chm.shape[1]
+                    end_x = chm.shape[0] - buffer_pixels_x if buffer_pixels_x > 0 else chm.shape[0]
                     start_y = buffer_pixels_y
-                    end_y = chm.shape[0] - buffer_pixels_y if buffer_pixels_y > 0 else chm.shape[0]
+                    end_y = chm.shape[1] - buffer_pixels_y if buffer_pixels_y > 0 else chm.shape[1]
 
                     # If cropping would yield an empty array due to small tiles, skip cropping
                     if end_x <= start_x or end_y <= start_y:
                         # Fall back to no buffer crop for this tile
                         core = chm
                     else:
-                        core = chm[start_y:end_y, start_x:end_x]
+                        core = chm[start_x:end_x, start_y:end_y]
 
                     chm = core
 
@@ -520,23 +574,23 @@ def process_with_tiles(ept_file, tile_size, output_path, metric, voxel_size,
                             )
 
                     if current_buffer_size > 0:
-                        if buffer_pixels_x * 2 >= result.shape[1] or buffer_pixels_y * 2 >= result.shape[0]:
+                        if buffer_pixels_x * 2 >= result.shape[0] or buffer_pixels_y * 2 >= result.shape[1]:
                             if verbose:
                                 print(
                                     f"Warning: Buffer size exceeds {metric.upper()} dimensions for tile ({i}, {j}). "
                                     f"Adjusting buffer size."
                                 )
-                            buffer_pixels_x = max(0, result.shape[1] // 2 - 1)
-                            buffer_pixels_y = max(0, result.shape[0] // 2 - 1)
+                            buffer_pixels_x = min(buffer_pixels_x, max(0, (result.shape[0] - 1) // 2))
+                            buffer_pixels_y = min(buffer_pixels_y, max(0, (result.shape[1] - 1) // 2))
 
                         # Safe crop (avoid -0 slicing)
                         start_x = buffer_pixels_x
-                        end_x = result.shape[1] - buffer_pixels_x if buffer_pixels_x > 0 else result.shape[1]
+                        end_x = result.shape[0] - buffer_pixels_x if buffer_pixels_x > 0 else result.shape[0]
                         start_y = buffer_pixels_y
-                        end_y = result.shape[0] - buffer_pixels_y if buffer_pixels_y > 0 else result.shape[0]
+                        end_y = result.shape[1] - buffer_pixels_y if buffer_pixels_y > 0 else result.shape[1]
 
                         if end_x > start_x and end_y > start_y:
-                            result = result[start_y:end_y, start_x:end_x]
+                            result = result[start_x:end_x, start_y:end_y]
 
                     # Derive core extent from voxel grid extent and applied pixel crop to avoid stretching
                     dx, dy = voxel_size[0], voxel_size[1]

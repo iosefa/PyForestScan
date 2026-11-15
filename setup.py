@@ -26,6 +26,7 @@ setuptools.setup(
         'requests>=2.32.4',
         'rasterio>=1.3.11',
         'pdal>=3.4.5',
+        'tiledb>=0.36.1',
         'geopandas>=1.1.1',
         'pyproj>=3.7.1',
         'shapely>=2.1.1',
@@ -41,6 +42,7 @@ setuptools.setup(
             'pytest-cov>=4.0.0',
             'flake8>=6.0.0',
             'black>=23.0.0',
+            'moto[s3,server]>=5.0.0',
         ],
     },
 )

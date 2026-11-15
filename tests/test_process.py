@@ -546,3 +546,44 @@ def test_rumple_tiles_large_output_cell_does_not_allocate_fine_padding(rumple_ep
         assert src.shape == (1, 1)
         assert src.res == output_resolution
         np.testing.assert_allclose(src.read(1), [[expected]])
+
+
+@pytest.mark.parametrize('metric', ['chm', 'pai', 'cover', 'fhd'])
+@patch('pyforestscan.process.pdal.Pipeline')
+def test_buffered_rectangular_raster_keeps_xy_axes(mock_pipeline_cls, tmp_path, metric):
+    from pyforestscan.calculate import (
+        assign_voxels, calculate_chm, calculate_pad, calculate_pai,
+        calculate_canopy_cover, calculate_fhd,
+    )
+
+    # Different X/Y resolutions, raster sizes, and buffer widths expose swaps
+    # that square cells and equal buffers can conceal.
+    records = []
+    for xi in range(13):
+        for yi in range(9):
+            for level in range(4 + (xi + yi) % 5):
+                records.append((101 + 2 * xi, 201.5 + 3 * yi, level + 0.5))
+    points = np.array(records, dtype=[('X', 'f8'), ('Y', 'f8'), ('HeightAboveGround', 'f8')])
+    mock_pipeline_cls.return_value.arrays = [points]
+    resolution = (2, 3, 1)
+    if metric == 'chm':
+        expected, extent = calculate_chm(points, resolution, interpolation=None)
+    else:
+        voxels, extent = assign_voxels(points, resolution)
+        if metric == 'fhd':
+            expected = calculate_fhd(voxels, voxel_height=1)
+        else:
+            pad = calculate_pad(voxels, 1)
+            expected = (calculate_pai(pad, 1) if metric == 'pai'
+                        else calculate_canopy_cover(pad, voxel_height=1))
+    if metric != 'fhd':
+        # 10% of the 40 x 30 tile is 4 x 3 coordinate units: 2 x 1 pixels.
+        expected = expected[2:-2, 1:-1]
+        extent = [extent[0] + 4, extent[1] - 4, extent[2] + 3, extent[3] - 3]
+    process_with_tiles('fake_ept', (40, 30), str(tmp_path), metric, resolution,
+                       bounds=([100, 126], [200, 227]), srs='EPSG:32605')
+    with rasterio.open(tmp_path / f'tile_0_0_{metric}.tif') as src:
+        assert src.res == (2, 3)
+        np.testing.assert_allclose(tuple(src.bounds), [extent[0], extent[2], extent[1], extent[3]])
+        actual = src.read(1, masked=True).filled(np.nan).T
+        np.testing.assert_allclose(actual, expected, equal_nan=True)

@@ -39,6 +39,7 @@ nav:
     - Usage:
         - usage/getting-started-import-and-preprocess.md
         - usage/digital-terrain-models.md
+        - TileDB Point Clouds: usage/tiledb.md
         - Forest Structure:
             - usage/forest-structure/intro.md
             - usage/forest-structure/chm.md
@@ -55,10 +56,12 @@ nav:
         - examples/getting-started-importing-preprocessing-dtm-chm.ipynb
         - examples/calculate-forest-metrics.ipynb
         - examples/working-with-large-point-clouds.ipynb
+        - Working with TileDB: examples/working-with-tiledb.ipynb
     - API Reference:
         - calculate module: api/calculate.md
         - filters module: api/filters.md
         - handlers module: api/handlers.md
+        - TileDB IO module: api/tiledb_io.md
         - pipeline module: api/pipeline.md
         - process module: api/process.md
         - visualize module: api/visualize.md

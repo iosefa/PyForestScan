@@ -29,7 +29,7 @@ jobs:
 
       - name: Create Conda environment with Python and PDAL
         run: |
-          conda create --name pyforestscan_env python=${{ matrix.python-version }} pip pdal gdal -c conda-forge -v
+          conda create --name pyforestscan_env python=${{ matrix.python-version }} pip pdal libpdal-tiledb gdal -c conda-forge -v
 
       - name: Activate Conda environment and install dependencies
         shell: bash -l {0}
@@ -37,6 +37,12 @@ jobs:
           conda activate pyforestscan_env
           python -m pip install --no-user -r requirements.txt
           python -m pip install --no-user -r requirements-dev.txt
+
+      - name: Check native TileDB drivers
+        shell: bash -l {0}
+        run: |
+          conda activate pyforestscan_env
+          python -c "import pdal; assert hasattr(pdal.Reader, 'tiledb') and hasattr(pdal.Writer, 'tiledb'), 'PDAL TileDB drivers are required'"
 
       - name: Run tests
         shell: bash -l {0}
